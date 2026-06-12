@@ -433,10 +433,14 @@ function poblarModalConfigPeriod(data) {
     const div = document.createElement("div");
     div.id = `rowPeriodo_${periodo.idPeriodo}`;
     div.className =
-      "grid grid-cols-[60px_1fr_1fr_1fr_130px] gap-4 px-4 py-3 items-center hover:bg-gray-50 duration-200";
+      "grid grid-cols-[60px_1fr_1fr_1fr_130px] gap-4 px-4 py-3  hover:bg-gray-50 duration-200";
     div.innerHTML = `
-      <span class="font-medium text-gray-500">${periodo.ordenPeriodo}</span>
-      <span class="font-medium text-gray-700">${periodo.descPeriodo}</span>
+      <div class="flex items-center">
+        <span class="font-medium items-start text-gray-500">${periodo.ordenPeriodo}</span>
+      </div>
+      <div class="flex items-center">
+        <span class="font-medium items-start text-gray-700">${periodo.descPeriodo}</span>
+      </div>
       <custom-datepicker
         id="dpInicio_${periodo.idPeriodo}"
         label="Fecha inicial"
@@ -444,7 +448,8 @@ function poblarModalConfigPeriod(data) {
         ${minDateInicio ? `min-date="${minDateInicio}"` : ""}
         max-date="${data.fechaFin}"
         disable-saturdays
-        disable-sundays>
+        disable-sundays
+        required>
       </custom-datepicker>
       <custom-datepicker
         id="dpFin_${periodo.idPeriodo}"
@@ -452,12 +457,15 @@ function poblarModalConfigPeriod(data) {
         name="fechaFin_${periodo.idPeriodo}"
         max-date="${data.fechaFin}"
         disable-saturdays
-        disable-sundays>
+        disable-sundays
+        required>
       </custom-datepicker>
-      <span id="estadoPeriodo_${periodo.idPeriodo}" class="inline-flex items-center gap-2 px-2 py-0.5 rounded-full text-xs font-semibold ${estadoClass}">
-        <span class="w-2 h-2 rounded-full ${estadoDot}"></span>
-        ${estadoLabel}
-      </span>
+      <div class="flex items-center">
+        <span id="estadoPeriodo_${periodo.idPeriodo}" class="inline-flex items-center gap-2 px-2 py-0.5 rounded-full text-xs font-semibold ${estadoClass}">
+          <span class="w-2 h-2 rounded-full ${estadoDot}"></span>
+          ${estadoLabel}
+        </span>
+      </div>
     `;
     lista.appendChild(div);
 
@@ -523,11 +531,11 @@ function poblarModalConfigPeriod(data) {
 
 // ── GUARDAR PERIODOS ──────────────────────────────────────────
 window.guardarPeriodos = async function () {
+  if (!validatePeriodos()) return;
+
   const lista = document.getElementById("listaPeriodos");
   const filas = lista.querySelectorAll("[id^='rowPeriodo_']");
-
   const periodos = [];
-  let hayIncompleto = false;
 
   filas.forEach((fila) => {
     const id = fila.id.replace("rowPeriodo_", "");
@@ -536,29 +544,10 @@ window.guardarPeriodos = async function () {
     const inicio = dpInicio?.getValue() || null;
     const fin = dpFin?.getValue() || null;
 
-    if ((inicio && !fin) || (!inicio && fin)) {
-      hayIncompleto = true;
-      return;
-    }
     if (inicio && fin) {
       periodos.push({ idPeriodo: id, fechaInicio: inicio, fechaFin: fin });
     }
   });
-
-  if (hayIncompleto) {
-    AlertService.warning(
-      "¡Atención!",
-      "Hay períodos con fecha de inicio o fin incompleta. Completa ambas fechas o déjalos vacíos",
-    );
-    return;
-  }
-  if (periodos.length === 0) {
-    AlertService.warning(
-      "¡Atención!",
-      "Debes configurar al menos un período con fecha de inicio y fin",
-    );
-    return;
-  }
 
   try {
     const formData = new FormData();
@@ -722,6 +711,17 @@ function validateForm() {
   let valid = true;
   campos.forEach((campo) => {
     if (!campo.checkValidity()) valid = false;
+  });
+  return valid;
+}
+
+function validatePeriodos() {
+  const datepickers = document.querySelectorAll(
+    "#listaPeriodos custom-datepicker",
+  );
+  let valid = true;
+  datepickers.forEach((dp) => {
+    if (!dp.checkValidity()) valid = false;
   });
   return valid;
 }
