@@ -1,0 +1,30 @@
+{
+  "name": "educore",
+  "version": "1.0.0",
+  "description": "1. Crear una base de datos MySQL.\r 2. Importar el script `database/dbeducore.sql`.\r 3. Configurar la conexión a la base de datos.\r 4. Ejecutar el proyecto.",
+  "keywords": [],
+  "homepage": "https://github.com/BrayamQR/educore_php#readme",
+  "bugs": {
+    "url": "https://github.com/BrayamQR/educore_php/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BrayamQR/educore_php.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "tailwind:watch": "tailwindcss -i ./src/css/tailwind.config.css -o ./src/css/tailwind.css --watch"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.17",
+    "bootstrap-icons": "^1.13.1",
+    "flatpickr": "^4.6.13",
+    "jsqr": "^1.4.0",
+    "sweetalert2": "^11.26.17",
+    "tailwind-scrollbar": "^4.0.2",
+    "tailwindcss": "^4.1.17"
+  }
+}

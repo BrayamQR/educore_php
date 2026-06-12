@@ -1,0 +1,572 @@
+custom-text-field,
+custom-number-field,
+custom-select,
+custom-autocomplete,
+custom-datepicker,
+custom-textarea {
+  display: block;
+  position: relative;
+}
+
+.input-container {
+  position: relative;
+  width: 100%;
+}
+
+.custom-component label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  background: white;
+  padding: 0 4px;
+  color: #777;
+  font-size: 0.9rem;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+custom-textarea .textarea-container label {
+  top: 25px;
+}
+
+.custom-component input {
+  width: 100%;
+  padding: 12px;
+  border: solid 1px #bebebe;
+  border-radius: 4px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s ease;
+  display: block;
+}
+
+.custom-component textarea {
+  width: 100%;
+  padding: 12px;
+  border: solid 1px #bebebe;
+  border-radius: 4px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.3s ease;
+  display: block;
+  resize: none;
+  min-height: calc(1.5em * 2 + 24px); /* 2 líneas + padding */
+  line-height: 1.5;
+}
+
+.custom-component input:focus,
+.custom-component textarea:focus {
+  border-color: #90caf9;
+}
+
+.custom-component input:focus + label:not(.valid):not(.error),
+.custom-component textarea:focus + label:not(.valid):not(.error) {
+  color: #90caf9;
+}
+
+.custom-component input:focus-within + label,
+.custom-component input:not(:placeholder-shown) + label,
+.custom-component textarea:focus-within + label,
+.custom-component textarea:not(:placeholder-shown) + label {
+  top: 0;
+  left: 8px;
+  font-size: 0.75rem;
+}
+
+.custom-component .validation-message {
+  color: #b00020;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  display: block;
+}
+
+.custom-component input.error,
+.custom-component textarea.error {
+  border-color: #b00020;
+}
+
+.custom-component label.error {
+  color: #b00020;
+}
+
+.custom-component input.valid,
+.custom-component textarea.valid {
+  border-color: #4caf50;
+}
+.custom-component label.valid {
+  color: #4caf50;
+}
+
+.validation-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+custom-select .validation-icon {
+  right: 35px;
+}
+
+.validation-icon.valid {
+  color: #4caf50;
+}
+
+.validation-icon.error {
+  color: #b00020;
+}
+
+.input-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #777;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #3f3f3f;
+}
+
+.required-asterisk {
+  color: #d32f2f;
+  margin-left: 5px;
+  font-weight: bold;
+  font-size: 0.9em;
+  display: inline-block;
+  position: relative;
+  top: 3px;
+}
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.input-select {
+  cursor: pointer;
+  user-select: none;
+}
+
+.input-datepicker {
+  cursor: pointer;
+  user-select: none;
+}
+
+.options-container {
+  position: fixed;
+  background: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  border-radius: 5px;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition:
+    max-height 0.25s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  z-index: 1000;
+}
+
+.options-container.open {
+  max-height: 220px;
+  opacity: 1;
+  transform: translateY(0);
+  overflow-y: auto;
+}
+
+.options-container ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.options-container ul li {
+  padding: 15px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.options-container ul li:hover {
+  background: #f0f0f0;
+}
+
+.select-list li.selected {
+  background: #f3f4ff;
+  font-weight: 500;
+  color: #4f46e5;
+}
+
+.select-list li.selected:hover {
+  background: #f3f4ff;
+}
+
+.select-list li.highlighted {
+  background: #d0eaff;
+}
+
+.select-list li.no-results {
+  padding: 20px 15px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  margin: 5px;
+}
+
+.select-list li.no-results:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.select-list li.no-results::before {
+  content: "🔍";
+  display: block;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 14px;
+  color: #3f3f3f;
+}
+
+.select-arrow i {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.select-arrow i.rotated {
+  transform: rotate(180deg) !important;
+}
+
+.clear-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  right: 35px;
+  display: none;
+  width: 25px;
+  height: 25px;
+  line-height: 25px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+}
+.clear-btn:hover {
+  background: #ddd;
+}
+
+.content-button {
+  position: relative;
+  display: inline-block;
+  display: flex;
+  align-items: center;
+}
+
+.custom-button {
+  padding: 10px 20px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.5s ease;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+.custom-button i {
+  margin-right: 5px;
+}
+
+.custom-button:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+}
+.custom-button:disabled {
+  background: #ccc !important;
+  color: #666 !important;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
+}
+
+.custom-button:disabled:hover {
+  background: #ccc;
+  box-shadow: none;
+}
+
+.custom-button-fab {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 14px;
+  text-align: center;
+  line-height: 30px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  border: none;
+  cursor: pointer;
+  transition: all 0.5s ease;
+}
+.custom-button-fab:hover {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
+}
+
+.custom-button-fab:disabled {
+  background: #ccc !important;
+  color: #666 !important;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
+}
+
+.custom-button-fab:disabled:hover {
+  background: #ccc;
+  box-shadow: none;
+}
+
+.tooltip {
+  position: fixed;
+  background: #2a2c30;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%) translateY(6px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+  z-index: 999;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+}
+
+.tooltip.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.tooltip::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: #2a2c30 transparent transparent transparent;
+}
+
+dialog-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+}
+
+/* ===== BACKDROP ===== */
+dialog-modal .modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 1rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+/* ===== MODAL ===== */
+dialog-modal .modal {
+  background-color: #ffffff;
+  border-radius: 5px;
+  width: 100%;
+  margin: auto;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  max-height: 95%;
+  overflow-y: auto;
+  transform: translateY(20px) scale(0.98);
+  opacity: 0;
+  transition:
+    transform 0.25s ease,
+    opacity 0.25s ease;
+}
+
+/* ===== OPEN ===== */
+dialog-modal.open {
+  pointer-events: auto;
+}
+
+dialog-modal.open .modal-backdrop {
+  opacity: 1;
+}
+
+dialog-modal.open .modal {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+/* ===== HEADER ===== */
+dialog-modal .modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1rem;
+  background-color: #ffffff;
+}
+
+dialog-modal .modal-header button.close-btn {
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+dialog-modal .modal-header button.close-btn:hover {
+  background-color: #eeeeee;
+}
+
+/* ===== BODY ===== */
+dialog-modal .modal-body {
+  padding: 1rem;
+}
+
+/* ===== FOOTER ===== */
+dialog-modal .modal-footer {
+  border-top: 1px solid #e0e0e0;
+  padding: 1rem;
+}
+
+.data-paginator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  gap: 1rem;
+}
+
+.paginator-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  transition:
+    background-color 0.2s,
+    opacity 0.2s;
+}
+
+.paginator-btn:hover:not(:disabled) {
+  background-color: #f9fafb;
+}
+
+.paginator-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.paginator-btn i {
+  font-size: 0.875rem;
+}
+
+.paginator-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.paginator-range,
+.paginator-page {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.paginator-label {
+  color: #6b7280;
+}
+
+.paginator-info strong {
+  color: #111827;
+  font-weight: 600;
+}
+
+.paginator-current {
+  color: #7c3aed !important;
+  font-weight: 700 !important;
+}
+
+.paginator-divider {
+  color: #d1d5db;
+  margin: 0 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .data-paginator {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .paginator-btn {
+    padding: 0.5rem;
+  }
+
+  .paginator-info {
+    font-size: 0.75rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .paginator-range::before {
+    content: "";
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .paginator-info {
+    font-size: 0.8125rem;
+  }
+}

@@ -1,0 +1,200 @@
+@import "./tailwind.css";
+@import "../../node_modules/flatpickr/dist/flatpickr.min.css";
+@import "../../node_modules/bootstrap-icons/font/bootstrap-icons.css";
+@import "../shared/liteUI/css/liteUI.css";
+
+:root {
+  --qr-frame-size: 360px; /* más grande en desktop */
+  --qr-overlay-color: rgba(0, 0, 0, 0.6);
+  --qr-corner-color: #38bdf8;
+  --qr-line-color: #38bdf8;
+}
+
+/* Contenedor principal de la cámara */
+.qr-camera-wrapper {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 290px);
+  min-height: 450px;
+  overflow: hidden;
+  background: #000;
+}
+
+/* Video */
+.qr-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Solo desktop: invertir para webcam frontal */
+@media (min-width: 1024px) {
+  .qr-video {
+    transform: scaleX(-1);
+  }
+}
+
+/* Paneles oscuros alrededor del recuadro */
+.qr-overlay-top,
+.qr-overlay-bottom,
+.qr-overlay-left,
+.qr-overlay-right {
+  position: absolute;
+  background: var(--qr-overlay-color);
+  backdrop-filter: blur(2px);
+  z-index: 1;
+}
+
+.qr-overlay-top {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: calc(50% - var(--qr-frame-size) / 2);
+}
+
+.qr-overlay-bottom {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(50% - var(--qr-frame-size) / 2);
+}
+
+.qr-overlay-left {
+  top: calc(50% - var(--qr-frame-size) / 2);
+  left: 0;
+  width: calc(50% - var(--qr-frame-size) / 2);
+  height: var(--qr-frame-size);
+}
+
+.qr-overlay-right {
+  top: calc(50% - var(--qr-frame-size) / 2);
+  right: 0;
+  width: calc(50% - var(--qr-frame-size) / 2);
+  height: var(--qr-frame-size);
+}
+
+/* Contenedor del marco centrado */
+.qr-frame-wrapper {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Marco QR */
+.qr-frame {
+  position: relative;
+  width: var(--qr-frame-size);
+  height: var(--qr-frame-size);
+}
+
+/* Esquinas */
+.qr-corner {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-color: var(--qr-corner-color);
+  border-style: solid;
+  border-width: 0;
+}
+
+.qr-corner-tl {
+  top: 0;
+  left: 0;
+  border-top-width: 4px;
+  border-left-width: 4px;
+  border-top-left-radius: 4px;
+}
+.qr-corner-tr {
+  top: 0;
+  right: 0;
+  border-top-width: 4px;
+  border-right-width: 4px;
+  border-top-right-radius: 4px;
+}
+.qr-corner-bl {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: 4px;
+  border-left-width: 4px;
+  border-bottom-left-radius: 4px;
+}
+.qr-corner-br {
+  bottom: 0;
+  right: 0;
+  border-bottom-width: 4px;
+  border-right-width: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+/* Línea de escaneo */
+.qr-scan-line {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  background: var(--qr-line-color);
+  opacity: 0.9;
+  animation: qrScanMove 2s linear infinite;
+}
+
+@keyframes qrScanMove {
+  0% {
+    top: 4px;
+  }
+  50% {
+    top: calc(100% - 4px);
+  }
+  100% {
+    top: 4px;
+  }
+}
+
+/* Texto instrucción */
+.qr-hint {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 6px 16px;
+  border-radius: 999px;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
+
+/* Responsivo: frame más pequeño en móvil */
+@media (max-width: 768px) {
+  :root {
+    --qr-frame-size: 240px;
+  }
+
+  .qr-camera-wrapper {
+    height: calc(100vh - 320px);
+    min-height: 350px;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

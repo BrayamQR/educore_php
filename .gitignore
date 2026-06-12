@@ -1,0 +1,3 @@
+node_modules/
+public/qr-students/*
+!public/qr-students/.gitkeep
