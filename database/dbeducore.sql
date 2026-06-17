@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 10-06-2026 a las 05:30:33
--- Versión del servidor: 9.7.0
+-- Tiempo de generación: 17-06-2026 a las 22:44:40
+-- Versión del servidor: 8.4.7
 -- Versión de PHP: 8.3.28
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -114,6 +114,27 @@ CREATE TABLE IF NOT EXISTS `aulalectiva` (
   KEY `id_aula` (`id_aula`),
   KEY `id_aniolectivo` (`id_aniolectivo`),
   KEY `id_docente` (`id_docente`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `dianolectivo`
+--
+
+DROP TABLE IF EXISTS `dianolectivo`;
+CREATE TABLE IF NOT EXISTS `dianolectivo` (
+  `id_dianolectivo` bigint NOT NULL AUTO_INCREMENT,
+  `id_aniolectivo` bigint NOT NULL,
+  `nom_evento` varchar(150) COLLATE utf8mb4_spanish_ci NOT NULL,
+  `fecha_inicio` date NOT NULL,
+  `fecha_fin` date NOT NULL,
+  `tipo_origen` tinyint NOT NULL COMMENT '1=automatico plantilla, 2=manual',
+  `id_tipodianolectivo` bigint NOT NULL COMMENT '1=Dia no lectivo, 2=Periodo no lectivo',
+  `estado` tinyint DEFAULT '1',
+  `vigente` tinyint DEFAULT '1',
+  PRIMARY KEY (`id_dianolectivo`),
+  KEY `id_aniolectivo` (`id_aniolectivo`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 -- --------------------------------------------------------
@@ -599,6 +620,72 @@ INSERT INTO `periodo` (`id_periodo`, `id_aniolectivo`, `desc_periodo`, `fecha_in
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `plantilla_dianolectivo`
+--
+
+DROP TABLE IF EXISTS `plantilla_dianolectivo`;
+CREATE TABLE IF NOT EXISTS `plantilla_dianolectivo` (
+  `id_plantilladianolectivo` bigint NOT NULL AUTO_INCREMENT,
+  `cod_evento` varchar(50) COLLATE utf8mb4_spanish_ci NOT NULL,
+  `nom_evento` varchar(150) COLLATE utf8mb4_spanish_ci NOT NULL,
+  `id_tipogeneracion` bigint NOT NULL,
+  `cod_regla` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `mes_inicio` tinyint DEFAULT NULL,
+  `dia_inicio` tinyint DEFAULT NULL,
+  `mes_fin` tinyint DEFAULT NULL,
+  `dia_fin` tinyint DEFAULT NULL,
+  `estado` tinyint DEFAULT '1',
+  `vigente` tinyint DEFAULT '1',
+  PRIMARY KEY (`id_plantilladianolectivo`),
+  KEY `id_tipogeneracion` (`id_tipogeneracion`)
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `plantilla_dianolectivo`
+--
+
+INSERT INTO `plantilla_dianolectivo` (`id_plantilladianolectivo`, `cod_evento`, `nom_evento`, `id_tipogeneracion`, `cod_regla`, `mes_inicio`, `dia_inicio`, `mes_fin`, `dia_fin`, `estado`, `vigente`) VALUES
+(1, 'ANIO_NUEVO', 'Año Nuevo', 1, NULL, 1, 1, 1, 1, 1, 1),
+(2, 'SEMANA_SANTA', 'Semana Santa', 2, 'SEMANA_SANTA', NULL, NULL, NULL, NULL, 1, 1),
+(3, 'DIA_TRABAJO', 'Día del Trabajo', 1, NULL, 5, 1, 5, 1, 1, 1),
+(4, 'SAN_PEDRO_SAN_PABLO', 'San Pedro y San Pablo', 1, NULL, 6, 29, 6, 29, 1, 1),
+(5, 'FIESTAS_PATRIAS', 'Fiestas Patrias', 1, NULL, 7, 28, 7, 29, 1, 1),
+(6, 'SANTA_ROSA_LIMA', 'Santa Rosa de Lima', 1, NULL, 8, 30, 8, 30, 1, 1),
+(7, 'COMBATE_ANGAMOS', 'Combate de Angamos', 1, NULL, 10, 8, 10, 8, 1, 1),
+(8, 'TODOS_LOS_SANTOS', 'Todos los Santos', 1, NULL, 11, 1, 11, 1, 1, 1),
+(9, 'INMACULADA_CONCEPCION', 'Inmaculada Concepción', 1, NULL, 12, 8, 12, 8, 1, 1),
+(10, 'NAVIDAD', 'Navidad', 1, NULL, 12, 25, 12, 25, 1, 1),
+(11, 'DIA_MADRE', 'Día de la Madre', 2, 'SEGUNDO_DOMINGO_MAYO', NULL, NULL, NULL, NULL, 1, 1),
+(12, 'DIA_PADRE', 'Día del Padre', 2, 'TERCER_DOMINGO_JUNIO', NULL, NULL, NULL, NULL, 1, 1),
+(13, 'DIA_MAESTRO', 'Día del Maestro', 1, NULL, 7, 6, 7, 6, 1, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `tipogeneracion`
+--
+
+DROP TABLE IF EXISTS `tipogeneracion`;
+CREATE TABLE IF NOT EXISTS `tipogeneracion` (
+  `id_tipogeneracion` bigint NOT NULL AUTO_INCREMENT,
+  `cod_tipogeneracion` varchar(50) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `nom_tipogeneracion` varchar(100) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `estado` tinyint DEFAULT '1',
+  `vigente` tinyint DEFAULT '1',
+  PRIMARY KEY (`id_tipogeneracion`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `tipogeneracion`
+--
+
+INSERT INTO `tipogeneracion` (`id_tipogeneracion`, `cod_tipogeneracion`, `nom_tipogeneracion`, `estado`, `vigente`) VALUES
+(1, 'FIJA', 'Fecha fija', 1, 1),
+(2, 'CALCULADA', 'fecha calculada', 1, 1);
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `usuario`
 --
 
@@ -655,6 +742,12 @@ ALTER TABLE `aulalectiva`
   ADD CONSTRAINT `aulalectiva_ibfk_3` FOREIGN KEY (`id_aniolectivo`) REFERENCES `aniolectivo` (`id_aniolectivo`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Filtros para la tabla `dianolectivo`
+--
+ALTER TABLE `dianolectivo`
+  ADD CONSTRAINT `dianolectivo_ibfk_1` FOREIGN KEY (`id_aniolectivo`) REFERENCES `aniolectivo` (`id_aniolectivo`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Filtros para la tabla `matricula`
 --
 ALTER TABLE `matricula`
@@ -673,6 +766,12 @@ ALTER TABLE `menubyperfil`
 --
 ALTER TABLE `periodo`
   ADD CONSTRAINT `periodo_ibfk_1` FOREIGN KEY (`id_aniolectivo`) REFERENCES `aniolectivo` (`id_aniolectivo`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `plantilla_dianolectivo`
+--
+ALTER TABLE `plantilla_dianolectivo`
+  ADD CONSTRAINT `plantilla_dianolectivo_ibfk_1` FOREIGN KEY (`id_tipogeneracion`) REFERENCES `tipogeneracion` (`id_tipogeneracion`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `usuario`
