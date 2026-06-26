@@ -82,44 +82,105 @@
             <data-paginator id="paginatorList" items-per-page="20"></data-paginator>
         </div>
     </main>
-    <dialog-modal id="DialogFormHoliday" size="max-w-lg">
+    <dialog-modal id="DialogFormHoliday" size="max-w-2xl">
         <div slot="header" class="flex gap-3 items-center">
             <div class="bg-green-100 w-10 h-10 rounded-md flex items-center justify-center">
                 <i class="bi bi-calendar2-event text-green-600 text-xl"></i>
             </div>
 
             <div>
-                <h3 class="font-bold">Formulario del feriado</h3>
-                <p class="text-sm text-neutral-500">Registra o edita un feriado</p>
+                <h3 class="font-bold">Registrar dia no lectivo</h3>
+                <p class="text-sm text-neutral-500">Seleccione el tipo de dia no lectivo</p>
             </div>
         </div>
         <div slot="body">
-            <form action="" id="formHoliday" novalidate>
-                <input type="hidden" name="idFeriado" id="idFeriado">
-                <section class="flex flex-col gap-5">
-                    <custom-text-field
-                        label="Nombre del feriado"
-                        name="nomFeriado"
-                        required>
-                    </custom-text-field>
-                    <custom-textarea
-                        label="Descripción del feriado"
-                        name="descFeriado">
-                    </custom-textarea>
-                    <custom-datepicker
-                        label="Fecha del feriado"
-                        name="fechaFeriado"
-                        required>
-                    </custom-datepicker>
-                    <custom-select
-                        label="Tipo de feriado"
-                        name="idTipoFeriado"
-                        required>
-                        <option value="1">Feriado nacional</option>
-                        <option value="2">Feriado institucional</option>
-                    </custom-select>
-                </section>
-            </form>
+            <section class="flex flex-col gap-5">
+                <div class="flex flex-col gap-2">
+                    <h4 class="text-sm font-medium text-gray-700">Tipo de dia no lectivo</h4>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                        <label class="typeholiday-card cursor-pointer h-full">
+                            <input type="radio" name="tipoDiaNoLectivo" value="nacional" class="typeholiday-radio hidden">
+                            <div class="border-2 border-gray-200 rounded-lg p-4 flex flex-col gap-2 hover:border-sky-400 hover:bg-sky-50 duration-200 holiday-card-inner h-full">
+                                <div class="w-9 h-9 bg-sky-100 rounded-lg flex items-center justify-center">
+                                    <i class="bi bi-calendar2-check text-sky-600"></i>
+                                </div>
+                                <p class="font-semibold text-gray-700 text-sm">Feriados nacionales</p>
+                                <p class="text-xs text-gray-500">Seleccione uno o varios feriados nacionales para registrarlos en el año lectivo</p>
+                            </div>
+                        </label>
+                        <label class="typeholiday-card cursor-pointer h-full">
+                            <input type="radio" name="tipoDiaNoLectivo" value="especifica" class="typeholiday-radio hidden">
+                            <div class="border-2 border-gray-200 rounded-lg p-4 flex flex-col gap-2 hover:border-violet-400 hover:bg-violet-50 duration-200 holiday-card-inner h-full">
+                                <div class="w-9 h-9 bg-violet-100 rounded-lg flex items-center justify-center">
+                                    <i class="bi bi-calendar-date text-violet-600"></i>
+                                </div>
+                                <p class="font-semibold text-gray-700 text-sm">Fecha específica</p>
+                                <p class="text-xs text-gray-500">Registre un día no lectivo para una única fecha</p>
+                            </div>
+                        </label>
+                        <label class="typeholiday-card cursor-pointer h-full">
+                            <input type="radio" name="tipoDiaNoLectivo" value="rango" class="typeholiday-radio hidden">
+                            <div class="border-2 border-gray-200 rounded-lg p-4 flex flex-col gap-2 hover:border-emerald-400 hover:bg-emerald-50 duration-200 holiday-card-inner h-full">
+                                <div class="w-9 h-9 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                    <i class="bi bi-calendar-range text-emerald-600"></i>
+                                </div>
+                                <p class="font-semibold text-gray-700 text-sm">Rango de fechas</p>
+                                <p class="text-xs text-gray-500">Registre un período de días no lectivos, como vacaciones o suspensiones</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                <div id="contentFeriadosNacionales" class="hidden">
+                    <section class="flex flex-col gap-4">
+                        <div class="flex items-center justify-between flex-wrap">
+                            <h4 class="text-sm font-medium text-gray-700">Fechas pendientes</h4>
+                            <div class="flex flex-wrap gap-3">
+                                <button type="button"
+                                    class="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
+                                    onclick="seleccionarPaginaFeriadoNacional()">
+                                    Seleccionar página
+                                </button>
+                                <button type="button"
+                                    class="text-xs text-rose-600 hover:text-rose-700 font-medium cursor-pointer"
+                                    onclick="seleccionarTodasFeriadoNacional()">
+                                    Seleccionar todas
+                                </button>
+                                <button type="button"
+                                    class="text-xs text-gray-600 hover:text-gray-700 font-medium cursor-pointer"
+                                    onclick="limpiarSeleccionFeriadoNacional()">
+                                    Limpiar
+                                </button>
+                            </div>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg overflow-hidden">
+                            <div class="overflow-y-auto lg:max-h-70 divide-y divide-gray-200 scrollbar-thin scrollbar-track-gray-white scrollbar-thumb-neutral-400"
+                                id="contentListFeriadoNacional">
+                            </div>
+                        </div>
+                        <data-paginator id="paginatorFeriadoNacional" items-per-page="5"></data-paginator>
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center gap-2 text-gray-600">
+                                <i class="bi bi-info-circle"></i>
+                                <span>
+                                    <span id="countSelectedFeriadoNacional" class="font-semibold text-rose-600">0</span>
+                                    fechas seleccionadas
+                                </span>
+                            </div>
+                            <div class="text-gray-500">
+                                Total pendientes: <span id="totalFeriadoNacional" class="font-semibold">0</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <div id="contentFechaEspecifica" class="hidden">
+                    <p class="text-sm text-gray-500">Aquí va el formulario...</p>
+                </div>
+
+                <div id="contentRangoFechas" class="hidden">
+                    <p class="text-sm text-gray-500">Aquí va el formulario...</p>
+                </div>
+            </section>
         </div>
         <div slot="footer" class="flex justify-end gap-3">
             <custom-button
@@ -180,6 +241,7 @@
                         </div>
                     </div>
                 </div>
+
             </section>
         </div>
         <div slot="footer" class="flex justify-end gap-3">

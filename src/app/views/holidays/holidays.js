@@ -8,16 +8,28 @@ let DialogInfoHoliday = null;
 let paginatorList = null;
 let formHoliday = null;
 let campos = [];
+let paginatorFeriadoNacional = null;
+let todosLosFeriadosNacionales = [];
+let feriadosNacionalesSeleccionados = new Set();
+
+const CONTENIDO_POR_TIPO = {
+  nacional: "contentFeriadosNacionales",
+  especifica: "contentFechaEspecifica",
+  rango: "contentRangoFechas",
+};
 
 function init() {
   DialogFormHoliday = document.getElementById("DialogFormHoliday");
   DialogInfoHoliday = document.getElementById("DialogInfoHoliday");
+  paginatorFeriadoNacional = document.getElementById(
+    "paginatorFeriadoNacional",
+  );
 
   if (document.getElementById("contentList")) {
-    Listar();
-    initFiltros();
+    //initFiltros();
   }
 
+  /*
   paginatorList = document.getElementById("paginatorList");
   if (paginatorList) {
     paginatorList.addEventListener("page-change", (e) => {
@@ -42,50 +54,137 @@ function init() {
       GuardaryEditar();
     });
     formHoliday.hasSubmitListener = true;
-  }
+  }*/
 }
 
-async function Listar() {
-  document.getElementById("contentList").innerHTML = "";
+async function ObtenerFeriadosPendientes() {
   try {
-    let resp = await fetch("../../../app/routes/feriado.route.php?op=listar");
+    let resp = await fetch(
+      "../../../app/routes/dianolectivo.route.php?op=obtenerferiadospendientes",
+    );
     let json = await resp.json();
     if (json.status) {
-      paginatorList.setData(json.data);
+      paginatorFeriadoNacional.setData(json.data);
+      todosLosFeriadosNacionales = json.data;
+      document.getElementById("totalFeriadoNacional").textContent =
+        json.data.length;
+      updateCountersFeriadosNacionales();
     } else {
-      document.getElementById("contentList").innerHTML = `
-        <div class="p-5 text-center text-gray-500">
-          <i class="bi bi-emoji-astonished text-4xl mb-3 block"></i>
-          <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
-          <p class="text-sm mt-2 text-gray-400">No se encontraron perfiles registrados</p>
+      document.getElementById("contentListFeriadoNacional").innerHTML = `
+                <div class="p-5 text-center text-gray-500">
+                    <i class="bi bi-check-circle text-4xl mb-3 block text-green-500"></i>
+                    <p class="font-medium">No hay faltas registradas</p>
+                    <p class="text-sm mt-2 text-gray-400">Todos los alumnos tienen asistencia al día</p>
+                </div>`;
+      document.getElementById("totalFeriadoNacional").textContent = "0";
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+function renderRowFeriadoPendiente(item) {
+  let newdiv = document.createElement("div");
+  newdiv.id = "rowFeriado_" + item.idPlantilla;
+  newdiv.className =
+    "flex lg:flex-row flex-col gap-3 p-4 hover:bg-neutral-100 duration-300 ease-linear lg:justify-between lg:items-center";
+  newdiv.className =
+    "flex lg:flex-row flex-col gap-3 p-4 hover:bg-neutral-100 duration-300 ease-linear lg:justify-between items-center";
+  newdiv.innerHTML = `
+    <div class="flex flex-col gap-2 lg:items-start items-center lg:text-left text-center">
+        <h5 class="font-bold text-gray-700">${item.nomEvento}</h5>
+        <div class="flex flex-wrap gap-2 justify-center lg:justify-start">
+            <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-100 text-sky-700">
+                <i class="bi bi-calendar-event"></i>
+                ${
+                  item.fechaInicio === item.fechaFin
+                    ? `${item.diaInicio} - ${formatearFecha(item.fechaInicio)}`
+                    : `${item.diaInicio} - ${formatearFecha(item.fechaInicio)} al ${item.diaFin} - ${formatearFecha(item.fechaFin)}`
+                }
+            </span>
         </div>
-      `;
-    }
-  } catch (error) {
-    console.error(error);
-  }
-}
+    </div>
+    <input 
+        type="checkbox"
+        id="feriado-${item.idPlantilla}"
+        value="${item.idPlantilla}"
+        class="feriado-checkbox w-4 h-4 text-sky-600 rounded focus:ring-sky-500 cursor-pointer">
+  `;
 
-async function Mostrar(id) {
-  const formData = new FormData();
-  formData.append("id", id);
-  try {
-    let resp = await fetch("../../../app/routes/feriado.route.php?op=mostrar", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      body: formData,
+  document.getElementById("contentListFeriadoNacional").appendChild(newdiv);
+
+  const checkbox = document.getElementById("feriado-" + item.idPlantilla);
+  if (checkbox) {
+    if (feriadosNacionalesSeleccionados.has(item.idPlantilla)) {
+      checkbox.checked = true;
+    }
+    checkbox.addEventListener("change", function () {
+      if (this.checked) feriadosNacionalesSeleccionados.add(item.idPlantilla);
+      else feriadosNacionalesSeleccionados.delete(item.idPlantilla);
+      updateCountersFeriadosNacionales();
     });
-    let json = await resp.json();
-    if (json.status) {
-      document.getElementById("idFeriado").value = json.data.idFeriado;
-      initCustomValues(json.data);
-    }
-  } catch (error) {
-    console.error(error);
   }
 }
 
+function actualizarContenidoHoliday(tipo) {
+  Object.values(CONTENIDO_POR_TIPO).forEach((id) => {
+    document.getElementById(id)?.classList.add("hidden");
+  });
+
+  document.getElementById(CONTENIDO_POR_TIPO[tipo])?.classList.remove("hidden");
+
+  if (tipo === "nacional") {
+    if (paginatorFeriadoNacional) {
+      paginatorFeriadoNacional.addEventListener("page-change", (e) => {
+        const container = document.getElementById("contentListFeriadoNacional");
+        container.innerHTML = "";
+        e.detail.data.forEach(renderRowFeriadoPendiente);
+        container.scrollTo({ top: 0, behavior: "smooth" });
+      });
+
+      ObtenerFeriadosPendientes();
+    }
+  }
+
+  const colores = {
+    nacional: { border: "border-sky-500", bg: "bg-sky-50" },
+    especifica: { border: "border-violet-500", bg: "bg-violet-50" },
+    rango: { border: "border-emerald-500", bg: "bg-emerald-50" },
+  };
+
+  document.querySelectorAll(".holiday-card-inner").forEach((card) => {
+    card.classList.remove(
+      "border-sky-500",
+      "bg-sky-50",
+      "border-violet-500",
+      "bg-violet-50",
+      "border-emerald-500",
+      "bg-emerald-50",
+    );
+    card.classList.add("border-gray-200");
+  });
+
+  const selectedCard = document
+    .querySelector(`.typeholiday-radio[value="${tipo}"]`)
+    ?.closest(".typeholiday-card")
+    ?.querySelector(".holiday-card-inner");
+
+  if (selectedCard && colores[tipo]) {
+    selectedCard.classList.remove("border-gray-200");
+    selectedCard.classList.add(colores[tipo].border, colores[tipo].bg);
+  }
+}
+
+function initHolidayCards() {
+  document.querySelectorAll(".typeholiday-radio").forEach((radio) => {
+    const clone = radio.cloneNode(true);
+    radio.parentNode.replaceChild(clone, radio);
+    clone.addEventListener("change", function () {
+      actualizarContenidoHoliday(this.value);
+    });
+  });
+}
+/*
 async function GuardaryEditar() {
   try {
     let form = document.getElementById("formHoliday");
@@ -323,20 +422,31 @@ window.LimpiarFiltros = function () {
     .querySelector("custom-select[name='filtroTipoFeriado']")
     ?.initInput();
   Listar();
-};
+};*/
 
 window.openModalForm = function (id = null) {
-  if (!DialogFormHoliday) return;
+  document
+    .querySelectorAll(".typeholiday-radio")
+    .forEach((r) => (r.checked = false));
+  document.querySelectorAll(".holiday-card-inner").forEach((card) => {
+    card.classList.remove(
+      "border-sky-500",
+      "bg-sky-50",
+      "border-violet-500",
+      "bg-violet-50",
+      "border-emerald-500",
+      "bg-emerald-50",
+    );
+    card.classList.add("border-gray-200");
+  });
+
+  // Ocultar todos los contenidos
+  Object.values(CONTENIDO_POR_TIPO).forEach((id) => {
+    document.getElementById(id)?.classList.add("hidden");
+  });
 
   DialogFormHoliday.open();
-  formHoliday = document.getElementById("formHoliday");
-  setTimeout(() => {
-    if (id === null) {
-      initInput();
-    } else {
-      Mostrar(id);
-    }
-  });
+  initHolidayCards();
 };
 
 window.closeModalForm = function () {
@@ -344,6 +454,39 @@ window.closeModalForm = function () {
   DialogFormHoliday.close();
 };
 
+window.seleccionarPaginaFeriadoNacional = function () {
+  feriadosNacionalesSeleccionados.clear();
+  document.querySelectorAll(".feriado-checkbox").forEach((cb) => {
+    cb.checked = true;
+    feriadosNacionalesSeleccionados.add(parseInt(cb.value));
+  });
+  updateCountersFeriadosNacionales();
+};
+
+window.seleccionarTodasFeriadoNacional = function () {
+  todosLosFeriadosNacionales.forEach((item) =>
+    feriadosNacionalesSeleccionados.add(item.idPlantilla),
+  );
+  document
+    .querySelectorAll(".feriado-checkbox")
+    .forEach((cb) => (cb.checked = true));
+  updateCountersFeriadosNacionales();
+};
+
+window.limpiarSeleccionFeriadoNacional = function () {
+  feriadosNacionalesSeleccionados.clear();
+  document
+    .querySelectorAll(".feriado-checkbox")
+    .forEach((cb) => (cb.checked = false));
+  updateCountersFeriadosNacionales();
+};
+
+function updateCountersFeriadosNacionales() {
+  document.getElementById("countSelectedFeriadoNacional").textContent =
+    feriadosNacionalesSeleccionados.size;
+}
+
+/*
 window.openModalInfo = function (id) {
   if (id === undefined || id === null) return;
   if (!DialogInfoHoliday) return;
@@ -375,5 +518,5 @@ function validateForm() {
   });
   return valid;
 }
-
+*/
 init();

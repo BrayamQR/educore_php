@@ -161,4 +161,15 @@ class AnioAcademicoModel
         $sql = "UPDATE periodo SET vigente = 0 WHERE id_aniolectivo = ?";
         return $this->db->queryExecute($sql, [$id]);
     }
+
+    public function ObtenerAnioActivo()
+    {
+        $sql = "SELECT id_aniolectivo, anio, fecha_inicio, fecha_fin 
+            FROM aniolectivo 
+            WHERE vigente = 1 
+            AND estado = 1
+            LIMIT 1";
+        $result = $this->db->queryExecute($sql, []);
+        return !empty($result) ? $result[0] : null;
+    }
 }
