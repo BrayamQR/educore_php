@@ -72,6 +72,21 @@ class GenericListRoutes
                 }
                 echo json_encode($arrayResponse);
                 break;
+            case 'tipodianolectivo':
+                $rspta = $this->controller->ListarTipoDianolectivo();
+                if (empty($rspta)) {
+                    $arrayResponse = array(
+                        'status' => false,
+                        'msg' => 'Datos no encontrados'
+                    );
+                } else {
+                    $arrayResponse = array(
+                        'status' => true,
+                        'data' => $rspta,
+                    );
+                }
+                echo json_encode($arrayResponse);
+                break;
         }
     }
 }

@@ -14,6 +14,13 @@ class DiaNoLectivoModel
         $this->anioModel = new AnioAcademicoModel();
     }
 
+    public function Listar()
+    {
+        $sql = "SELECT * FROM dianolectivo AS dl INNER JOIN tipodianolectivo as td ON dl.id_tipodianolectivo = td.id_tipodianolectivo WHERE dl.vigente = 1";
+        return $this->db->queryExecute($sql);
+    }
+
+
     public function ObtenerPlantillaPendiente($idAnioLectivo)
     {
         $sql = "SELECT 
@@ -121,5 +128,50 @@ class DiaNoLectivoModel
         }
 
         return $feriados;
+    }
+    public function Registrar($idAnioLectivo, $nomEvento, $fechaInicio, $fechaFin, $tipoOrigen, $idTipoDiaNoLectivo, $idPlantillaDiaNoLectivo)
+    {
+        $sql = "INSERT INTO dianolectivo(id_aniolectivo, nom_evento, fecha_inicio, fecha_fin, tipo_origen, id_tipodianolectivo, id_plantilladianolectivo) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        return $this->db->queryExecute($sql, [
+            $idAnioLectivo,
+            $nomEvento,
+            $fechaInicio,
+            $fechaFin,
+            $tipoOrigen,
+            $idTipoDiaNoLectivo,
+            $idPlantillaDiaNoLectivo
+        ]);
+    }
+
+    public function MostrarPlantillas($id)
+    {
+        // ✅ obtener año lectivo activo para calcular fechas
+        $anioLectivo = $this->anioModel->ObtenerAnioActivo();
+        if (!$anioLectivo) return null;
+
+        $anio = (int)$anioLectivo['anio'];
+
+        $sql = "SELECT * FROM plantilla_dianolectivo WHERE id_plantilladianolectivo = ? AND vigente = 1";
+        $rows = $this->db->queryExecute($sql, [$id]);
+        if (empty($rows)) return null;
+
+        $p = $rows[0];
+
+        if ((int)$p['id_tipogeneracion'] === 1) {
+            $inicio = sprintf('%04d-%02d-%02d', $anio, $p['mes_inicio'], $p['dia_inicio']);
+            $fin    = sprintf('%04d-%02d-%02d', $anio, $p['mes_fin'],    $p['dia_fin']);
+        } else {
+            $fechas = $this->AplicarRegla($p['cod_regla'], $anio);
+            if (!$fechas) return null;
+            $inicio = $fechas['inicio'];
+            $fin    = $fechas['fin'];
+        }
+
+        return [
+            'idPlantilla' => $p['id_plantilladianolectivo'],
+            'nomEvento'   => $p['nom_evento'],
+            'fechaInicio' => $inicio,
+            'fechaFin'    => $fin,
+        ];
     }
 }

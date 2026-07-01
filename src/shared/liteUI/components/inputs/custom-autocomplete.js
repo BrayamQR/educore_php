@@ -7,6 +7,7 @@ class CustomAutocomplete extends HTMLElement {
     this.handleOutsideClick = this.handleOutsideClick.bind(this);
     this._updateOptionsPosition = this._updateOptionsPosition.bind(this);
     this._initialized = false;
+    this._pendingOptions = null;
   }
 
   connectedCallback() {

@@ -51,6 +51,20 @@ class AnioLectivoRoutes
                     echo json_encode($arrayResponse);
                 }
                 break;
+            case 'obteneranioactivo':
+                $rspta = $this->controller->ObtenerAnioActivo();
+                if (empty($rspta)) {
+                    $arrayResponse = array(
+                        'status' => false,
+                        'msg' => 'No hay año lectivo activo'
+                    );
+                } else {
+                    $arrayResponse = array(
+                        'status' => true,
+                        'data' => $rspta
+                    );
+                };
+                echo json_encode($arrayResponse);
                 break;
             case 'guardaryeditar':
                 if ($_POST) {

@@ -14,4 +14,14 @@ class DiaNoLectivoController
     {
         return $this->model->ObtenerFeriadosPendientes();
     }
+
+    public function Registrar($idAnioLectivo, $nomEvento, $fechaInicio, $fechaFin, $tipoOrigen, $idTipoDiaNoLectivo, $idPlantillaDiaNoLectivo)
+    {
+        return $this->model->Registrar($idAnioLectivo, $nomEvento, $fechaInicio, $fechaFin, $tipoOrigen, $idTipoDiaNoLectivo, $idPlantillaDiaNoLectivo);
+    }
+
+    public function MostrarPlantillas($id)
+    {
+        return $this->model->MostrarPlantillas($id);
+    }
 }

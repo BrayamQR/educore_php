@@ -33,4 +33,10 @@ class GenericListModel
         $sql = "SELECT * FROM estudiante WHERE vigente = 1";
         return $this->db->queryExecute($sql, []);
     }
+
+    public function ListarTipoDiaNoLectivo()
+    {
+        $sql = "SELECT * FROM tipodianolectivo WHERE vigente = 1";
+        return $this->db->queryExecute($sql, []);
+    }
 }

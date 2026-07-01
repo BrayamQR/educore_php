@@ -73,4 +73,9 @@ class AnioLectivoController
     {
         return $this->model->EliminarPeriodos($id);
     }
+
+    public function ObtenerAnioActivo()
+    {
+        return $this->model->ObtenerAnioActivo();
+    }
 }

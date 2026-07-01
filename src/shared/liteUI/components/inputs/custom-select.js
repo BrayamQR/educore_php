@@ -9,6 +9,7 @@ class CustomSelect extends HTMLElement {
     this.highlightedIndex = -1;
     this.lastKey = null;
     this._initialized = false;
+    this._pendingOptions = null; // ✅
   }
 
   connectedCallback() {
@@ -76,7 +77,7 @@ class CustomSelect extends HTMLElement {
         .filter((opt) => !opt.disabled)
         .map((opt) => ({ value: opt.value, desc: opt.desc }));
 
-      this.setOptions(validOptions);
+      this._setOptionsInternal(validOptions);
 
       const selectedOption = htmlOptions.find((opt) => opt.selected);
       if (selectedOption) {
@@ -93,23 +94,25 @@ class CustomSelect extends HTMLElement {
     if (name) CustomSelect.instances[name] = this;
 
     this._initialized = true;
+
+    // ✅ aplicar opciones pendientes si las hay
+    if (this._pendingOptions) {
+      this._setOptionsInternal(this._pendingOptions);
+      this._pendingOptions = null;
+    }
   }
 
   _createDropdownContainer() {
     const containerId = `dropdown-${this.getAttribute("name") || Math.random().toString(36).substr(2, 9)}`;
-
-    // Si ya existe, removerlo
     const existing = document.getElementById(containerId);
     if (existing) existing.remove();
 
-    // Crear el contenedor
     const container = document.createElement("div");
     container.id = containerId;
     container.className =
       "options-container scrollbar-thin scrollbar-track-gray-white scrollbar-thumb-neutral-400";
     container.innerHTML = '<ul class="select-list"></ul>';
 
-    // Agregarlo al body
     document.body.appendChild(container);
 
     this.contentList = container;
@@ -153,95 +156,23 @@ class CustomSelect extends HTMLElement {
     }
   }
 
-  _updateOptionsPosition() {
-    if (!this.contentList || !this.input) return;
-
-    const rect = this.input.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-    const viewportWidth = window.innerWidth;
-
-    // Obtener la altura máxima del dropdown (considerando el max-height del CSS)
-    const maxDropdownHeight = 220; // Debe coincidir con max-height de .options-container.open
-    const dropdownHeight = Math.min(
-      this.contentList.scrollHeight,
-      maxDropdownHeight,
-    );
-
-    const spaceBelow = viewportHeight - rect.bottom;
-    const spaceAbove = rect.top;
-
-    const gap = 5; // Espacio entre el input y el dropdown
-
-    let top;
-    let shouldOpenUpward = false;
-
-    // Decidir si abrir hacia arriba o hacia abajo
-    // Solo abrir hacia arriba si:
-    // 1. No hay suficiente espacio abajo (menos de la altura del dropdown)
-    // 2. HAY suficiente espacio arriba
-    // 3. El espacio arriba es significativamente mayor que abajo
-    if (
-      spaceBelow < dropdownHeight &&
-      spaceAbove > dropdownHeight &&
-      spaceAbove > spaceBelow + 50
-    ) {
-      // Abrir hacia arriba
-      top = rect.top - dropdownHeight - gap;
-      shouldOpenUpward = true;
-    } else {
-      // Abrir hacia abajo (comportamiento por defecto)
-      top = rect.bottom + gap;
+  // ✅ setOptions ahora maneja el caso de no estar inicializado
+  setOptions(options) {
+    if (!this._initialized || !this.contentList) {
+      this._pendingOptions = options;
+      return;
     }
-
-    // Ajustar si se sale de la pantalla por arriba
-    if (top < 0) {
-      top = gap;
-    }
-
-    // Ajustar si se sale de la pantalla por abajo
-    if (top + dropdownHeight > viewportHeight) {
-      top = viewportHeight - dropdownHeight - gap;
-    }
-
-    // Calcular posición horizontal
-    let left = rect.left;
-
-    // Ajustar si se sale por la derecha
-    if (left + rect.width > viewportWidth) {
-      left = viewportWidth - rect.width - gap;
-    }
-
-    // Ajustar si se sale por la izquierda
-    if (left < 0) {
-      left = gap;
-    }
-
-    // Aplicar posición y ancho
-    this.contentList.style.top = `${top}px`;
-    this.contentList.style.left = `${left}px`;
-    this.contentList.style.width = `${rect.width}px`;
-
-    // Agregar clase para animación diferente si abre hacia arriba
-    if (shouldOpenUpward) {
-      this.contentList.classList.add("open-upward");
-    } else {
-      this.contentList.classList.remove("open-upward");
-    }
+    this._setOptionsInternal(options);
   }
 
-  setOptions(options) {
+  // ✅ lógica interna separada
+  _setOptionsInternal(options) {
     this.options = options;
 
-    if (!this.contentList) {
-      console.error("contentList no existe!");
-      return;
-    }
+    if (!this.contentList) return;
 
     const ul = this.contentList.querySelector(".select-list");
-    if (!ul) {
-      console.error("select-list no encontrado en contentList");
-      return;
-    }
+    if (!ul) return;
 
     ul.innerHTML = "";
 
@@ -266,7 +197,6 @@ class CustomSelect extends HTMLElement {
 
         const isOpen = this.contentList.classList.contains("open");
 
-        // Cerrar todos los otros dropdowns
         document.querySelectorAll(".options-container.open").forEach((el) => {
           if (el !== this.contentList) {
             el.classList.remove("open");
@@ -280,7 +210,6 @@ class CustomSelect extends HTMLElement {
           const arrow = this.querySelector(".select-arrow i");
           if (arrow) arrow.classList.add("rotated");
 
-          // ✅ Agregar todos los event listeners necesarios
           this._attachGlobalListeners();
 
           setTimeout(() => {
@@ -294,20 +223,61 @@ class CustomSelect extends HTMLElement {
     }
   }
 
-  /**
-   * ✅ Agrega listeners globales cuando el dropdown está abierto
-   */
+  _updateOptionsPosition() {
+    if (!this.contentList || !this.input) return;
+
+    const rect = this.input.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+
+    const maxDropdownHeight = 220;
+    const dropdownHeight = Math.min(
+      this.contentList.scrollHeight,
+      maxDropdownHeight,
+    );
+
+    const spaceBelow = viewportHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const gap = 5;
+
+    let top;
+    let shouldOpenUpward = false;
+
+    if (
+      spaceBelow < dropdownHeight &&
+      spaceAbove > dropdownHeight &&
+      spaceAbove > spaceBelow + 50
+    ) {
+      top = rect.top - dropdownHeight - gap;
+      shouldOpenUpward = true;
+    } else {
+      top = rect.bottom + gap;
+    }
+
+    if (top < 0) top = gap;
+    if (top + dropdownHeight > viewportHeight)
+      top = viewportHeight - dropdownHeight - gap;
+
+    let left = rect.left;
+    if (left + rect.width > viewportWidth)
+      left = viewportWidth - rect.width - gap;
+    if (left < 0) left = gap;
+
+    this.contentList.style.top = `${top}px`;
+    this.contentList.style.left = `${left}px`;
+    this.contentList.style.width = `${rect.width}px`;
+
+    if (shouldOpenUpward) {
+      this.contentList.classList.add("open-upward");
+    } else {
+      this.contentList.classList.remove("open-upward");
+    }
+  }
+
   _attachGlobalListeners() {
-    // Reposicionar en scroll
     window.addEventListener("scroll", this._updateOptionsPosition, true);
-
-    // Manejar resize/orientación
     window.addEventListener("resize", this._handleResize);
-
-    // Cerrar cuando la ventana pierde foco (cambio de pestaña, app en segundo plano)
     window.addEventListener("blur", this._handleWindowBlur);
-
-    // ✅ NUEVO: Detectar clicks/interacciones en cualquier parte del documento
     document.addEventListener(
       "mousedown",
       this._handleDocumentInteraction,
@@ -318,17 +288,10 @@ class CustomSelect extends HTMLElement {
       this._handleDocumentInteraction,
       true,
     );
-
-    // ✅ NUEVO: Detectar cambios de foco
     document.addEventListener("focusin", this._handleFocusChange, true);
-
-    // Verificación de visibilidad como respaldo (menos frecuente)
     this._startVisibilityCheck();
   }
 
-  /**
-   * ✅ Remueve todos los listeners globales
-   */
   _detachGlobalListeners() {
     window.removeEventListener("scroll", this._updateOptionsPosition, true);
     window.removeEventListener("resize", this._handleResize);
@@ -346,64 +309,41 @@ class CustomSelect extends HTMLElement {
     );
     document.removeEventListener("focusin", this._handleFocusChange, true);
 
-    // Detener verificación de visibilidad
     if (this._visibilityInterval) {
       clearInterval(this._visibilityInterval);
       this._visibilityInterval = null;
     }
   }
 
-  /**
-   * ✅ NUEVO: Handler para cualquier interacción en el documento
-   * Se ejecuta ANTES del click normal (fase de captura)
-   */
   _handleDocumentInteraction = (e) => {
-    // Si el click/touch es en nuestro componente o dropdown, ignorar
-    if (this.contains(e.target) || this.contentList.contains(e.target)) {
-      return;
-    }
+    if (this.contains(e.target) || this.contentList.contains(e.target)) return;
 
-    // Verificar si el click fue en un elemento que puede ocultar nuestro input
-    // (menús, overlays, modals, etc.)
     const clickedElement = e.target;
-
-    // Si es un botón de menú, overlay, o elemento que típicamente oculta contenido
     if (
       clickedElement.closest(
         'button, [role="button"], .sidebar, .menu, .nav, .overlay, .backdrop, .modal',
       )
     ) {
-      // Dar un momento para que el elemento se renderice
       requestAnimationFrame(() => {
         this._checkIfInputIsObscured();
       });
     }
   };
 
-  /**
-   * ✅ NUEVO: Handler para cambios de foco
-   */
   _handleFocusChange = (e) => {
-    // Si el foco se movió fuera de nuestro componente
     if (!this.contains(e.target) && !this.contentList.contains(e.target)) {
       this.closeList();
     }
   };
 
-  /**
-   * ✅ NUEVO: Verifica si el input está siendo tapado por otro elemento
-   */
   _checkIfInputIsObscured() {
     if (!this.isOpen()) return;
 
     const rect = this.input.getBoundingClientRect();
-
-    // Verificar el centro del input
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     const elementAtPoint = document.elementFromPoint(centerX, centerY);
 
-    // Si hay algo tapando el input, cerrar inmediatamente
     if (
       elementAtPoint &&
       !this.contains(elementAtPoint) &&
@@ -413,12 +353,7 @@ class CustomSelect extends HTMLElement {
     }
   }
 
-  /**
-   * ✅ Verificación de visibilidad como respaldo (menos frecuente ahora)
-   */
   _startVisibilityCheck() {
-    // Ahora solo verificamos cada 500ms como respaldo
-    // Los eventos mousedown/touchstart/focusin son la detección principal
     this._visibilityInterval = setInterval(() => {
       if (!this.isOpen()) {
         clearInterval(this._visibilityInterval);
@@ -427,7 +362,6 @@ class CustomSelect extends HTMLElement {
 
       const rect = this.input.getBoundingClientRect();
 
-      // Verificación 1: Dimensiones y viewport
       if (
         rect.width === 0 ||
         rect.height === 0 ||
@@ -440,7 +374,6 @@ class CustomSelect extends HTMLElement {
         return;
       }
 
-      // Verificación 2: Display/visibility
       const computedStyle = window.getComputedStyle(this.input);
       if (
         computedStyle.display === "none" ||
@@ -451,33 +384,18 @@ class CustomSelect extends HTMLElement {
         return;
       }
 
-      // Verificación 3: Elemento encima
       this._checkIfInputIsObscured();
-    }, 500); // Ahora 500ms porque los eventos lo detectan primero
+    }, 500);
   }
 
-  /**
-   * ✅ Handler para resize de ventana
-   */
   _handleResize = () => {
-    if (this.isOpen()) {
-      // Reposicionar el dropdown
-      this._updateOptionsPosition();
-    }
+    if (this.isOpen()) this._updateOptionsPosition();
   };
 
-  /**
-   * ✅ Handler cuando la ventana pierde foco
-   */
   _handleWindowBlur = () => {
-    if (this.isOpen()) {
-      this.closeList();
-    }
+    if (this.isOpen()) this.closeList();
   };
 
-  /**
-   * ✅ Verifica si el dropdown está abierto
-   */
   isOpen() {
     return this.contentList && this.contentList.classList.contains("open");
   }
@@ -486,8 +404,6 @@ class CustomSelect extends HTMLElement {
     if (this.contentList) this.contentList.classList.remove("open");
     const arrow = this.querySelector(".select-arrow i");
     if (arrow) arrow.classList.remove("rotated");
-
-    // ✅ Usar el método centralizado para remover listeners
     this._detachGlobalListeners();
   }
 
@@ -533,7 +449,6 @@ class CustomSelect extends HTMLElement {
       const li = items[this.highlightedIndex];
       li.classList.add("highlighted");
       li.scrollIntoView({ block: "nearest" });
-
       this.setValue(li.dataset.value);
     }
   }
@@ -576,8 +491,6 @@ class CustomSelect extends HTMLElement {
     if (name && CustomSelect.instances[name] === this) {
       delete CustomSelect.instances[name];
     }
-
-    // Asegurar que todo se limpia correctamente
     this.closeList();
 
     if (this._dropdownId) {
@@ -591,7 +504,6 @@ class CustomSelect extends HTMLElement {
   }
 
   setValue(value) {
-    // Normalizar a string desde el inicio
     const valueStr = String(value);
 
     if (this.hiddenInput) this.hiddenInput.value = valueStr;

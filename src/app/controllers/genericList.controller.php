@@ -27,4 +27,8 @@ class GenericListController
     {
         return $this->model->ListarEstudiante();
     }
+    public function ListarTipoDiaNoLectivo()
+    {
+        return $this->model->ListarTipoDiaNoLectivo();
+    }
 }

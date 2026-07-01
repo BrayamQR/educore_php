@@ -61,8 +61,7 @@
                             <custom-select
                                 label="Tipo de feriado"
                                 name="filtroTipoFeriado">
-                                <option value="1">Feriado nacional</option>
-                                <option value="2">Feriado institucional</option>
+
                             </custom-select>
                         </div>
                         <div class="shrink-0 flex items-center">
@@ -89,13 +88,23 @@
             </div>
 
             <div>
-                <h3 class="font-bold">Registrar dia no lectivo</h3>
+                <h3 class="font-bold">Registrar un día no lectivo</h3>
                 <p class="text-sm text-neutral-500">Seleccione el tipo de dia no lectivo</p>
             </div>
         </div>
         <div slot="body">
             <section class="flex flex-col gap-5">
                 <div class="flex flex-col gap-2">
+                    <div class="flex items-center gap-3 bg-green-700 rounded-lg px-4 py-2.5 text-sm">
+                        <i class="bi bi-calendar-check text-white text-lg"></i>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-white/70">Año lectivo:</span>
+                            <span id="infoAnioActivo" class="font-bold text-white"></span>
+                            <span class="text-white/40">|</span>
+                            <span class="text-white/70">Vigencia:</span>
+                            <span id="infoVigenciaActiva" class="font-semibold text-white"></span>
+                        </div>
+                    </div>
                     <h4 class="text-sm font-medium text-gray-700">Tipo de dia no lectivo</h4>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
                         <label class="typeholiday-card cursor-pointer h-full">
@@ -132,6 +141,14 @@
                 </div>
                 <div id="contentFeriadosNacionales" class="hidden">
                     <section class="flex flex-col gap-4">
+                        <div class="relative">
+                            <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input
+                                type="text"
+                                id="searchTextFeriado"
+                                placeholder="Buscar feriado..."
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none" />
+                        </div>
                         <div class="flex items-center justify-between flex-wrap">
                             <h4 class="text-sm font-medium text-gray-700">Fechas pendientes</h4>
                             <div class="flex flex-wrap gap-3">
@@ -153,7 +170,7 @@
                             </div>
                         </div>
                         <div class="border border-gray-200 rounded-lg overflow-hidden">
-                            <div class="overflow-y-auto lg:max-h-70 divide-y divide-gray-200 scrollbar-thin scrollbar-track-gray-white scrollbar-thumb-neutral-400"
+                            <div class="overflow-y-auto lg:max-h-62 divide-y divide-gray-200 scrollbar-thin scrollbar-track-gray-white scrollbar-thumb-neutral-400"
                                 id="contentListFeriadoNacional">
                             </div>
                         </div>
@@ -172,14 +189,50 @@
                         </div>
                     </section>
                 </div>
+                <form id="formHoliday" novalidate>
+                    <div id="camposFeriadoManual" class="hidden flex flex-col gap-4">
+                        <div class="campo-feriado" data-campo="nomEvento">
+                            <custom-text-field
+                                label="Nombre"
+                                name="nomEvento"
+                                required>
+                            </custom-text-field>
+                        </div>
 
-                <div id="contentFechaEspecifica" class="hidden">
-                    <p class="text-sm text-gray-500">Aquí va el formulario...</p>
-                </div>
+                        <div class="campo-feriado hidden" data-campo="fechaEspecifica">
+                            <custom-datepicker
+                                label="Fecha"
+                                name="fechaEspecifica"
+                                required>
+                            </custom-datepicker>
+                        </div>
 
-                <div id="contentRangoFechas" class="hidden">
-                    <p class="text-sm text-gray-500">Aquí va el formulario...</p>
-                </div>
+                        <div class="campo-feriado hidden flex flex-col lg:flex-row gap-4" data-campo="rangoFechas">
+                            <div class="flex-1">
+                                <custom-datepicker
+                                    label="Fecha inicio"
+                                    name="fechaInicioRango"
+                                    required>
+                                </custom-datepicker>
+                            </div>
+                            <div class="flex-1">
+                                <custom-datepicker
+                                    label="Fecha fin"
+                                    name="fechaFinRango"
+                                    required>
+                                </custom-datepicker>
+                            </div>
+                        </div>
+
+                        <div class="campo-feriado" data-campo="tipoDiaNoLectivo">
+                            <custom-select
+                                label="Tipo"
+                                name="idTipoDiaNoLectivo"
+                                required>
+                            </custom-select>
+                        </div>
+                    </div>
+                </form>
             </section>
         </div>
         <div slot="footer" class="flex justify-end gap-3">
@@ -191,10 +244,9 @@
             </custom-button>
             <custom-button
                 id="btnGrabar"
-                type="submit"
                 btn-class="bg-green-500 hover:bg-green-900 text-white"
-                form="formHoliday"
-                label="Grabar">
+                label="Grabar"
+                onclick="grabar()">
             </custom-button>
         </div>
     </dialog-modal>
