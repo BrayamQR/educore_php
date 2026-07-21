@@ -87,6 +87,54 @@ class GenericListRoutes
                 }
                 echo json_encode($arrayResponse);
                 break;
+            case 'tipoparticipante':
+                $rspta = $this->controller->ListarTipoParticipante();
+                if (empty($rspta)) {
+                    $arrayResponse = array(
+                        'status' => false,
+                        'msg' => 'Datos no encontrados'
+                    );
+                } else {
+                    $arrayResponse = array(
+                        'status' => true,
+                        'data' => $rspta,
+                    );
+                }
+                echo json_encode($arrayResponse);
+                break;
+            case 'tipoactividad':
+                $rspta = $this->controller->ListarTipoActividad();
+                if (empty($rspta)) {
+                    $arrayResponse = array(
+                        'status' => false,
+                        'msg' => 'Datos no encontrados'
+                    );
+                } else {
+                    $arrayResponse = array(
+                        'status' => true,
+                        'data' => $rspta,
+                    );
+                }
+                echo json_encode($arrayResponse);
+                break;
+            case 'tipoevento':
+                $rspta = $this->controller->ListarTiposEvento();
+                if (empty($rspta)) {
+                    $arrayResponse = array(
+                        'status' => false,
+                        'msg' => 'Datos no encontrados'
+                    );
+                } else {
+                    $arrayResponse = array(
+                        'status' => true,
+                        'data' => $rspta,
+                    );
+                }
+                echo json_encode($arrayResponse);
+                break;
+            default:
+                echo json_encode(['status' => false, 'msg' => 'Operación no válida']);
+                break;
         }
     }
 }

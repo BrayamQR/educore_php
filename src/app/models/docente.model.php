@@ -12,20 +12,20 @@ class DocenteModel
 
     public function Listar()
     {
-        $sql = "SELECT * FROM docente WHERE vigente = 1;";
+        $sql = "SELECT * FROM docente WHERE vigencia = 1;";
         return $this->db->queryExecute($sql, []);
     }
 
     public function Buscar($dato)
     {
-        $sql = "SELECT * FROM docente WHERE vigente = 1 AND (nom_docente LIKE ? OR doc_docente LIKE ?);";
+        $sql = "SELECT * FROM docente WHERE vigencia = 1 AND (nom_docente LIKE ? OR doc_docente LIKE ?);";
         $dato = "%{$dato}%";
         return $this->db->queryExecute($sql, [$dato, $dato]);
     }
 
     public function Mostrar($id)
     {
-        $sql = "SELECT id_docente AS idDocente, id_tipodocumento AS idTipoDocumento, doc_docente AS docDocente, nom_docente AS nomDocente, id_cargo AS idCargo, id_tipocontrato AS idTipoContrato, dir_docente AS dirDocente, tel_docente AS telDocente, email_docente AS emailDocente FROM docente WHERE id_docente = ? AND vigente = 1;";
+        $sql = "SELECT id_docente AS idDocente, id_tipodocumento AS idTipoDocumento, doc_docente AS docDocente, nom_docente AS nomDocente, id_cargo AS idCargo, id_tipocontrato AS idTipoContrato, dir_docente AS dirDocente, tel_docente AS telDocente, email_docente AS emailDocente FROM docente WHERE id_docente = ? AND vigencia = 1;";
         $result = $this->db->queryExecute($sql, [$id]);
         return !empty($result) ? $result[0] : null;
     }
@@ -44,7 +44,7 @@ class DocenteModel
 
     public function Eliminar($id)
     {
-        $sql = "UPDATE docente SET vigente = 0 WHERE id_docente = ?;";
+        $sql = "UPDATE docente SET vigencia = 0 WHERE id_docente = ?;";
         return $this->db->queryExecute($sql, [$id]);
     }
 }

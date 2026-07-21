@@ -26,7 +26,7 @@
                             <span class="text-sm text-gray-500">Administración de feriados y fechas no lectivas</span>
                         </div>
                     </div>
-                    <div>
+                    <div class="flex flex-wrap items-center gap-2 justify-between">
                         <custom-button
                             id="btnNuevo"
                             btn-class="bg-blue-500 hover:bg-blue-900 text-white"
@@ -34,17 +34,24 @@
                             icon="bi bi-plus-lg"
                             onclick="openModalForm()">
                         </custom-button>
+                        <custom-button
+                            id="btnToggleFiltros"
+                            onclick="toggleFiltros()"
+                            icon="bi bi-sliders"
+                            label="Más filtros"
+                            btn-class="lg:hidden hover:bg-gray-200 text-gray-700">
+                        </custom-button>
                     </div>
                 </div>
                 <div class="flex flex-col gap-4">
                     <custom-text-field
                         class=""
-                        label="Buscar feriado..."
+                        label="Buscar día no lectivo..."
                         name="searchText"
                         icon="bi bi-search"
                         clearable>
                     </custom-text-field>
-                    <div class="flex flex-col lg:flex-row gap-4">
+                    <div id="panelFiltros" class="hidden lg:flex flex-col lg:flex-row gap-4">
                         <div class="flex-1">
                             <custom-datepicker
                                 label="Fecha inicio"
@@ -61,7 +68,12 @@
                             <custom-select
                                 label="Tipo de feriado"
                                 name="filtroTipoFeriado">
-
+                            </custom-select>
+                        </div>
+                        <div class="flex-1">
+                            <custom-select
+                                label="Año lectivo"
+                                name="filtroAnioLectivo">
                             </custom-select>
                         </div>
                         <div class="shrink-0 flex items-center">
@@ -256,44 +268,80 @@
                 <i class="bi bi-calendar-event text-sky-600 text-xl"></i>
             </div>
             <div>
-                <h3 class="font-bold text-gray-800">Detalles del feriado</h3>
-                <p class="text-sm text-gray-500">Información del feriado</p>
+                <h3 class="font-bold text-gray-800">Detalles del día no lectivo</h3>
+                <p class="text-sm text-gray-500">Información del día no lectivo</p>
             </div>
         </div>
-        <div slot="body" class="flex flex-col gap-6">
+        <div slot="body" class="flex flex-col gap-5">
+            <!-- Encabezado del evento -->
+            <div class="flex flex-col gap-2">
+                <h4 id="nomEventoInfo" class="text-xl font-bold text-gray-800 leading-tight">-</h4>
+                <span id="badgeTipoInfo" class="inline-flex self-start items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold">
+                    <span id="dotTipoInfo" class="w-2 h-2 rounded-full"></span>
+                    <span id="nomTipoInfo">-</span>
+                </span>
+            </div>
+
+            <!-- Sección: Fecha -->
             <section class="bg-linear-to-r from-blue-50 to-sky-50 p-5 rounded-xl border border-blue-100">
-                <h2 class="font-bold text-lg mb-4 text-center">Datos del feriado</h2>
-                <div class="flex flex-col gap-3">
-                    <div class="flex items-center gap-2 text-sm text-gray-600 bg-white/50 px-3 py-2 rounded-lg">
-                        <i class="bi bi-calendar-heart text-sky-600 w-8 h-8 bg-sky-100 text-lg items-center flex justify-center rounded-full"></i>
-                        <div class="flex flex-col">
-                            <span class="text-xs">Nombre</span>
-                            <span id="nomFeriadoInfo" class="font-medium"></span>
+                <div class="flex flex-col items-center text-center gap-4">
+                    <!-- Hoja de calendario: día único -->
+                    <div id="calendarioDiaUnico" class="hidden shrink-0 w-16 h-16 bg-white rounded-xl shadow-sm border border-sky-100 flex-col overflow-hidden">
+                        <div class="bg-sky-500 text-white text-[10px] font-bold text-center py-0.5 uppercase" id="mesCortoInfo">-</div>
+                        <div class="flex-1 flex items-center justify-center">
+                            <span id="diaNumeroInfo" class="text-2xl font-bold text-gray-800">-</span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 text-sm text-gray-600 bg-white/50 px-3 py-2 rounded-lg">
-                        <i class="bi bi-calendar-date text-sky-600 w-8 h-8 bg-sky-100 text-lg items-center flex justify-center rounded-full"></i>
-                        <div class="flex flex-col">
-                            <span class="text-xs">Fecha</span>
-                            <span id="fechaFeriadoInfo" class="font-medium"></span>
+
+                    <!-- Hoja de calendario: rango -->
+                    <div id="calendarioRango" class="hidden shrink-0 items-center gap-1">
+                        <div class="w-16 h-16 bg-white rounded-xl shadow-sm border border-sky-100 flex flex-col overflow-hidden">
+                            <div class="bg-sky-500 text-white text-[10px] font-bold text-center py-0.5 uppercase" id="mesCortoInicioInfo">-</div>
+                            <div class="flex-1 flex items-center justify-center">
+                                <span id="diaNumeroInicioInfo" class="text-2xl font-bold text-gray-800">-</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-arrow-right text-gray-400 shrink-0"></i>
+                        <div class="w-16 h-16 bg-white rounded-xl shadow-sm border border-sky-100 flex flex-col overflow-hidden">
+                            <div class="bg-sky-500 text-white text-[10px] font-bold text-center py-0.5 uppercase" id="mesCortoFinInfo">-</div>
+                            <div class="flex-1 flex items-center justify-center">
+                                <span id="diaNumeroFinInfo" class="text-2xl font-bold text-gray-800">-</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 text-sm text-gray-600 bg-white/50 px-3 py-2 rounded-lg">
-                        <i class="bi bi-tag text-sky-600 w-8 h-8 bg-sky-100 text-lg items-center flex justify-center rounded-full"></i>
-                        <div class="flex flex-col">
-                            <span class="text-xs">Tipo de feriado</span>
-                            <span id="tipoFeriadoInfo" class="font-medium"></span>
+
+                    <div class="flex flex-col items-center gap-1">
+                        <span id="fechaInfo" class="text-base font-bold text-gray-800">-</span>
+                        <span id="diaSemanaInfo" class="text-sm text-gray-500">-</span>
+                        <span id="estadoTemporalInfo" class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[11px] font-semibold">-</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección: Información adicional -->
+            <section class="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                <h5 class="text-xs font-semibold text-gray-500 uppercase mb-3">Información adicional</h5>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-100">
+                        <div class="w-9 h-9 bg-violet-100 rounded-lg flex items-center justify-center shrink-0">
+                            <i class="bi bi-mortarboard text-violet-600"></i>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <span class="text-xs text-gray-500">Año lectivo</span>
+                            <span id="anioLectivoInfo" class="text-sm font-semibold text-gray-700">-</span>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2 text-sm text-gray-600 bg-white/50 px-3 py-2 rounded-lg">
-                        <i class="bi bi-card-text text-sky-600 w-8 h-8 bg-sky-100 text-lg items-center flex justify-center rounded-full"></i>
-                        <div class="flex flex-col">
-                            <span class="text-xs">Descripción</span>
-                            <span id="descFeriadoInfo" class="font-medium"></span>
+
+                    <div class="flex items-center gap-3 bg-white p-3 rounded-lg border border-gray-100">
+                        <div class="w-9 h-9 bg-violet-100 rounded-lg flex items-center justify-center shrink-0">
+                            <i class="bi bi-tag text-violet-600"></i>
+                        </div>
+                        <div class="flex flex-col min-w-0">
+                            <span class="text-xs text-gray-500">Tipo</span>
+                            <span id="nomTipoInfo2" class="text-sm font-semibold text-gray-700">-</span>
                         </div>
                     </div>
                 </div>
-
             </section>
         </div>
         <div slot="footer" class="flex justify-end gap-3">

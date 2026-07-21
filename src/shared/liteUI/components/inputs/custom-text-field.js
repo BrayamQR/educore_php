@@ -1,6 +1,23 @@
 class CustomTextField extends HTMLElement {
   static instances = {};
 
+  static get observedAttributes() {
+    return [
+      "label",
+      "required",
+      "disabled",
+      "error-required",
+      "error-pattern",
+      "error-email",
+    ];
+  }
+
+  constructor() {
+    super();
+    this._initialized = false;
+    this._disabled = false;
+  }
+
   connectedCallback() {
     const label = this.getAttribute("label") || "";
     const name = this.getAttribute("name") || "";
@@ -71,6 +88,7 @@ class CustomTextField extends HTMLElement {
       toggleBtn.appendChild(i);
 
       toggleBtn.addEventListener("click", () => {
+        if (this._disabled) return;
         if (this.input.type === "password") {
           this.input.type = "text";
           i.className = hidePassword;
@@ -95,6 +113,7 @@ class CustomTextField extends HTMLElement {
       this.btnclean.style.display = this.input.value ? "block" : "none";
       this.btnclean.addEventListener("click", (e) => {
         e.stopPropagation();
+        if (this._disabled) return;
         this.initInput();
         this.btnclean.style.display = "none";
         this.checkValidity();
@@ -110,7 +129,6 @@ class CustomTextField extends HTMLElement {
           this.btnclean.style.display = this.input.value ? "block" : "none";
         }
 
-        // Validar
         this.checkValidity();
       });
     }
@@ -123,6 +141,66 @@ class CustomTextField extends HTMLElement {
     }
 
     if (name) CustomTextField.instances[name] = this;
+
+    this._applyDisabled(this.hasAttribute("disabled"));
+
+    this._initialized = true;
+  }
+
+  attributeChangedCallback(attrName, oldValue, newValue) {
+    if (!this._initialized) return;
+
+    if (attrName === "disabled") {
+      this._applyDisabled(newValue !== null);
+      return;
+    }
+    if (attrName === "label") {
+      this._applyLabel(newValue || "");
+      return;
+    }
+    if (attrName === "required") {
+      this._applyRequired(newValue !== null);
+      return;
+    }
+    if (attrName === "error-required") {
+      this.msgRequired = newValue || "Este campo es obligatorio";
+      return;
+    }
+    if (attrName === "error-pattern") {
+      this.msgPattern = newValue || "Formato inválido";
+      return;
+    }
+    if (attrName === "error-email") {
+      this.msgEmail = newValue || "Email inválido";
+      return;
+    }
+  }
+
+  _applyLabel(labelText) {
+    if (!this.label) return;
+    const required = this.hasAttribute("required");
+    this.label.innerHTML = `${labelText}${
+      required ? '<span class="required-asterisk">*</span>' : ""
+    }`;
+  }
+
+  _applyRequired(required) {
+    if (!this.input) return;
+    this.input.toggleAttribute("required", required);
+    this._applyLabel(this.getAttribute("label") || "");
+    this.checkValidity();
+  }
+
+  _applyDisabled(disabled) {
+    this._disabled = disabled;
+
+    if (this.input) this.input.disabled = disabled;
+    if (this.btnclean)
+      this.btnclean.style.pointerEvents = disabled ? "none" : "";
+    if (this.toggleBtn)
+      this.toggleBtn.style.pointerEvents = disabled ? "none" : "";
+
+    this.classList.toggle("is-disabled", disabled);
   }
 
   disconnectedCallback() {
@@ -168,7 +246,6 @@ class CustomTextField extends HTMLElement {
     }
 
     if (value) {
-      // Validación automática para email
       if (inputType === "email") {
         const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         if (!emailRegex.test(value)) {
@@ -177,7 +254,6 @@ class CustomTextField extends HTMLElement {
         }
       }
 
-      // Validación de match (para confirmar contraseñas, etc.)
       const matchFieldName = this.getAttribute("match");
       if (matchFieldName) {
         const matchField = CustomTextField.get(matchFieldName);
@@ -192,7 +268,6 @@ class CustomTextField extends HTMLElement {
         }
       }
 
-      // Validación con pattern personalizado (opcional)
       const pattern = this.getAttribute("pattern");
       if (pattern) {
         const regex = new RegExp(pattern, "u");
@@ -202,7 +277,6 @@ class CustomTextField extends HTMLElement {
         }
       }
 
-      // Validador personalizado
       if (this.customValidator && typeof this.customValidator === "function") {
         const valid = this.customValidator(value);
         if (valid !== true) {
@@ -250,21 +324,36 @@ class CustomTextField extends HTMLElement {
     this.icon.innerHTML = "";
     this.message.textContent = "";
 
-    // Restaurar el valor por defecto si existe
     this.input.value = this.defaultValue || "";
 
-    // Solo validar si hay valor por defecto
     if (this.defaultValue) {
       this.checkValidity();
       if (this.btnclean) {
         this.btnclean.style.display = "block";
       }
     } else {
-      // Si no hay valor por defecto, solo ocultar el botón de limpiar
       if (this.btnclean) {
         this.btnclean.style.display = "none";
       }
     }
+  }
+
+  setDisabled(disabled) {
+    if (disabled) this.setAttribute("disabled", "");
+    else this.removeAttribute("disabled");
+  }
+
+  get disabled() {
+    return this._disabled;
+  }
+
+  setRequired(required) {
+    if (required) this.setAttribute("required", "");
+    else this.removeAttribute("required");
+  }
+
+  get required() {
+    return this.hasAttribute("required");
   }
 }
 

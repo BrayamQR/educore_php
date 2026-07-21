@@ -1,5 +1,6 @@
 <?php
 require_once '../controllers/dianolectivo.controller.php';
+require_once '../utils/helpers.php';
 
 class DiaNoLectivoRoutes
 {
@@ -12,12 +13,58 @@ class DiaNoLectivoRoutes
 
     private function DataForm()
     {
-        return array_map('trim', $_POST);
+        return Helpers::TrimData($_POST);
     }
 
     public function diaNoLectivoMethod($op)
     {
         switch ($op) {
+            case 'listar':
+                $rspta = $this->controller->Listar();
+                if (empty($rspta)) {
+                    $arrayResponse = array(
+                        'status' => false,
+                        'msg' => 'Datos no encontrados'
+                    );
+                } else {
+                    $arrayResponse = array(
+                        'status' => true,
+                        'data' => $rspta
+                    );
+                }
+                echo json_encode($arrayResponse);
+                break;
+            case 'mostrar':
+                if ($_POST) {
+                    $id = $_POST['id'];
+                    $rspta = $this->controller->Mostrar($id);
+                    if (empty($rspta)) {
+                        $arrayResponse = array(
+                            'status' => false,
+                            'msg' => 'Datos no encontrados'
+                        );
+                    } else {
+                        $arrayResponse = array('status' => true, 'msg' => 'Datos encontrados', 'data' => $rspta);
+                    }
+                    echo json_encode($arrayResponse);
+                }
+                break;
+            case 'eliminar':
+                if ($_POST) {
+                    if (empty($_POST['id'])) {
+                        $arrayResponse = array('status' => false, 'msg' => 'Error de datos');
+                    } else {
+                        $id = $_POST['id'];
+                        $rspta = $this->controller->Eliminar($id);
+                        if ($rspta) {
+                            $arrayResponse = array('status' => true, 'msg' => 'Registro eliminado correctamente');
+                        } else {
+                            $arrayResponse = array('status' => false, 'msg' => 'Error al eliminar el registro');
+                        }
+                    }
+                    echo json_encode($arrayResponse);
+                }
+                break;
             case 'obtenerferiadospendientes':
                 $rspta = $this->controller->ObtenerFeriadosPendientes();
                 if (is_null($rspta)) {
@@ -101,6 +148,23 @@ class DiaNoLectivoRoutes
                     }
                     echo json_encode($arrayResponse);
                 }
+                break;
+            case 'buscar':
+                $dato           = $_POST['dato']        ?? '';
+                $fechaInicio    = $_POST['fechaInicio'] ?? '';
+                $fechaFin       = $_POST['fechaFin']    ?? '';
+                $idTipoFeriado  = $_POST['idTipoFeriado'] ?? '';
+                $idAnioLectivo  = $_POST['idAnioLectivo'] ?? '';
+                $rspta = $this->controller->Buscar($dato, $fechaInicio, $fechaFin, $idTipoFeriado, $idAnioLectivo);
+                if (empty($rspta)) {
+                    $arrayResponse = array('status' => false, 'msg' => 'No se encontraron resultados');
+                } else {
+                    $arrayResponse = array('status' => true, 'data' => $rspta);
+                }
+                echo json_encode($arrayResponse);
+                break;
+            default:
+                echo json_encode(['status' => false, 'msg' => 'Operación no válida']);
                 break;
         }
     }

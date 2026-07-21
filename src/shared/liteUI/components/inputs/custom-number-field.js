@@ -1,5 +1,25 @@
 class CustomNumberField extends HTMLElement {
   static instances = {};
+
+  static get observedAttributes() {
+    return [
+      "label",
+      "required",
+      "disabled",
+      "min",
+      "max",
+      "error-required",
+      "error-min",
+      "error-max",
+    ];
+  }
+
+  constructor() {
+    super();
+    this._initialized = false;
+    this._disabled = false;
+  }
+
   connectedCallback() {
     const label = this.getAttribute("label") || "";
     const name = this.getAttribute("name") || "";
@@ -27,8 +47,8 @@ class CustomNumberField extends HTMLElement {
             ${this.min ? `min="${this.min}"` : ""}
             ${this.max ? `max="${this.max}"` : ""}>
           <label for="${name}">${label}${
-      required ? '<span class="required-asterisk">*</span>' : ""
-    }</label>
+            required ? '<span class="required-asterisk">*</span>' : ""
+          }</label>
           <span class="validation-icon"></span>
         </div>
         <span class="validation-message"></span>
@@ -67,6 +87,78 @@ class CustomNumberField extends HTMLElement {
     }
 
     if (name) CustomNumberField.instances[name] = this;
+
+    this._applyDisabled(this.hasAttribute("disabled"));
+
+    this._initialized = true;
+  }
+
+  attributeChangedCallback(attrName, oldValue, newValue) {
+    if (!this._initialized) return;
+
+    if (attrName === "disabled") {
+      this._applyDisabled(newValue !== null);
+      return;
+    }
+    if (attrName === "label") {
+      this._applyLabel(newValue || "");
+      return;
+    }
+    if (attrName === "required") {
+      this._applyRequired(newValue !== null);
+      return;
+    }
+    if (attrName === "min") {
+      this.min = newValue;
+      if (this.input) {
+        if (newValue !== null) this.input.setAttribute("min", newValue);
+        else this.input.removeAttribute("min");
+      }
+      this.checkValidity();
+      return;
+    }
+    if (attrName === "max") {
+      this.max = newValue;
+      if (this.input) {
+        if (newValue !== null) this.input.setAttribute("max", newValue);
+        else this.input.removeAttribute("max");
+      }
+      this.checkValidity();
+      return;
+    }
+    if (attrName === "error-required") {
+      this.msgRequired = newValue || "Este campo es obligatorio";
+      return;
+    }
+    if (attrName === "error-min") {
+      this.msgMin = newValue || "El valor es muy bajo";
+      return;
+    }
+    if (attrName === "error-max") {
+      this.msgMax = newValue || "El valor es muy alto";
+      return;
+    }
+  }
+
+  _applyLabel(labelText) {
+    if (!this.label) return;
+    const required = this.hasAttribute("required");
+    this.label.innerHTML = `${labelText}${
+      required ? '<span class="required-asterisk">*</span>' : ""
+    }`;
+  }
+
+  _applyRequired(required) {
+    if (!this.input) return;
+    this.input.toggleAttribute("required", required);
+    this._applyLabel(this.getAttribute("label") || "");
+    this.checkValidity();
+  }
+
+  _applyDisabled(disabled) {
+    this._disabled = disabled;
+    if (this.input) this.input.disabled = disabled;
+    this.classList.toggle("is-disabled", disabled);
   }
 
   disconnectedCallback() {
@@ -162,6 +254,24 @@ class CustomNumberField extends HTMLElement {
     this.icon.innerHTML = "";
     this.message.textContent = "";
     this.input.value = "";
+  }
+
+  setDisabled(disabled) {
+    if (disabled) this.setAttribute("disabled", "");
+    else this.removeAttribute("disabled");
+  }
+
+  get disabled() {
+    return this._disabled;
+  }
+
+  setRequired(required) {
+    if (required) this.setAttribute("required", "");
+    else this.removeAttribute("required");
+  }
+
+  get required() {
+    return this.hasAttribute("required");
   }
 }
 

@@ -2,6 +2,11 @@ import {
   AlertService,
   formatearFecha,
   normalizarTexto,
+  formatearFechaCorta,
+  obtenerMesDia,
+  apiRequest,
+  ROUTES,
+  crearControladorFiltros,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormHoliday = null;
@@ -13,7 +18,10 @@ let paginatorFeriadoNacional = null;
 let todosLosFeriadosNacionales = [];
 let feriadosNacionalesSeleccionados = new Set();
 let selectFiltroTipoFeriado = null;
+let selectFiltroAnioLectivo = null;
 let anioLectivoActivo = null;
+let ultimoAnio = null;
+let controladorFiltros = null;
 
 const CONTENIDO_POR_TIPO = {
   nacional: "contentFeriadosNacionales",
@@ -27,6 +35,9 @@ const CAMPOS_POR_TIPO_HOLIDAY = {
 };
 
 async function init() {
+  await obtenerAnioActivo();
+  await obtenerUltimoAnio();
+
   DialogFormHoliday = document.getElementById("DialogFormHoliday");
   DialogInfoHoliday = document.getElementById("DialogInfoHoliday");
   paginatorFeriadoNacional = document.getElementById(
@@ -41,13 +52,24 @@ async function init() {
     selectFiltroTipoFeriado.setOptions(tipo);
   }
 
-  if (document.getElementById("contentList")) {
-    //initFiltros();
-  }
-  formHoliday = document.getElementById("formHoliday");
+  selectFiltroAnioLectivo = document.querySelector(
+    "custom-select[name='filtroAnioLectivo']",
+  );
 
-  /*
-    paginatorList = document.getElementById("paginatorList");
+  if (selectFiltroAnioLectivo) {
+    const anios = await getAnioLectivo();
+    selectFiltroAnioLectivo.setOptions(anios);
+    if (ultimoAnio) {
+      selectFiltroAnioLectivo.setValue(ultimoAnio.id_aniolectivo);
+    }
+  }
+
+  if (document.getElementById("contentList")) {
+    initFiltros();
+    Listar();
+  }
+
+  paginatorList = document.getElementById("paginatorList");
   if (paginatorList) {
     paginatorList.addEventListener("page-change", (e) => {
       const container = document.getElementById("contentList");
@@ -56,57 +78,56 @@ async function init() {
       container.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
-  }*/
+  formHoliday = document.getElementById("formHoliday");
 }
 
 async function Listar() {
   document.getElementById("contentList").innerHTML = "";
-  try {
-    let resp = await fetch(
-      "../../../app/routes/dianolectivo.route.php?op=listar",
-    );
-    let json = await resp.json();
-    if (json.status) {
-      paginatorList.setData(json.data);
-    } else {
-      document.getElementById("contentList").innerHTML = `
+  const json = await apiRequest(ROUTES.DIA_NO_LECTIVO, "listar");
+  if (json.status) {
+    paginatorList.setData(json.data);
+  } else {
+    document.getElementById("contentList").innerHTML = `
                 <div class="p-5 text-center text-gray-500">
                     <i class="bi bi-emoji-astonished text-4xl mb-3 block"></i>
                     <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
                     <p class="text-sm mt-2 text-gray-400">No se encontraron días no lectivos registrados</p>
                 </div>`;
-    }
-  } catch (error) {
-    console.error(error);
   }
 }
 
 function renderRows(item) {
-  let existingRow = document.getElementById("row_" + item.id_feriado);
+  let existingRow = document.getElementById("row_" + item.id_dianolectivo);
   if (existingRow) {
     existingRow.remove();
   }
 
   let newdiv = document.createElement("div");
-  newdiv.id = "row_" + item.id_feriado;
+  newdiv.id = "row_" + item.id_dianolectivo;
   newdiv.className =
     "flex lg:flex-row flex-col gap-5 p-5 hover:bg-neutral-100 duration-300 ease-linear justify-between";
   newdiv.innerHTML = `
     <div class="flex flex-col gap-2">
       <div class="flex flex-wrap gap-3 items-center">
-        <h5 class="font-bold text-lg text-gray-700">${item.nom_feriado}</h5>
-        <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-300/40 text-blue-700">${formatearFecha(item.fecha_feriado)}</span>
+        <h5 class="font-bold text-lg text-gray-700">${item.nom_evento}</h5>
+        <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-300/40 text-blue-700">Año lectivo: ${item.anio}</span>
       </div>
-      <p class="text-neutral-500 text-sm"> ${item.desc_feriado || "Sin descripción"}</p>
+      <p class="text-neutral-500 text-sm"> 
+      ${
+        item.fecha_inicio === item.fecha_fin
+          ? `<span class="font-semibold text-neutral-600">${formatearFecha(item.fecha_inicio)}</span>`
+          : `De <span class="font-semibold text-neutral-600">${formatearFecha(item.fecha_inicio)}</span> a <span class="font-semibold text-neutral-600">${formatearFecha(item.fecha_fin)}</span>`
+      } 
+      </p>
       <div class="inline-flex self-start items-center gap-2 px-2 py-0.5 rounded-full ${
-        item.id_tipoferiado === 1
-          ? "bg-orange-100"
-          : item.id_tipoferiado === 2
+        item.id_tipodianolectivo === 1
+          ? "bg-green-100"
+          : item.id_tipodianolectivo === 2
             ? "bg-blue-100"
-            : "bg-neutral-100"
+            : "bg-purple-100"
       }">
-        <span class="w-2 h-2 rounded-full ${item.id_tipoferiado === 1 ? "bg-orange-500" : item.id_tipoferiado === 2 ? "bg-blue-500" : "bg-neutral-500"}"></span>
-        <span class="text-xs font-semibold ${item.id_tipoferiado === 1 ? "text-orange-700" : item.id_tipoferiado === 2 ? "text-blue-700" : "text-neutral-700"}">${item.id_tipoferiado === 1 ? "Feriado nacional" : "Feriado institucional"}</span>
+        <span class="w-2 h-2 rounded-full ${item.id_tipodianolectivo === 1 ? "bg-green-500" : item.id_tipodianolectivo === 2 ? "bg-blue-500" : "bg-purple-500"}"></span>
+        <span class="text-xs font-semibold ${item.id_tipodianolectivo === 1 ? "text-green-700" : item.id_tipodianolectivo === 2 ? "text-blue-700" : "text-purple-700"}">${item.nom_tipodianolectivo}</span>
       </div>
     </div>
     <div class="flex items-center gap-2">
@@ -114,19 +135,13 @@ function renderRows(item) {
         icon="bi bi-eye-fill"
         btn-class="bg-sky-500 text-white hover:bg-sky-700"
         tooltip="Ver información"
-        onclick="openModalInfo(${item.id_feriado})">
-      </custom-button-fab>
-      <custom-button-fab
-        icon="bi bi-tag-fill"
-        btn-class="bg-purple-500 text-white hover:bg-purple-700"
-        tooltip="Editar"
-        onclick="openModalForm(${item.id_feriado})">
+        onclick="openModalInfo(${item.id_dianolectivo})">
       </custom-button-fab>
       <custom-button-fab
         icon="bi bi-trash-fill"
         btn-class="bg-red-500 text-white hover:bg-red-700"
         tooltip="Eliminar"
-        onclick="onDelete(${item.id_feriado})">
+        onclick="onDelete(${item.id_dianolectivo})">
       </custom-button-fab>
     </div>
   `;
@@ -135,29 +150,25 @@ function renderRows(item) {
 }
 
 async function ObtenerFeriadosPendientes() {
-  try {
-    let resp = await fetch(
-      "../../../app/routes/dianolectivo.route.php?op=obtenerferiadospendientes",
-    );
-    let json = await resp.json();
-    if (json.status) {
-      paginatorFeriadoNacional.setData(json.data);
-      todosLosFeriadosNacionales = json.data;
-      document.getElementById("totalFeriadoNacional").textContent =
-        json.data.length;
-      inicializarBusquedaFeriado();
-      updateCountersFeriadosNacionales();
-    } else {
-      document.getElementById("contentListFeriadoNacional").innerHTML = `
+  const json = await apiRequest(
+    ROUTES.DIA_NO_LECTIVO,
+    "obtenerferiadospendientes",
+  );
+  if (json.status) {
+    paginatorFeriadoNacional.setData(json.data);
+    todosLosFeriadosNacionales = json.data;
+    document.getElementById("totalFeriadoNacional").textContent =
+      json.data.length;
+    inicializarBusquedaFeriado();
+    updateCountersFeriadosNacionales();
+  } else {
+    document.getElementById("contentListFeriadoNacional").innerHTML = `
                 <div class="p-5 text-center text-gray-500">
                     <i class="bi bi-check-circle text-4xl mb-3 block text-green-500"></i>
                     <p class="font-medium">No hay faltas registradas</p>
                     <p class="text-sm mt-2 text-gray-400">Todos los alumnos tienen asistencia al día</p>
                 </div>`;
-      document.getElementById("totalFeriadoNacional").textContent = "0";
-    }
-  } catch (error) {
-    console.error(error);
+    document.getElementById("totalFeriadoNacional").textContent = "0";
   }
 }
 
@@ -346,71 +357,46 @@ function ResetHolidayCard() {
 }
 
 async function getTipoDiaNoLectivo() {
-  try {
-    let resp = await fetch(
-      "../../../app/routes/genericList.route.php?op=tipodianolectivo",
-    );
-    let json = await resp.json();
-    if (json.status) {
-      let data = json.data;
-      let ops = data.map((p) => ({
-        value: p.id_tipodianolectivo,
-        desc: p.nom_tipodianolectivo,
-      }));
-      return ops;
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(ROUTES.GENERIC_LIST, "tipodianolectivo");
+  if (json.status) {
+    let data = json.data;
+    let ops = data.map((p) => ({
+      value: p.id_tipodianolectivo,
+      desc: p.nom_tipodianolectivo,
+    }));
+    return ops;
+  }
+}
+
+async function getAnioLectivo() {
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "listar");
+  if (json.status) {
+    let data = json.data;
+    let ops = data.map((p) => ({
+      value: p.id_aniolectivo,
+      desc: p.anio,
+    }));
+    return ops;
   }
 }
 
 async function obtenerAnioActivo() {
-  try {
-    let resp = await fetch(
-      "../../../app/routes/aniolectivo.route.php?op=obteneranioactivo",
-    );
-    let json = await resp.json();
-    if (json.status) {
-      anioLectivoActivo = json.data;
-      document.getElementById("infoAnioActivo").textContent =
-        anioLectivoActivo.anio;
-      document.getElementById("infoVigenciaActiva").textContent =
-        `${formatearFecha(anioLectivoActivo.fecha_inicio)} - ${formatearFecha(anioLectivoActivo.fecha_fin)}`;
-    } else {
-      anioLectivoActivo = null;
-    }
-  } catch (error) {
-    console.error(error);
-  }
-}
-/*
-async function GuardaryEditar() {
-  try {
-    let form = document.getElementById("formHoliday");
-    const data = new FormData(form);
-    let resp = await fetch(
-      "../../../app/routes/feriado.route.php?op=guardaryeditar",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: data,
-      },
-    );
-    let json = await resp.json();
-    if (json.status) {
-      AlertService.success("¡Exito!", json.msg);
-      Listar();
-      closeModalForm();
-    } else {
-      AlertService.warning("¡Atención!", json.msg);
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obteneranioactivo");
+  if (json.status) {
+    anioLectivoActivo = json.data;
+  } else {
+    anioLectivoActivo = null;
   }
 }
 
-
+async function obtenerUltimoAnio() {
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obtenerultimoanio");
+  if (json.status) {
+    ultimoAnio = json.data;
+  } else {
+    ultimoAnio = null;
+  }
+}
 
 function initFiltros() {
   const searchText = document.querySelector(
@@ -423,111 +409,167 @@ function initFiltros() {
   const tipoFeriado = document.querySelector(
     "custom-select[name='filtroTipoFeriado']",
   );
+  const anioLectivo = document.querySelector(
+    "custom-select[name='filtroAnioLectivo']",
+  );
+  controladorFiltros = crearControladorFiltros(Filtrar);
 
-  if (searchText) searchText.addEventListener("input", Filtrar);
+  controladorFiltros.registrar(
+    searchText,
+    "input",
+    (el) => el.getValue()?.trim() || "",
+  );
 
-  if (fechaInicio) {
-    fechaInicio.fp?.config?.onChange?.push(() => Filtrar());
+  controladorFiltros.registrar(
+    fechaInicio,
+    "change",
+    (el) => el.getValue() || "",
+  );
+
+  controladorFiltros.registrar(fechaFin, "change", (el) => el.getValue() || "");
+
+  controladorFiltros.registrar(
+    tipoFeriado,
+    "change",
+    (el) => el.getValue() || "",
+  );
+
+  controladorFiltros.registrar(
+    anioLectivo,
+    "change",
+    (el) => el.getValue() || "",
+  );
+}
+
+async function Filtrar() {
+  const dato =
+    document
+      .querySelector("custom-text-field[name='searchText']")
+      ?.getValue()
+      ?.trim() || "";
+  const fechaInicio =
+    document
+      .querySelector("custom-datepicker[name='fechaInicio']")
+      ?.getValue() || "";
+  const fechaFin =
+    document.querySelector("custom-datepicker[name='fechaFin']")?.getValue() ||
+    "";
+  const tipoFeriado =
+    document
+      .querySelector("custom-select[name='filtroTipoFeriado']")
+      ?.getValue() || "";
+  const anioLectivo =
+    document
+      .querySelector("custom-select[name='filtroAnioLectivo']")
+      ?.getValue() || "";
+
+  if (!dato && !fechaInicio && !fechaFin && !tipoFeriado && !anioLectivo) {
+    Listar();
+    return;
   }
-  if (fechaFin) {
-    fechaFin.fp?.config?.onChange?.push(() => Filtrar());
-  }
-
-  if (tipoFeriado) {
-    tipoFeriado.addEventListener("change", () => Filtrar());
-  }
-
-  async function Filtrar() {
-    const dato =
-      document
-        .querySelector("custom-text-field[name='searchText']")
-        ?.getValue()
-        ?.trim() || "";
-    const fechaInicio =
-      document
-        .querySelector("custom-datepicker[name='fechaInicio']")
-        ?.getValue() || "";
-    const fechaFin =
-      document
-        .querySelector("custom-datepicker[name='fechaFin']")
-        ?.getValue() || "";
-    const tipoFeriado =
-      document
-        .querySelector("custom-select[name='filtroTipoFeriado']")
-        ?.getValue() || "";
-    if (!dato && !fechaInicio && !fechaFin && !tipoFeriado) {
-      Listar();
-      return;
-    }
-    document.getElementById("contentList").innerHTML = "";
-    try {
-      let formData = new FormData();
-      formData.append("dato", dato);
-      formData.append("fechaInicio", fechaInicio);
-      formData.append("fechaFin", fechaFin);
-      formData.append("tipoFeriado", tipoFeriado);
-      let resp = await fetch(
-        "../../../app/routes/feriado.route.php?op=buscar",
-        {
-          method: "POST",
-          mode: "cors",
-          cache: "no-cache",
-          body: formData,
-        },
-      );
-      let json = await resp.json();
-      if (json.status) {
-        paginatorList.setData(json.data);
-      } else {
-        paginatorList.setData([]);
-        document.getElementById("contentList").innerHTML = `
-                <div class="p-5 text-center text-gray-500">
-                    <i class="bi bi-search text-4xl mb-3 block"></i>
-                    <p class="font-medium">No se encontraron resultados</p>
-                    <p class="text-sm mt-2 text-gray-400">Intenta con otros filtros</p>
-                </div>`;
-      }
-    } catch (error) {
-      console.error(error);
-    }
+  document.getElementById("contentList").innerHTML = "";
+  const json = await apiRequest(ROUTES.DIA_NO_LECTIVO, "buscar", {
+    dato,
+    fechaInicio,
+    fechaFin,
+    idTipoFeriado: tipoFeriado,
+    idAnioLectivo: anioLectivo,
+  });
+  if (json.status) {
+    paginatorList.setData(json.data);
+  } else {
+    paginatorList.setData([]);
+    document.getElementById("contentList").innerHTML = `
+      <div class="p-5 text-center text-gray-500">
+        <i class="bi bi-search text-4xl mb-3 block"></i>
+        <p class="font-medium">No se encontraron resultados</p>
+        <p class="text-sm mt-2 text-gray-400">Intenta con otros filtros</p>
+      </div>`;
   }
 }
 
 async function verDetalles(id) {
-  try {
-    const formData = new FormData();
-    formData.append("id", id);
-    let resp = await fetch("../../../app/routes/feriado.route.php?op=mostrar", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      body: formData,
-    });
-    let json = await resp.json();
-    if (json.status) {
-      poblarInfoFeriado(json.data);
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(ROUTES.DIA_NO_LECTIVO, "mostrar", { id });
+  if (json.status) {
+    poblarInfoDiaNoLectivo(json.data);
   }
 }
 
-function poblarInfoFeriado(data) {
-  document.getElementById("nomFeriadoInfo").textContent =
-    data.nomFeriado || "-";
-  document.getElementById("fechaFeriadoInfo").textContent = data.fechaFeriado
-    ? formatearFecha(data.fechaFeriado)
-    : "-";
-  document.getElementById("descFeriadoInfo").textContent =
-    data.descFeriado || "Sin descripción";
+function calcularEstadoTemporal(fechaInicio, fechaFin) {
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  const inicio = new Date(fechaInicio + "T00:00:00");
+  const fin = new Date(fechaFin + "T00:00:00");
 
-  const tipoTexto =
-    data.idTipoFeriado == 1
-      ? "Feriado nacional"
-      : data.idTipoFeriado == 2
-        ? "Feriado institucional"
-        : "-";
-  document.getElementById("tipoFeriadoInfo").textContent = tipoTexto;
+  if (hoy < inicio) {
+    return { texto: "Próximo", bg: "bg-amber-100", text: "text-amber-700" };
+  }
+  if (hoy > fin) {
+    return { texto: "Finalizado", bg: "bg-gray-200", text: "text-gray-600" };
+  }
+  return { texto: "En curso", bg: "bg-emerald-100", text: "text-emerald-700" };
+}
+
+function poblarInfoDiaNoLectivo(data) {
+  document.getElementById("nomEventoInfo").textContent = data.nomEvento || "-";
+
+  const esMismoDia = data.fechaInicio === data.fechaFin;
+
+  document.getElementById("fechaInfo").textContent = esMismoDia
+    ? formatearFechaCorta(data.fechaInicio)
+    : `${formatearFechaCorta(data.fechaInicio)} - ${formatearFechaCorta(data.fechaFin)}`;
+
+  document.getElementById("diaSemanaInfo").textContent = esMismoDia
+    ? data.diaInicio
+    : `${data.diaInicio} - ${data.diaFin}`;
+
+  document.getElementById("anioLectivoInfo").textContent = data.anio || "-";
+  document.getElementById("nomTipoInfo2").textContent =
+    data.nomTipoDiaNoLectivo || "-";
+
+  // Estado temporal
+  const estado = calcularEstadoTemporal(data.fechaInicio, data.fechaFin);
+  const estadoEl = document.getElementById("estadoTemporalInfo");
+  estadoEl.textContent = estado.texto;
+  estadoEl.className = `inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${estado.bg} ${estado.text}`;
+
+  const calendarioDiaUnico = document.getElementById("calendarioDiaUnico");
+  const calendarioRango = document.getElementById("calendarioRango");
+
+  if (esMismoDia) {
+    calendarioDiaUnico.classList.remove("hidden");
+    calendarioDiaUnico.classList.add("flex");
+    calendarioRango.classList.add("hidden");
+    calendarioRango.classList.remove("flex");
+    const { mes, dia } = obtenerMesDia(data.fechaInicio);
+    document.getElementById("mesCortoInfo").textContent = mes;
+    document.getElementById("diaNumeroInfo").textContent = dia;
+  } else {
+    calendarioDiaUnico.classList.add("hidden");
+    calendarioDiaUnico.classList.remove("flex");
+    calendarioRango.classList.remove("hidden");
+    calendarioRango.classList.add("flex");
+    const inicio = obtenerMesDia(data.fechaInicio);
+    const fin = obtenerMesDia(data.fechaFin);
+    document.getElementById("mesCortoInicioInfo").textContent = inicio.mes;
+    document.getElementById("diaNumeroInicioInfo").textContent = inicio.dia;
+    document.getElementById("mesCortoFinInfo").textContent = fin.mes;
+    document.getElementById("diaNumeroFinInfo").textContent = fin.dia;
+  }
+
+  const dot = document.getElementById("dotTipoInfo");
+  const badge = document.getElementById("badgeTipoInfo");
+  const colores = {
+    1: { bg: "bg-green-100", dot: "bg-green-500", text: "text-green-700" },
+    2: { bg: "bg-blue-100", dot: "bg-blue-500", text: "text-blue-700" },
+    3: { bg: "bg-purple-100", dot: "bg-purple-500", text: "text-purple-700" },
+  };
+  const color = colores[data.idTipoDiaNoLectivo] || colores[1];
+
+  badge.className = `inline-flex self-start items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${color.bg} ${color.text}`;
+  dot.className = `w-2 h-2 rounded-full ${color.dot}`;
+  document.getElementById("nomTipoInfo").textContent =
+    data.nomTipoDiaNoLectivo || "-";
 }
 
 window.onDelete = async function (id) {
@@ -536,52 +578,75 @@ window.onDelete = async function (id) {
     "Esta acción no se puede deshacer.",
   ).then(async (result) => {
     if (result) {
-      let formData = new FormData();
-      formData.append("id", id);
-      try {
-        let resp = await fetch(
-          "../../../app/routes/feriado.route.php?op=eliminar",
-          {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            body: formData,
-          },
-        );
-        let json = await resp.json();
-        if (json.status) {
-          AlertService.success("¡Éxito!", json.msg);
-          Listar();
-        } else {
-          AlertService.error("Error", json.msg);
-        }
-      } catch (error) {
-        console.error(error);
+      const json = await apiRequest(ROUTES.DIA_NO_LECTIVO, "eliminar", { id });
+      if (json.status) {
+        AlertService.success("¡Éxito!", json.msg);
+        Listar();
+      } else {
+        AlertService.error("Error", json.msg);
       }
     }
   });
 };
-
-;*/
 window.LimpiarFiltros = function () {
-  document.querySelector("custom-text-field[name='searchText']")?.initInput();
-  document.querySelector("custom-datepicker[name='fechaInicio']")?.initInput();
-  document.querySelector("custom-datepicker[name='fechaFin']")?.initInput();
-  document
-    .querySelector("custom-select[name='filtroTipoFeriado']")
-    ?.initInput();
+  const searchText = document.querySelector(
+    "custom-text-field[name='searchText']",
+  );
+  if (searchText) {
+    controladorFiltros?.sincronizar(searchText, "");
+    searchText.initInput();
+  }
+  const fechaInicio = document.querySelector(
+    "custom-datepicker[name='fechaInicio']",
+  );
+  if (fechaInicio) {
+    controladorFiltros?.sincronizar(fechaInicio, "");
+    fechaInicio.initInput();
+  }
+
+  const fechaFin = document.querySelector("custom-datepicker[name='fechaFin']");
+  if (fechaFin) {
+    controladorFiltros?.sincronizar(fechaFin, "");
+    fechaFin.initInput();
+  }
+  const filtroTipoFeriado = document.querySelector(
+    "custom-select[name='filtroTipoFeriado']",
+  );
+  if (filtroTipoFeriado) {
+    controladorFiltros?.sincronizar(filtroTipoFeriado, "");
+    filtroTipoFeriado.initInput();
+  }
+
+  const selectAnio = document.querySelector(
+    "custom-select[name='filtroAnioLectivo']",
+  );
+  if (selectAnio) {
+    const valorReset = ultimoAnio ? ultimoAnio.id_aniolectivo : "";
+    controladorFiltros?.sincronizar(selectAnio, valorReset);
+    if (ultimoAnio) {
+      selectAnio.setValue(ultimoAnio.id_aniolectivo);
+    } else {
+      selectAnio.initInput();
+    }
+  }
+
   Listar();
 };
 
-window.openModalForm = async function (id = null) {
-  await obtenerAnioActivo();
+window.openModalForm = async function () {
   if (!anioLectivoActivo) {
     AlertService.warning(
       "¡Atención!",
-      "No hay un año lectivo activo. Por favor, configure un año lectivo activo antes de continuar.",
+      "No hay un año lectivo activo o se encuentra vencido. Por favor, configure un año lectivo activo antes de continuar.",
     );
     return;
   }
+
+  document.getElementById("infoAnioActivo").textContent =
+    anioLectivoActivo.anio;
+  document.getElementById("infoVigenciaActiva").textContent =
+    `${formatearFecha(anioLectivoActivo.fecha_inicio)} - ${formatearFecha(anioLectivoActivo.fecha_fin)}`;
+
   ResetHolidayCard();
   DialogFormHoliday.open();
   initHolidayCards();
@@ -621,6 +686,66 @@ window.limpiarSeleccionFeriadoNacional = function () {
   updateCountersFeriadosNacionales();
 };
 
+window.toggleFiltros = function () {
+  const panel = document.getElementById("panelFiltros");
+  const btn = document.getElementById("btnToggleFiltros");
+
+  const estaOculto = panel.classList.contains("hidden");
+
+  if (estaOculto) {
+    // Abrir
+    panel.classList.remove("hidden");
+    panel.classList.add("flex");
+
+    const alturaFinal = panel.scrollHeight;
+    panel.style.height = "0px";
+    panel.style.overflow = "hidden";
+    panel.style.opacity = "0";
+    panel.style.transition = "height 0.3s ease, opacity 0.3s ease";
+
+    requestAnimationFrame(() => {
+      panel.style.height = alturaFinal + "px";
+      panel.style.opacity = "1";
+    });
+
+    panel.addEventListener(
+      "transitionend",
+      () => {
+        panel.style.height = "auto";
+        panel.style.overflow = "visible";
+      },
+      { once: true },
+    );
+  } else {
+    // Cerrar
+    const alturaActual = panel.scrollHeight;
+    panel.style.height = alturaActual + "px";
+    panel.style.overflow = "hidden";
+
+    requestAnimationFrame(() => {
+      panel.style.height = "0px";
+      panel.style.opacity = "0";
+    });
+
+    panel.addEventListener(
+      "transitionend",
+      () => {
+        panel.classList.add("hidden");
+        panel.classList.remove("flex");
+        panel.style.height = "";
+        panel.style.overflow = "";
+        panel.style.opacity = "";
+        panel.style.transition = "";
+      },
+      { once: true },
+    );
+  }
+
+  btn.classList.toggle("bg-blue-100");
+  btn.classList.toggle("text-blue-600");
+  btn.classList.toggle("border-blue-300");
+};
+
 function updateCountersFeriadosNacionales() {
   document.getElementById("countSelectedFeriadoNacional").textContent =
     feriadosNacionalesSeleccionados.size;
@@ -653,36 +778,24 @@ window.grabar = async function () {
 };
 
 async function GuardarFeriadosNacionales() {
-  const formData = new FormData();
-  formData.append("idAnioLectivo", anioLectivoActivo.id_aniolectivo);
-  formData.append(
-    "feriados",
-    JSON.stringify(
-      Array.from(feriadosNacionalesSeleccionados).map((id) => ({
-        idPlantilla: id,
-      })),
-    ),
+  const json = await apiRequest(
+    ROUTES.DIA_NO_LECTIVO,
+    "guardarferiadosnacionales",
+    {
+      idAnioLectivo: anioLectivoActivo.id_aniolectivo,
+      feriados: JSON.stringify(
+        Array.from(feriadosNacionalesSeleccionados).map((id) => ({
+          idPlantilla: id,
+        })),
+      ),
+    },
   );
-  try {
-    let resp = await fetch(
-      "../../../app/routes/dianolectivo.route.php?op=guardarferiadosnacionales",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: formData,
-      },
-    );
-    let json = await resp.json();
-    if (json.status) {
-      AlertService.success("¡Éxito!", json.msg);
-      // Listar();
-      closeModalForm();
-    } else {
-      AlertService.warning("¡Atención!", json.msg);
-    }
-  } catch (error) {
-    console.error(error);
+  if (json.status) {
+    AlertService.success("¡Éxito!", json.msg);
+    Listar();
+    closeModalForm();
+  } else {
+    AlertService.warning("¡Atención!", json.msg);
   }
 }
 
@@ -700,26 +813,20 @@ async function GuardarFeriadoManual(tipo) {
     formData.append("fechaInicio", formData.get("fechaInicioRango"));
     formData.append("fechaFin", formData.get("fechaFinRango"));
   }
-
-  try {
-    let resp = await fetch(
-      "../../../app/routes/dianolectivo.route.php?op=guardarmanual",
-      { method: "POST", mode: "cors", cache: "no-cache", body: formData },
-    );
-    let json = await resp.json();
-    if (json.status) {
-      AlertService.success("¡Éxito!", json.msg);
-      // Listar();
-      closeModalForm();
-    } else {
-      AlertService.warning("¡Atención!", json.msg);
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(
+    ROUTES.DIA_NO_LECTIVO,
+    "guardarmanual",
+    formData,
+  );
+  if (json.status) {
+    AlertService.success("¡Éxito!", json.msg);
+    Listar();
+    closeModalForm();
+  } else {
+    AlertService.warning("¡Atención!", json.msg);
   }
 }
 
-/*
 window.openModalInfo = function (id) {
   if (id === undefined || id === null) return;
   if (!DialogInfoHoliday) return;
@@ -731,7 +838,6 @@ window.closeModalInfo = function () {
   if (!DialogInfoHoliday) return;
   DialogInfoHoliday.close();
 };
-*/
 
 function initInput() {
   campos = formHoliday.querySelectorAll(

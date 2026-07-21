@@ -12,20 +12,20 @@ class UsuarioModel
 
     public function Listar()
     {
-        $sql = "SELECT u.*, p.nom_perfil AS nomPerfil FROM usuario AS u INNER JOIN perfil AS p ON u.id_perfil = p.id_perfil WHERE u.vigente = 1";
+        $sql = "SELECT u.*, p.nom_perfil AS nomPerfil FROM usuario AS u INNER JOIN perfil AS p ON u.id_perfil = p.id_perfil WHERE u.vigencia = 1";
         return $this->db->queryExecute($sql, []);
     }
 
     public function Buscar($dato)
     {
-        $sql = "SELECT u.*, p.nom_perfil AS nomPerfil FROM usuario AS u INNER JOIN perfil AS p ON u.id_perfil = p.id_perfil WHERE u.vigente = 1 AND p.vigente = 1 AND (u.nom_usuario LIKE ? OR u.usu_usuario LIKE ? OR u.email_usuario LIKE ? OR u.tel_usuario LIKE ? OR p.nom_perfil LIKE ?);";
+        $sql = "SELECT u.*, p.nom_perfil AS nomPerfil FROM usuario AS u INNER JOIN perfil AS p ON u.id_perfil = p.id_perfil WHERE u.vigencia = 1 AND p.vigencia = 1 AND (u.nom_usuario LIKE ? OR u.usu_usuario LIKE ? OR u.email_usuario LIKE ? OR u.tel_usuario LIKE ? OR p.nom_perfil LIKE ?);";
         $dato = "%{$dato}%";
         return $this->db->queryExecute($sql, [$dato, $dato, $dato, $dato, $dato]);
     }
 
     public function Mostrar($id)
     {
-        $sql = "SELECT u.id_usuario AS idUsuario, u.cod_usuario AS codUsuario, u.nom_usuario AS nomUsuario, u.tel_usuario AS telUsuario, u.email_usuario AS emailUsuario, u.dir_usuario AS dirUsuario, u.usu_usuario AS usuUsuario, p.id_perfil AS idPerfil, p.nom_perfil as nomPerfil FROM usuario AS u INNER JOIN perfil AS p ON u.id_perfil = p.id_perfil WHERE u.id_usuario = ? AND u.vigente = 1 AND p.vigente = 1;";
+        $sql = "SELECT u.id_usuario AS idUsuario, u.cod_usuario AS codUsuario, u.nom_usuario AS nomUsuario, u.tel_usuario AS telUsuario, u.email_usuario AS emailUsuario, u.dir_usuario AS dirUsuario, u.usu_usuario AS usuUsuario, p.id_perfil AS idPerfil, p.nom_perfil as nomPerfil FROM usuario AS u INNER JOIN perfil AS p ON u.id_perfil = p.id_perfil WHERE u.id_usuario = ? AND u.vigencia = 1 AND p.vigencia = 1;";
         $result = $this->db->queryExecute($sql, [$id]);
         return !empty($result) ? $result[0] : null;
     }
@@ -44,7 +44,7 @@ class UsuarioModel
 
     public function Eliminar($id)
     {
-        $sql = "UPDATE usuario SET vigente = 0 WHERE id_usuario = ?";
+        $sql = "UPDATE usuario SET vigencia = 0 WHERE id_usuario = ?";
         return $this->db->queryExecute($sql, [$id]);
     }
 
@@ -63,9 +63,9 @@ class UsuarioModel
             FROM usuario AS u 
             INNER JOIN perfil AS p ON u.id_perfil = p.id_perfil 
             WHERE u.usu_usuario = ? 
-            AND u.vigente = 1 
+            AND u.vigencia = 1 
             AND u.estado = 1
-            AND p.vigente = 1";
+            AND p.vigencia = 1";
 
         $result = $this->db->queryExecute($sql, [$usuUsuario]);
         return !empty($result) ? $result[0] : null;

@@ -177,7 +177,6 @@ async function verDetalles(id) {
     });
     let json = await resp.json();
     if (json.status) {
-      console;
       poblarInfoAula(json.data);
     }
   } catch (error) {

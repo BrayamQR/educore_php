@@ -1,5 +1,6 @@
 <?php
 require_once '../controllers/docente.controller.php';
+require_once '../utils/helpers.php';
 
 class DocenteRoutes
 {
@@ -12,7 +13,7 @@ class DocenteRoutes
 
     private function DataForm()
     {
-        return array_map('trim', $_POST);
+        return Helpers::TrimData($_POST);
     }
 
     public function docenteMethod($op)
@@ -118,6 +119,9 @@ class DocenteRoutes
                     }
                     echo json_encode($arrayResponse);
                 }
+                break;
+            default:
+                echo json_encode(['status' => false, 'msg' => 'Operación no válida']);
                 break;
         }
     }

@@ -17,14 +17,15 @@
         <div class="lg:ml-[350px] mt-[60px] p-5 flex flex-col gap-5">
 
             <div class="bg-white p-5 rounded-lg shadow-md">
-                <p class="">
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Maxime rem, quia cumque sequi, eius nobis unde labore ad consectetur iusto, et reiciendis! Voluptatem nemo enim vel illum quas ut iusto!
+                <p class="text-amber-500">
+                    hola mundo
                 </p>
-
+                <input class="border border-gray-900 rounded-lg p-2" type="text" name="" id="" placeholder="usuario">
+                <label for="">usuario</label>
             </div>
         </div>
-
     </main>
+
 
 
     <script type="module" src="./home.js"></script>

@@ -37,7 +37,7 @@ class HistorialModel
                 INNER JOIN aula       AS au ON e.id_aula         = au.id_aula
                 INNER JOIN grado      AS g  ON au.id_grado       = g.id_grado
                 INNER JOIN nivel      AS n  ON au.id_nivel       = n.id_nivel
-                WHERE e.vigente = 1
+                WHERE e.vigencia = 1
                 ORDER BY asi.fecha_asistencia DESC, e.apa_estudiante, e.ama_estudiante;";
         return $this->db->queryExecute($sql, []);
     }
@@ -60,7 +60,7 @@ class HistorialModel
                 ON fechas.fecha_asistencia = fer.fecha_feriado
             LEFT JOIN cierre_dia cd 
                 ON fechas.fecha_asistencia = cd.fecha_cierre
-            WHERE e.vigente = 1
+            WHERE e.vigencia = 1
             AND e.id_aula = 5
             AND fer.fecha_feriado IS NULL
             AND cd.fecha_cierre IS NULL
@@ -75,7 +75,7 @@ class HistorialModel
         $sqlFaltas = "INSERT INTO asistencia (fecha_asistencia, hora_asistencia, id_estado, id_estudiante)
                   SELECT ?, NULL, 3, e.id_estudiante
                   FROM estudiante e
-                  WHERE e.vigente = 1
+                  WHERE e.vigencia = 1
                   AND e.id_aula = 5
                   AND e.id_estudiante NOT IN (
                       SELECT id_estudiante 
@@ -116,7 +116,7 @@ class HistorialModel
             INNER JOIN grado      AS g  ON au.id_grado       = g.id_grado
             INNER JOIN nivel      AS n  ON au.id_nivel       = n.id_nivel
             WHERE asi.id_estado = 3
-            AND e.vigente = 1
+            AND e.vigencia = 1
             ORDER BY asi.fecha_asistencia DESC, e.apa_estudiante, e.ama_estudiante;";
         return $this->db->queryExecute($sql, []);
     }
@@ -155,7 +155,7 @@ class HistorialModel
             INNER JOIN aula       AS au ON au.id_aula      = e.id_aula
             INNER JOIN grado      AS g  ON g.id_grado      = au.id_grado
             INNER JOIN nivel      AS n  ON n.id_nivel      = au.id_nivel
-            WHERE e.vigente = 1";
+            WHERE e.vigencia = 1";
 
         $params = [];
 
@@ -195,7 +195,7 @@ class HistorialModel
 
     public function ReportePorEstudiante($estudiante, $fechaInicio, $fechaFin, $estado)
     {
-        $where = " WHERE e.vigente = 1";
+        $where = " WHERE e.vigencia = 1";
         $params = [];
 
         if (!empty($estudiante)) {
@@ -259,7 +259,7 @@ class HistorialModel
     // ── POR FECHA ────────────────────────────────────────────────
     public function ReportePorFecha($fecha, $idAula, $estado)
     {
-        $where = " WHERE e.vigente = 1";
+        $where = " WHERE e.vigencia = 1";
         $params = [];
 
         if (!empty($fecha)) {
@@ -319,7 +319,7 @@ class HistorialModel
     // ── RESUMEN POR PERIODO ───────────────────────────────────────
     public function ReportePorPeriodo($fechaInicio, $fechaFin, $idAula, $estado)
     {
-        $where = " WHERE e.vigente = 1";
+        $where = " WHERE e.vigencia = 1";
         $params = [];
 
         if (!empty($fechaInicio)) {

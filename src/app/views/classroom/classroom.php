@@ -131,47 +131,45 @@
             </div>
         </div>
         <div slot="body" class="flex flex-col gap-6">
-            <div slot="body" class="flex flex-col gap-6">
-                <section class="bg-linear-to-r from-blue-50 to-sky-50 p-5 rounded-xl border border-blue-100">
-                    <h2 class="font-bold text-lg mb-4 text-center">Datos del aula</h2>
-                    <div class="flex flex-col gap-3">
-                        <div class="flex items-center gap-2 text-sm text-gray-600 bg-white/50 px-3 py-2 rounded-lg">
-                            <i class="bi bi-mortarboard text-sky-600 w-8 h-8 bg-sky-100 text-lg items-center flex justify-center rounded-full"></i>
-                            <div class="flex flex-col">
-                                <span class="text-xs">Grado</span>
-                                <span id="descGradoAula" class="font-medium"></span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 text-sm text-gray-600 bg-white/50 px-3 py-2 rounded-lg">
-                            <i class="bi bi-door-open text-sky-600 w-8 h-8 bg-sky-100 text-lg items-center flex justify-center rounded-full"></i>
-                            <div class="flex flex-col">
-                                <span class="text-xs">Sección</span>
-                                <span id="seccAula" class="font-medium"></span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2 text-sm text-gray-600 bg-white/50 px-3 py-2 rounded-lg">
-                            <i class="bi bi-building text-sky-600 w-8 h-8 bg-sky-100 text-lg items-center flex justify-center rounded-full"></i>
-                            <div class="flex flex-col">
-                                <span class="text-xs">Nivel académico</span>
-                                <span id="descNivelAula" class="font-medium"></span>
-                            </div>
+            <section class="bg-linear-to-r from-blue-50 to-sky-50 p-5 rounded-xl border border-blue-100">
+                <h2 class="font-bold text-lg mb-4 text-center">Datos del aula</h2>
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 bg-white/50 px-3 py-2 rounded-lg">
+                        <i class="bi bi-mortarboard text-sky-600 w-8 h-8 bg-sky-100 text-lg items-center flex justify-center rounded-full"></i>
+                        <div class="flex flex-col">
+                            <span class="text-xs">Grado</span>
+                            <span id="descGradoAula" class="font-medium"></span>
                         </div>
                     </div>
-                </section>
+                    <div class="flex items-center gap-2 text-sm text-gray-600 bg-white/50 px-3 py-2 rounded-lg">
+                        <i class="bi bi-door-open text-sky-600 w-8 h-8 bg-sky-100 text-lg items-center flex justify-center rounded-full"></i>
+                        <div class="flex flex-col">
+                            <span class="text-xs">Sección</span>
+                            <span id="seccAula" class="font-medium"></span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-sm text-gray-600 bg-white/50 px-3 py-2 rounded-lg">
+                        <i class="bi bi-building text-sky-600 w-8 h-8 bg-sky-100 text-lg items-center flex justify-center rounded-full"></i>
+                        <div class="flex flex-col">
+                            <span class="text-xs">Nivel académico</span>
+                            <span id="descNivelAula" class="font-medium"></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-                <section class="bg-linear-to-r from-purple-50 to-purple-100 p-5 rounded-xl border border-purple-100">
-                    <h2 class="font-bold text-lg mb-4 text-center">Tutor del aula</h2>
-                    <div class="flex flex-col gap-3">
-                        <div class="flex items-center gap-2 text-sm text-gray-600 bg-white/50 px-3 py-2 rounded-lg">
-                            <i class="bi bi-person-badge text-purple-600 w-8 h-8 bg-purple-100 text-lg items-center flex justify-center rounded-full"></i>
-                            <div class="flex flex-col">
-                                <span class="text-xs">Nombre del tutor</span>
-                                <span id="nomDocenteAula" class="font-medium"></span>
-                            </div>
+            <section class="bg-linear-to-r from-purple-50 to-purple-100 p-5 rounded-xl border border-purple-100">
+                <h2 class="font-bold text-lg mb-4 text-center">Tutor del aula</h2>
+                <div class="flex flex-col gap-3">
+                    <div class="flex items-center gap-2 text-sm text-gray-600 bg-white/50 px-3 py-2 rounded-lg">
+                        <i class="bi bi-person-badge text-purple-600 w-8 h-8 bg-purple-100 text-lg items-center flex justify-center rounded-full"></i>
+                        <div class="flex flex-col">
+                            <span class="text-xs">Nombre del tutor</span>
+                            <span id="nomDocenteAula" class="font-medium"></span>
                         </div>
                     </div>
-                </section>
-            </div>
+                </div>
+            </section>
         </div>
         <div slot="footer" class="flex justify-end gap-3">
             <custom-button

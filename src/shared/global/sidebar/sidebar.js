@@ -1,34 +1,18 @@
+import { apiRequest, ROUTES } from "../../../shared/js/globalscripts.js";
+
 document.addEventListener("DOMContentLoaded", () => {
   init();
 });
 
 async function mostrarMenu(id) {
-  const formData = new FormData();
-  formData.append("id", id);
-
-  try {
-    let resp = await fetch(
-      "../../../app/routes/menu.route.php?op=listarByPerfil",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: formData,
-      },
-    );
-
-    const json = await resp.json();
-
-    if (json.status) {
-      const sidebar = document.getElementById("sidebar");
-      sidebar.innerHTML = "";
-      renderMenu(json.data, sidebar);
-      marcarActivo();
-    } else {
-      console.warn("No se encontraron menús");
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(ROUTES.MENU, "listarByPerfil", { id });
+  if (json.status) {
+    const sidebar = document.getElementById("sidebar");
+    sidebar.innerHTML = "";
+    renderMenu(json.data, sidebar);
+    marcarActivo();
+  } else {
+    console.warn("No se encontraron menús");
   }
 }
 

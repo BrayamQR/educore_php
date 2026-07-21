@@ -1,5 +1,5 @@
 <?php
-require_once '../models/anioacademico.model.php';
+require_once '../models/aniolectivo.model.php';
 
 class AnioLectivoController
 {
@@ -14,10 +14,13 @@ class AnioLectivoController
     {
         return $this->model->Listar();
     }
-    public function Buscar() {}
+    public function Buscar($dato)
+    {
+        return $this->model->Buscar($dato);
+    }
     public function Mostrar($id)
     {
-        return $this->model->Mostrar($id);
+        return $this->model->ObtenerPeriodos($id);
     }
     public function Registrar($anio, $fechaInicio, $fechaFin, $idTipoPeriodo)
     {
@@ -34,6 +37,16 @@ class AnioLectivoController
     public function GenerarPeriodos($idAnioLectivo, $idTipoPeriodo)
     {
         return $this->model->GenerarPeriodos($idAnioLectivo, $idTipoPeriodo);
+    }
+
+    public function RegistrarCompleto($anio, $fechaInicio, $fechaFin, $idTipoPeriodo)
+    {
+        return $this->model->RegistrarCompleto($anio, $fechaInicio, $fechaFin, $idTipoPeriodo);
+    }
+
+    public function EditarCompleto($idAnioLectivo, $anio, $fechaInicio, $fechaFin, $idTipoPeriodo)
+    {
+        return $this->model->EditarCompleto($idAnioLectivo, $anio, $fechaInicio, $fechaFin, $idTipoPeriodo);
     }
 
     public function ObtenerPeriodos($id)
@@ -77,5 +90,10 @@ class AnioLectivoController
     public function ObtenerAnioActivo()
     {
         return $this->model->ObtenerAnioActivo();
+    }
+
+    public function ObtenerUltimoAnio()
+    {
+        return $this->model->ObtenerUltimoAnio();
     }
 }

@@ -1,6 +1,10 @@
 class CustomSelect extends HTMLElement {
   static instances = {};
 
+  static get observedAttributes() {
+    return ["label", "required", "disabled", "error-required"];
+  }
+
   constructor() {
     super();
     this.options = [];
@@ -9,7 +13,8 @@ class CustomSelect extends HTMLElement {
     this.highlightedIndex = -1;
     this.lastKey = null;
     this._initialized = false;
-    this._pendingOptions = null; // ✅
+    this._pendingOptions = null;
+    this._disabled = false;
   }
 
   connectedCallback() {
@@ -93,12 +98,62 @@ class CustomSelect extends HTMLElement {
 
     if (name) CustomSelect.instances[name] = this;
 
+    this._applyDisabled(this.hasAttribute("disabled"));
+
     this._initialized = true;
 
-    // ✅ aplicar opciones pendientes si las hay
     if (this._pendingOptions) {
       this._setOptionsInternal(this._pendingOptions);
       this._pendingOptions = null;
+    }
+  }
+
+  attributeChangedCallback(attrName, oldValue, newValue) {
+    if (!this._initialized) return;
+
+    if (attrName === "disabled") {
+      this._applyDisabled(newValue !== null);
+      return;
+    }
+    if (attrName === "label") {
+      this._applyLabel(newValue || "");
+      return;
+    }
+    if (attrName === "required") {
+      this._applyRequired(newValue !== null);
+      return;
+    }
+    if (attrName === "error-required") {
+      this.msgRequired = newValue || "Este campo es obligatorio";
+      return;
+    }
+  }
+
+  _applyLabel(labelText) {
+    if (!this.label) return;
+    const required = this.hasAttribute("required");
+    this.label.innerHTML = `${labelText}${
+      required ? '<span class="required-asterisk">*</span>' : ""
+    }`;
+  }
+
+  _applyRequired(required) {
+    if (!this.input) return;
+    this.input.toggleAttribute("required", required);
+    this._applyLabel(this.getAttribute("label") || "");
+    this.checkValidity();
+  }
+
+  _applyDisabled(disabled) {
+    this._disabled = disabled;
+
+    if (this.input) this.input.disabled = disabled;
+    if (this.hiddenInput) this.hiddenInput.disabled = disabled;
+
+    this.classList.toggle("is-disabled", disabled);
+
+    if (disabled && this.isOpen()) {
+      this.closeList();
     }
   }
 
@@ -156,7 +211,6 @@ class CustomSelect extends HTMLElement {
     }
   }
 
-  // ✅ setOptions ahora maneja el caso de no estar inicializado
   setOptions(options) {
     if (!this._initialized || !this.contentList) {
       this._pendingOptions = options;
@@ -165,7 +219,6 @@ class CustomSelect extends HTMLElement {
     this._setOptionsInternal(options);
   }
 
-  // ✅ lógica interna separada
   _setOptionsInternal(options) {
     this.options = options;
 
@@ -183,6 +236,7 @@ class CustomSelect extends HTMLElement {
 
       li.addEventListener("click", (e) => {
         e.stopPropagation();
+        if (this._disabled) return;
         this.highlightedIndex = -1;
         this.setValue(opt.value);
         this.closeList();
@@ -194,6 +248,8 @@ class CustomSelect extends HTMLElement {
     if (!this._clickHandlerAttached) {
       this.input.addEventListener("click", (e) => {
         e.stopPropagation();
+
+        if (this._disabled) return;
 
         const isOpen = this.contentList.classList.contains("open");
 
@@ -414,6 +470,7 @@ class CustomSelect extends HTMLElement {
   }
 
   handleKeyDown(e) {
+    if (this._disabled) return;
     if (!this.contentList) return;
 
     const items = this.contentList.querySelectorAll(".select-list li");
@@ -454,6 +511,7 @@ class CustomSelect extends HTMLElement {
   }
 
   handleKeyPress(e) {
+    if (this._disabled) return;
     const char = e.key.toLowerCase();
     if (char.length !== 1 || !/[a-zñáéíóú]/i.test(char)) return;
 
@@ -612,6 +670,24 @@ class CustomSelect extends HTMLElement {
     }
 
     this.highlightedIndex = -1;
+  }
+
+  setDisabled(disabled) {
+    if (disabled) this.setAttribute("disabled", "");
+    else this.removeAttribute("disabled");
+  }
+
+  get disabled() {
+    return this._disabled;
+  }
+
+  setRequired(required) {
+    if (required) this.setAttribute("required", "");
+    else this.removeAttribute("required");
+  }
+
+  get required() {
+    return this.hasAttribute("required");
   }
 }
 

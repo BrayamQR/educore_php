@@ -12,33 +12,33 @@ class EstudianteModel
 
     public function Listar()
     {
-        $sql = "SELECT e.*, g.id_grado, g.desc_grado, a.seccion_aula, n.id_nivel, n.desc_nivel FROM estudiante AS e INNER JOIN aula AS a ON e.id_aula = a.id_aula INNER JOIN grado AS g ON a.id_grado = g.id_grado INNER JOIN nivel AS n ON a.id_nivel = n.id_nivel WHERE e.vigente = 1 ORDER BY g.id_grado, e.apa_estudiante;";
+        $sql = "SELECT e.*, g.id_grado, g.desc_grado, a.seccion_aula, n.id_nivel, n.desc_nivel FROM estudiante AS e INNER JOIN aula AS a ON e.id_aula = a.id_aula INNER JOIN grado AS g ON a.id_grado = g.id_grado INNER JOIN nivel AS n ON a.id_nivel = n.id_nivel WHERE e.vigencia = 1 ORDER BY g.id_grado, e.apa_estudiante;";
         return $this->db->queryExecute($sql, []);
     }
 
     public function ListarSinQR()
     {
-        $sql = "SELECT e.*, g.id_grado, g.desc_grado, a.seccion_aula, n.id_nivel, n.desc_nivel FROM estudiante AS e INNER JOIN aula AS a ON e.id_aula = a.id_aula INNER JOIN grado AS g ON a.id_grado = g.id_grado INNER JOIN nivel AS n ON a.id_nivel = n.id_nivel WHERE e.vigente = 1 AND (qr_estudiante is null OR qr_estudiante = '') ORDER BY g.id_grado, e.apa_estudiante;";
+        $sql = "SELECT e.*, g.id_grado, g.desc_grado, a.seccion_aula, n.id_nivel, n.desc_nivel FROM estudiante AS e INNER JOIN aula AS a ON e.id_aula = a.id_aula INNER JOIN grado AS g ON a.id_grado = g.id_grado INNER JOIN nivel AS n ON a.id_nivel = n.id_nivel WHERE e.vigencia = 1 AND (qr_estudiante is null OR qr_estudiante = '') ORDER BY g.id_grado, e.apa_estudiante;";
         return $this->db->queryExecute($sql, []);
     }
 
     public function Buscar($dato)
     {
-        $sql = "SELECT e.*, g.id_grado, g.desc_grado, a.seccion_aula, n.id_nivel, n.desc_nivel FROM estudiante AS e INNER JOIN aula AS a ON e.id_aula = a.id_aula INNER JOIN grado AS g ON a.id_grado = g.id_grado INNER JOIN nivel AS n ON a.id_nivel = n.id_nivel WHERE e.vigente  = 1 AND (e.doc_estudiante LIKE ? OR e.apa_estudiante LIKE ? OR e.ama_estudiante LIKE ? OR e.nom_estudiante LIKE ? OR g.desc_grado LIKE ? OR n.desc_nivel LIKE ? OR a.seccion_aula LIKE ?) ORDER BY g.id_grado, e.apa_estudiante;";
+        $sql = "SELECT e.*, g.id_grado, g.desc_grado, a.seccion_aula, n.id_nivel, n.desc_nivel FROM estudiante AS e INNER JOIN aula AS a ON e.id_aula = a.id_aula INNER JOIN grado AS g ON a.id_grado = g.id_grado INNER JOIN nivel AS n ON a.id_nivel = n.id_nivel WHERE e.vigencia  = 1 AND (e.doc_estudiante LIKE ? OR e.apa_estudiante LIKE ? OR e.ama_estudiante LIKE ? OR e.nom_estudiante LIKE ? OR g.desc_grado LIKE ? OR n.desc_nivel LIKE ? OR a.seccion_aula LIKE ?) ORDER BY g.id_grado, e.apa_estudiante;";
         $dato = "%{$dato}%";
         return $this->db->queryExecute($sql, [$dato, $dato, $dato, $dato, $dato, $dato, $dato]);
     }
 
     public function BuscarPorDNI($dato)
     {
-        $sql = "SELECT e.*, g.desc_grado, a.seccion_aula, n.id_nivel, n.desc_nivel FROM estudiante AS e INNER JOIN aula as a ON e.id_aula = a.id_aula INNER JOIN grado AS g ON g.id_grado = a.id_grado INNER JOIN nivel AS n ON n.id_nivel = a.id_nivel WHERE e.doc_estudiante = ? AND e.vigente = 1;";
+        $sql = "SELECT e.*, g.desc_grado, a.seccion_aula, n.id_nivel, n.desc_nivel FROM estudiante AS e INNER JOIN aula as a ON e.id_aula = a.id_aula INNER JOIN grado AS g ON g.id_grado = a.id_grado INNER JOIN nivel AS n ON n.id_nivel = a.id_nivel WHERE e.doc_estudiante = ? AND e.vigencia = 1;";
         $result = $this->db->queryExecute($sql, [$dato]);
         return !empty($result) ? $result[0] : null;
     }
 
     public function Mostrar($id)
     {
-        $sql = "SELECT e.id_estudiante AS idEstudiante, e.id_tipodocumento AS idTipoDocumento, e.doc_estudiante AS docEstudiante, e.nom_estudiante AS nomEstudiante, e.apa_estudiante AS apaEstudiante, e.ama_estudiante AS amaEstudiante, e.fecha_nacimiento AS fechaNacimiento, e.id_sexo as idSexo, e.nom_apoderado as nomApoderado, e.tel_apoderado AS telApoderado, e.est_matricula as estMatricula, e.id_aula as idAula, e.qr_estudiante AS qrEstudiante, g.desc_grado AS descGrado, a.seccion_aula AS seccionAula, n.desc_nivel AS descNivel, e.vigente FROM estudiante AS e INNER JOIN aula AS a ON e.id_aula = a.id_aula INNER JOIN grado AS g ON a.id_grado = g.id_grado INNER JOIN nivel AS n ON n.id_nivel = a.id_nivel WHERE e.id_estudiante = ? AND e.vigente = 1 AND a.vigente = 1;";
+        $sql = "SELECT e.id_estudiante AS idEstudiante, e.id_tipodocumento AS idTipoDocumento, e.doc_estudiante AS docEstudiante, e.nom_estudiante AS nomEstudiante, e.apa_estudiante AS apaEstudiante, e.ama_estudiante AS amaEstudiante, e.fecha_nacimiento AS fechaNacimiento, e.id_sexo as idSexo, e.nom_apoderado as nomApoderado, e.tel_apoderado AS telApoderado, e.est_matricula as estMatricula, e.id_aula as idAula, e.qr_estudiante AS qrEstudiante, g.desc_grado AS descGrado, a.seccion_aula AS seccionAula, n.desc_nivel AS descNivel, e.vigencia FROM estudiante AS e INNER JOIN aula AS a ON e.id_aula = a.id_aula INNER JOIN grado AS g ON a.id_grado = g.id_grado INNER JOIN nivel AS n ON n.id_nivel = a.id_nivel WHERE e.id_estudiante = ? AND e.vigencia = 1 AND a.vigencia = 1;";
         $result = $this->db->queryExecute($sql, [$id]);
         return !empty($result) ? $result[0] : null;
     }
@@ -80,7 +80,7 @@ class EstudianteModel
 
     public function Eliminar($id)
     {
-        $sql = "UPDATE estudiante SET vigente = 0 WHERE id_estudiante = ?;";
+        $sql = "UPDATE estudiante SET vigencia = 0 WHERE id_estudiante = ?;";
         return $this->db->queryExecute($sql, [$id]);
     }
 

@@ -1,14 +1,19 @@
 import {
   AlertService,
   formatearFecha,
+  formatearFechaCorta,
+  obtenerMesDia,
+  apiRequest,
+  ROUTES,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormSchoolYear = null;
 let DialogConfigPeriod = null;
+let DialogInfoSchoolYear = null;
 let formSchoolYear;
 let campos = [];
 let paginatorList = null;
-
+let inputSearch = null;
 let valoresOriginales = {};
 
 const CONFIG_PERIODO = {
@@ -44,6 +49,7 @@ function init() {
 
   DialogFormSchoolYear = document.getElementById("DialogFormSchoolYear");
   DialogConfigPeriod = document.getElementById("DialogConfigPeriod");
+  DialogInfoSchoolYear = document.getElementById("DialogInfoSchoolYear");
 
   if (document.getElementById("contentList")) {
     Listar();
@@ -60,6 +66,11 @@ function init() {
       GuardaryEditar();
     });
     formSchoolYear.hasSubmitListener = true;
+  }
+
+  inputSearch = document.querySelector("custom-text-field[name='searchText']");
+  if (inputSearch) {
+    inputSearch.addEventListener("input", InputSearch);
   }
 }
 
@@ -102,6 +113,17 @@ window.closeModalForm = function () {
   DialogFormSchoolYear.close();
 };
 
+window.openModalInfo = function (id) {
+  if (id === undefined || id === null) return;
+  if (!DialogInfoSchoolYear) return;
+  verDetalles(id);
+  DialogInfoSchoolYear.open();
+};
+window.closeModalInfo = function () {
+  if (!DialogInfoSchoolYear) return;
+  DialogInfoSchoolYear.close();
+};
+
 window.openModalConfigPeriod = async function (id) {
   if (!DialogConfigPeriod) return;
   await ObtenerPeriodos(id);
@@ -116,27 +138,85 @@ window.closeModalConfigPeriod = function () {
 // ── LISTAR ────────────────────────────────────────────────────
 async function Listar() {
   document.getElementById("contentList").innerHTML = "";
-  try {
-    let resp = await fetch(
-      "../../../app/routes/aniolectivo.route.php?op=listar",
-    );
-    let json = await resp.json();
-    if (json.status) {
-      paginatorList.setData(json.data);
-    } else {
-      document.getElementById("contentList").innerHTML = `
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "listar");
+  if (json.status) {
+    paginatorList.setData(json.data);
+  } else {
+    document.getElementById("contentList").innerHTML = `
         <div class="p-5 text-center text-gray-500">
           <i class="bi bi-emoji-astonished text-4xl mb-3 block"></i>
           <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
-          <p class="text-sm mt-2 text-gray-400">No se encontraron registros</p>
+          <p class="text-sm mt-2 text-gray-400">No se encontraron perfiles registrados</p>
         </div>
       `;
-    }
-  } catch (error) {
-    console.error(error);
   }
 
-  verificarAniosVencidos(); // ✅ llamada independiente
+  verificarAniosVencidos();
+}
+
+async function verDetalles(id) {
+  const anioLectivo = await ObtenerAnioLectivo(id);
+  if (!anioLectivo) return;
+  poblarInfoAnio(anioLectivo);
+}
+function poblarInfoAnio(data) {
+  document.getElementById("anioInfo").textContent = data.anio || "-";
+  const tipoBadge =
+    data.idTipoPeriodo == 1
+      ? "bg-purple-300/40 text-purple-700"
+      : "bg-blue-300/40 text-blue-700";
+
+  document.getElementById("tipoPeriodoInfo").className =
+    `inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ${tipoBadge}`;
+  document.getElementById("tipoPeriodoInfo").textContent =
+    data.descTipoPeriodo || "-";
+
+  document.getElementById("rangoFechaInfo").textContent =
+    `${formatearFechaCorta(data.fechaInicio)} - ${formatearFechaCorta(data.fechaFin)}`;
+
+  const inicio = obtenerMesDia(data.fechaInicio);
+  const fin = obtenerMesDia(data.fechaFin);
+
+  document.getElementById("mesCortoInicioInfo").textContent = inicio.mes;
+  document.getElementById("diaNumeroInicioInfo").textContent = inicio.dia;
+  document.getElementById("mesCortoFinInfo").textContent = fin.mes;
+  document.getElementById("diaNumeroFinInfo").textContent = fin.dia;
+
+  // Periodos
+  const contenedor = document.getElementById("listaPeriodosInfo");
+  contenedor.innerHTML = "";
+
+  (data.periodos || []).forEach((periodo) => {
+    const estadoColor =
+      periodo.estado === 1
+        ? { bg: "bg-emerald-100", text: "text-emerald-700", label: "Activo" }
+        : { bg: "bg-gray-200", text: "text-gray-600", label: "Inactivo" };
+
+    const div = document.createElement("div");
+    div.className =
+      "flex items-center justify-between gap-3 bg-white p-3 rounded-lg border border-gray-100";
+    div.innerHTML = `
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 bg-sky-100 rounded-lg flex items-center justify-center shrink-0">
+            <span class="text-xs font-bold text-sky-700">${periodo.ordenPeriodo}</span>
+          </div>
+          <div class="flex flex-col">
+            <span class="text-sm font-semibold text-gray-700">${periodo.descPeriodo}</span>
+            <span class="text-xs text-gray-500">
+            ${
+              periodo.fechaInicio && periodo.fechaFin
+                ? `${formatearFechaCorta(periodo.fechaInicio)} - ${formatearFechaCorta(periodo.fechaFin)}`
+                : "Sin configurar"
+            }
+            </span>
+          </div>
+        </div>
+        <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold ${estadoColor.bg} ${estadoColor.text}">
+          ${estadoColor.label}
+        </span>
+      `;
+    contenedor.appendChild(div);
+  });
 }
 
 // ── SELECT TIPO PERIODO ───────────────────────────────────────
@@ -145,9 +225,7 @@ function initSelectTipoPeriodo() {
   if (!select) return;
   select.addEventListener("change", (e) => {
     const esEdicion = Object.keys(valoresOriginales).length > 0;
-    // ✅ en edición solo mostrar si cambió el tipo
     if (esEdicion && e.detail.value === valoresOriginales.idTipoPeriodo) {
-      // volvió al valor original → ocultar secciones
       [
         "seccionInfoPeriodo",
         "seccionListaPeriodos",
@@ -246,7 +324,7 @@ function renderRows(item) {
   newdiv.innerHTML = `
     <div class="flex flex-col gap-2">
       <div class="flex flex-wrap gap-3 items-center">
-        <h5 class="font-bold text-lg text-gray-700">Año lectivo ${item.anio}</h5>
+        <h5 class="font-bold text-lg text-gray-700">${item.anio}</h5>
         ${
           Number(item.id_tipoperiodo) === 1
             ? `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-300/40 text-purple-700">Bimestral</span>`
@@ -263,8 +341,8 @@ function renderRows(item) {
         }
       </div>
       <div class="text-neutral-500 text-sm font-light">
-        del <span class="font-semibold">${formatearFecha(item.fecha_inicio)}</span>
-        al <span class="font-medium">${formatearFecha(item.fecha_fin)}</span>
+        De <span class="font-semibold">${formatearFecha(item.fecha_inicio)}</span>
+        a <span class="font-medium">${formatearFecha(item.fecha_fin)}</span>
       </div>
       ${estadoBadge()}
     </div>
@@ -296,28 +374,66 @@ function initInput() {
   );
 }
 
-async function Mostrar(id) {
-  const formData = new FormData();
-  formData.append("id", id);
-  try {
-    let resp = await fetch(
-      "../../../app/routes/aniolectivo.route.php?op=mostrar",
-      { method: "POST", mode: "cors", cache: "no-cache", body: formData },
-    );
-    let json = await resp.json();
-    if (json.status) {
-      document.getElementById("idAnioLectivo").value = json.data.idAnioLectivo;
-      initCustomValues(json.data);
+async function ObtenerAnioLectivo(id) {
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "mostrar", { id });
+  if (!json.status) {
+    AlertService.error("Error", json.msg || "No se encontraron datos");
+    return null;
+  }
+  return json.data;
+}
 
-      valoresOriginales = {
-        fechaInicio: json.data.fechaInicio,
-        fechaFin: json.data.fechaFin,
-        idTipoPeriodo: String(json.data.idTipoPeriodo),
-      };
-      initSelectTipoPeriodo();
+async function Mostrar(id) {
+  const anioLectivo = await ObtenerAnioLectivo(id);
+  if (!anioLectivo) return;
+  document.getElementById("idAnioLectivo").value = anioLectivo.idAnioLectivo;
+  initCustomValues(anioLectivo);
+
+  valoresOriginales = {
+    fechaInicio: anioLectivo.fechaInicio,
+    fechaFin: anioLectivo.fechaFin,
+    idTipoPeriodo: String(anioLectivo.idTipoPeriodo),
+  };
+  initSelectTipoPeriodo();
+}
+
+function InputSearch() {
+  let searchText = inputSearch.getValue().trim();
+  if (searchText === "") {
+    Listar();
+  } else {
+    Buscar();
+  }
+}
+
+async function Buscar() {
+  document.getElementById("contentList").innerHTML = "";
+  let searchText = inputSearch.getValue().trim();
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "buscar", {
+    textsearch: searchText,
+  });
+  if (json.status) {
+    let data = json.data;
+    if (paginatorList) {
+      paginatorList.setData(data);
+    } else {
+      data.forEach(renderRows);
     }
-  } catch (error) {
-    console.error(error);
+  } else {
+    if (paginatorList) {
+      paginatorList.setData([]);
+    }
+    document.getElementById("contentList").innerHTML = `
+        <div class="p-5 text-center text-gray-500">
+          <i class="bi bi-search text-4xl mb-3 block"></i>
+          <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
+          ${
+            searchText
+              ? `<p class="text-sm mt-2 text-gray-400">Búsqueda: "${searchText}"</p>`
+              : ""
+          }
+        </div>
+      `;
   }
 }
 
@@ -327,27 +443,12 @@ window.onActive = async function (id) {
     "Una vez activado, este año lectivo entrará en uso y no podrá ser editado, eliminado ni tendrá cambios en sus períodos.",
   ).then(async (result) => {
     if (result) {
-      let formData = new FormData();
-      formData.append("id", id);
-      try {
-        let resp = await fetch(
-          "../../../app/routes/aniolectivo.route.php?op=activaranio",
-          {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            body: formData,
-          },
-        );
-        let json = await resp.json();
-        if (json.status) {
-          AlertService.success("¡Éxito!", json.msg);
-          Listar();
-        } else {
-          AlertService.error("Error", json.msg);
-        }
-      } catch (error) {
-        console.error(error);
+      const json = await apiRequest(ROUTES.ANIO_LECTIVO, "activaranio", { id });
+      if (json.status) {
+        AlertService.success("¡Éxito!", json.msg);
+        Listar();
+      } else {
+        AlertService.error("Error", json.msg);
       }
     }
   });
@@ -359,27 +460,12 @@ window.onDelete = async function (id) {
     "Esta acción no se puede deshacer.",
   ).then(async (result) => {
     if (result) {
-      let formData = new FormData();
-      formData.append("id", id);
-      try {
-        let resp = await fetch(
-          "../../../app/routes/aniolectivo.route.php?op=eliminar",
-          {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            body: formData,
-          },
-        );
-        let json = await resp.json();
-        if (json.status) {
-          AlertService.success("¡Éxito!", json.msg);
-          Listar();
-        } else {
-          AlertService.error("Error", json.msg);
-        }
-      } catch (error) {
-        console.error(error);
+      const json = await apiRequest(ROUTES.ANIO_LECTIVO, "eliminar", { id });
+      if (json.status) {
+        AlertService.success("¡Éxito!", json.msg);
+        Listar();
+      } else {
+        AlertService.error("Error", json.msg);
       }
     }
   });
@@ -387,21 +473,11 @@ window.onDelete = async function (id) {
 
 // ── OBTENER PERIODOS ──────────────────────────────────────────
 async function ObtenerPeriodos(id) {
-  const formData = new FormData();
-  formData.append("id", id);
-  try {
-    let resp = await fetch(
-      "../../../app/routes/aniolectivo.route.php?op=obtenerperiodos",
-      { method: "POST", mode: "cors", cache: "no-cache", body: formData },
-    );
-    let json = await resp.json();
-    if (json.status) {
-      poblarModalConfigPeriod(json.data);
-    } else {
-      AlertService.warning("¡Atención!", json.msg);
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obtenerperiodos", { id });
+  if (json.status) {
+    poblarModalConfigPeriod(json.data);
+  } else {
+    AlertService.warning("¡Atención!", json.msg);
   }
 }
 
@@ -549,78 +625,61 @@ window.guardarPeriodos = async function () {
     }
   });
 
-  try {
-    const formData = new FormData();
-    formData.append("periodos", JSON.stringify(periodos));
-    let resp = await fetch(
-      "../../../app/routes/aniolectivo.route.php?op=guardarperiodos",
-      { method: "POST", mode: "cors", cache: "no-cache", body: formData },
-    );
-    let json = await resp.json();
-    if (json.status) {
-      AlertService.success("¡Éxito!", json.msg);
-      closeModalConfigPeriod();
-      Listar();
-    } else {
-      AlertService.warning("¡Atención!", json.msg);
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "guardarperiodos", {
+    periodos: JSON.stringify(periodos),
+  });
+
+  if (json.status) {
+    AlertService.success("¡Éxito!", json.msg);
+    closeModalConfigPeriod();
+    Listar();
+  } else {
+    AlertService.warning("¡Atención!", json.msg);
   }
 };
 
 // ── GUARDAR Y EDITAR AÑO ──────────────────────────────────────
 async function GuardaryEditar() {
-  try {
-    let form = document.getElementById("formSchoolYear");
-    const data = new FormData(form);
-    const idAnioLectivo = data.get("idAnioLectivo");
+  let form = document.getElementById("formSchoolYear");
+  const data = new FormData(form);
+  const idAnioLectivo = data.get("idAnioLectivo");
 
-    if (idAnioLectivo) {
-      const fechaInicio = data.get("fechaInicio");
-      const fechaFin = data.get("fechaFin");
-      const idTipoPeriodo = data.get("idTipoPeriodo");
+  if (idAnioLectivo) {
+    const fechaInicio = data.get("fechaInicio");
+    const fechaFin = data.get("fechaFin");
+    const idTipoPeriodo = data.get("idTipoPeriodo");
 
-      const cambioFechas =
-        fechaInicio !== valoresOriginales.fechaInicio ||
-        fechaFin !== valoresOriginales.fechaFin;
-      const cambioTipoPeriodo =
-        idTipoPeriodo !== valoresOriginales.idTipoPeriodo;
+    const cambioFechas =
+      fechaInicio !== valoresOriginales.fechaInicio ||
+      fechaFin !== valoresOriginales.fechaFin;
+    const cambioTipoPeriodo = idTipoPeriodo !== valoresOriginales.idTipoPeriodo;
 
-      if (cambioFechas || cambioTipoPeriodo) {
-        let detalle = "";
-        if (cambioFechas && cambioTipoPeriodo) {
-          detalle = "Cambiaste las fechas y el tipo de periodo.";
-        } else if (cambioFechas) {
-          detalle = "Cambiaste las fechas del año lectivo.";
-        } else {
-          detalle = "Cambiaste el tipo de periodo.";
-        }
-        const confirmado = await AlertService.confirm(
-          "¿Estás seguro?",
-          `${detalle} Las configuraciones de periodos realizadas anteriormente se perderán.`,
-        );
-        if (!confirmado) return;
+    if (cambioFechas || cambioTipoPeriodo) {
+      let detalle = "";
+      if (cambioFechas && cambioTipoPeriodo) {
+        detalle = "Cambiaste las fechas y el tipo de periodo.";
+      } else if (cambioFechas) {
+        detalle = "Cambiaste las fechas del año lectivo.";
+      } else {
+        detalle = "Cambiaste el tipo de periodo.";
       }
+      const confirmado = await AlertService.confirm(
+        "¿Estás seguro?",
+        `${detalle} Las configuraciones de periodos realizadas anteriormente se perderán.`,
+      );
+      if (!confirmado) return;
     }
+  }
 
-    let resp = await fetch(
-      "../../../app/routes/aniolectivo.route.php?op=guardaryeditar",
-      { method: "POST", mode: "cors", cache: "no-cache", body: data },
-    );
-    let json = await resp.json();
-    if (json.status) {
-      AlertService.success("¡Éxito!", json.msg);
-      Listar();
-      closeModalForm();
-    } else {
-      AlertService.warning("¡Atención!", json.msg);
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "guardaryeditar", data);
+  if (json.status) {
+    AlertService.success("¡Éxito!", json.msg);
+    Listar();
+    closeModalForm();
+  } else {
+    AlertService.warning("¡Atención!", json.msg);
   }
 }
-
 // ── BANNER AÑOS VENCIDOS ──────────────────────────────────────
 
 async function verificarAniosVencidos() {
@@ -656,29 +715,13 @@ async function verificarAniosVencidos() {
 }
 
 async function obtenerAniosVencidos() {
-  try {
-    const resp = await fetch(
-      "../../../app/routes/aniolectivo.route.php?op=obtenervencidos",
-    );
-    const json = await resp.json();
-    return json.status ? json.data : [];
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obtenervencidos");
+  return json.status ? json.data : [];
 }
 
 async function obtenerAniosNoCerrados() {
-  try {
-    const resp = await fetch(
-      "../../../app/routes/aniolectivo.route.php?op=obteneractivos",
-    );
-    const json = await resp.json();
-    return json.status ? json.data : [];
-  } catch (error) {
-    console.error(error);
-    return [];
-  }
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obteneractivos");
+  return json.status ? json.data : [];
 }
 
 // ── CERRAR AÑOS VENCIDOS ──────────────────────────────────────
@@ -688,21 +731,14 @@ window.cerrarAniosVencidos = async function () {
     "Esta acción cerrará todos los años lectivos que han superado su fecha de fin. ¿Deseas continuar?",
   );
   if (!confirmado) return;
-
-  try {
-    const resp = await fetch(
-      "../../../app/routes/aniolectivo.route.php?op=cerrarvencidos",
-      { method: "POST", mode: "cors", cache: "no-cache" },
-    );
-    const json = await resp.json();
-    if (json.status) {
-      AlertService.success("¡Éxito!", json.msg);
-      Listar();
-    } else {
-      AlertService.warning("¡Atención!", json.msg);
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "cerrarvencidos", null, {
+    method: "POST",
+  });
+  if (json.status) {
+    AlertService.success("¡Éxito!", json.msg);
+    Listar();
+  } else {
+    AlertService.warning("¡Atención!", json.msg);
   }
 };
 

@@ -164,6 +164,10 @@ input[type="number"] {
   cursor: pointer;
   user-select: none;
 }
+.input-timepicker {
+  cursor: pointer;
+  user-select: none;
+}
 
 .options-container {
   position: fixed;
@@ -569,4 +573,205 @@ dialog-modal .modal-footer {
   .paginator-info {
     font-size: 0.8125rem;
   }
+}
+
+.ctp-panel {
+  position: fixed;
+  z-index: 1000;
+  background: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  border-radius: 12px;
+  width: max-content;
+  max-width: min(280px, calc(100vw - 16px));
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-5px);
+  overflow: hidden;
+  transition:
+    max-height 0.25s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.ctp-panel.ctp-panel-open {
+  max-height: 480px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.ctp-panel-inner {
+  padding: 16px;
+}
+
+/* ---- header: "Seleccionar hora" + display ---- */
+
+.ctp-header-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 10px;
+}
+
+.ctp-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ctp-display-hour,
+.ctp-display-minute {
+  font-size: 30px;
+  font-weight: 600;
+  color: #94a3b8;
+  padding: 4px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ctp-display-hour.ctp-display-active,
+.ctp-display-minute.ctp-display-active {
+  background: #e3f2fd;
+  color: #0f5476;
+}
+
+.ctp-display-sep {
+  font-size: 30px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.ctp-meridiem-toggle {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.ctp-meridiem-btn {
+  background: #ffffff;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ctp-meridiem-btn:first-child {
+  border-bottom: 1px solid #d1d5db;
+}
+
+.ctp-meridiem-btn.ctp-meridiem-active {
+  background: #0f5476;
+  color: #ffffff;
+}
+
+/* ---- dial ---- */
+
+.ctp-clock {
+  margin: 16px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.ctp-clock-svg {
+  width: 220px;
+  max-width: 100%;
+  height: auto;
+  touch-action: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ctp-clock-face {
+  fill: #eef4fa;
+}
+
+.ctp-clock-hand {
+  stroke: #0f5476;
+  stroke-width: 2;
+}
+
+.ctp-clock-center {
+  fill: #0f5476;
+}
+
+.ctp-clock-knob {
+  fill: #0f5476;
+}
+
+.ctp-clock-number {
+  font-size: 15px;
+  fill: #475569;
+  text-anchor: middle;
+  pointer-events: none;
+  transition: fill 0.15s ease;
+}
+
+.ctp-clock-number-selected {
+  fill: #ffffff;
+  font-weight: 600;
+}
+
+/* ---- footer ---- */
+
+.ctp-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.ctp-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ctp-now-btn,
+.ctp-cancel-btn {
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: #0f4876;
+  cursor: pointer;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.ctp-now-btn:hover,
+.ctp-cancel-btn:hover {
+  background: #ccdcfb;
+}
+
+.ctp-done-btn {
+  background: #0f5476;
+  color: #fff;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.ctp-done-btn:hover {
+  background: #177eb1;
+}
+
+.ctp-display-editing {
+  outline: 2px solid #0f5476;
+  outline-offset: 2px;
+  background: #ffffff;
+  cursor: text;
 }

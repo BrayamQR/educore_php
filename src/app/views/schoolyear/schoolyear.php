@@ -194,6 +194,61 @@
         </div>
     </dialog-modal>
 
+    <dialog-modal id="DialogInfoSchoolYear" size="max-w-lg">
+        <div slot="header" class="flex gap-3 items-center">
+            <div class="bg-sky-100 w-10 h-10 rounded-lg flex items-center justify-center">
+                <i class="bi bi-calendar2-check text-sky-600 text-xl"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-gray-800">Detalles del año lectivo</h3>
+                <p class="text-sm text-gray-500">Información del año lectivo</p>
+            </div>
+        </div>
+        <div slot="body" class="flex flex-col gap-5">
+            <!-- Encabezado -->
+            <div class="flex flex-col items-center gap-2 text-center">
+                <h4 id="anioInfo" class="text-2xl font-bold text-gray-800">-</h4>
+                <span id="tipoPeriodoInfo" class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold ">-</span>
+            </div>
+
+            <!-- Rango de fechas -->
+            <section class="bg-linear-to-r from-blue-50 to-sky-50 p-5 rounded-xl border border-blue-100">
+                <div class="flex flex-col items-center text-center gap-4">
+                    <div class="shrink-0 flex items-center gap-1">
+                        <div class="w-16 h-16 bg-white rounded-xl shadow-sm border border-sky-100 flex flex-col overflow-hidden">
+                            <div class="bg-sky-500 text-white text-[10px] font-bold text-center py-0.5 uppercase" id="mesCortoInicioInfo">-</div>
+                            <div class="flex-1 flex items-center justify-center">
+                                <span id="diaNumeroInicioInfo" class="text-2xl font-bold text-gray-800">-</span>
+                            </div>
+                        </div>
+                        <i class="bi bi-arrow-right text-gray-400 shrink-0"></i>
+                        <div class="w-16 h-16 bg-white rounded-xl shadow-sm border border-sky-100 flex flex-col overflow-hidden">
+                            <div class="bg-sky-500 text-white text-[10px] font-bold text-center py-0.5 uppercase" id="mesCortoFinInfo">-</div>
+                            <div class="flex-1 flex items-center justify-center">
+                                <span id="diaNumeroFinInfo" class="text-2xl font-bold text-gray-800">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    <span id="rangoFechaInfo" class="text-sm font-semibold text-gray-700">-</span>
+                </div>
+            </section>
+
+            <!-- Periodos -->
+            <section class="bg-gray-50 p-5 rounded-xl border border-gray-200">
+                <h5 class="text-xs font-semibold text-gray-500 uppercase mb-3">Periodos</h5>
+                <div id="listaPeriodosInfo" class="flex flex-col gap-2"></div>
+            </section>
+        </div>
+        <div slot="footer" class="flex justify-end gap-3">
+            <custom-button
+                id="btnCerrarInfo"
+                btn-class="hover:bg-gray-200 text-gray-700"
+                label="Cerrar"
+                onclick="closeModalInfo()">
+            </custom-button>
+        </div>
+    </dialog-modal>
+
     <?php
     include("../../../shared/global/global_scripts.php")
     ?>

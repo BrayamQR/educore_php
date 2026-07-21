@@ -1,6 +1,10 @@
 class CustomAutocomplete extends HTMLElement {
   static instances = {};
 
+  static get observedAttributes() {
+    return ["label", "required", "disabled", "error-required"];
+  }
+
   constructor() {
     super();
     this.options = [];
@@ -8,6 +12,7 @@ class CustomAutocomplete extends HTMLElement {
     this._updateOptionsPosition = this._updateOptionsPosition.bind(this);
     this._initialized = false;
     this._pendingOptions = null;
+    this._disabled = false;
   }
 
   connectedCallback() {
@@ -87,6 +92,7 @@ class CustomAutocomplete extends HTMLElement {
       this.btnclean.style.display = this.hiddenInput.value ? "block" : "none";
       this.btnclean.addEventListener("click", (e) => {
         e.stopPropagation();
+        if (this._disabled) return;
         this.initInput();
         this.btnclean.style.display = "none";
         this.checkValidity();
@@ -120,11 +126,64 @@ class CustomAutocomplete extends HTMLElement {
 
     if (name) CustomAutocomplete.instances[name] = this;
 
+    this._applyDisabled(this.hasAttribute("disabled"));
+
     this._initialized = true;
 
     if (this._pendingOptions) {
       this._setOptionsInternal(this._pendingOptions);
       this._pendingOptions = null;
+    }
+  }
+
+  attributeChangedCallback(attrName, oldValue, newValue) {
+    if (!this._initialized) return;
+
+    if (attrName === "disabled") {
+      this._applyDisabled(newValue !== null);
+      return;
+    }
+    if (attrName === "label") {
+      this._applyLabel(newValue || "");
+      return;
+    }
+    if (attrName === "required") {
+      this._applyRequired(newValue !== null);
+      return;
+    }
+    if (attrName === "error-required") {
+      this.msgRequired = newValue || "Este campo es obligatorio";
+      return;
+    }
+  }
+
+  _applyLabel(labelText) {
+    if (!this.label) return;
+    const required = this.hasAttribute("required");
+    this.label.innerHTML = `${labelText}${
+      required ? '<span class="required-asterisk">*</span>' : ""
+    }`;
+  }
+
+  _applyRequired(required) {
+    if (!this.input) return;
+    this.input.toggleAttribute("required", required);
+    this._applyLabel(this.getAttribute("label") || "");
+    this.checkValidity();
+  }
+
+  _applyDisabled(disabled) {
+    this._disabled = disabled;
+
+    if (this.input) this.input.disabled = disabled;
+    if (this.hiddenInput) this.hiddenInput.disabled = disabled;
+    if (this.btnclean)
+      this.btnclean.style.pointerEvents = disabled ? "none" : "";
+
+    this.classList.toggle("is-disabled", disabled);
+
+    if (disabled && this.isOpen()) {
+      this.closeList();
     }
   }
 
@@ -269,7 +328,6 @@ class CustomAutocomplete extends HTMLElement {
         li.textContent = "No se encontraron resultados relacionados";
         li.classList.add("no-results");
 
-        // ✅ Cerrar al hacer click
         li.addEventListener("click", (e) => {
           e.stopPropagation();
           this.closeList();
@@ -277,7 +335,6 @@ class CustomAutocomplete extends HTMLElement {
 
         ul.appendChild(li);
 
-        // ✅ Actualizar posición para ajustar el ancho
         requestAnimationFrame(() => {
           this._updateOptionsPosition();
         });
@@ -292,6 +349,7 @@ class CustomAutocomplete extends HTMLElement {
 
         li.addEventListener("click", (e) => {
           e.stopPropagation();
+          if (this._disabled) return;
           this.setValue(opt.value);
           this.closeList();
           if (this.btnclean) this.btnclean.style.display = "block";
@@ -300,7 +358,6 @@ class CustomAutocomplete extends HTMLElement {
         ul.appendChild(li);
       });
 
-      // ✅ Actualizar posición después de renderizar
       requestAnimationFrame(() => {
         this._updateOptionsPosition();
       });
@@ -311,6 +368,8 @@ class CustomAutocomplete extends HTMLElement {
     if (!this._clickHandlerAttached) {
       this.input.addEventListener("click", (e) => {
         e.stopPropagation();
+
+        if (this._disabled) return;
 
         const isOpen = this.contentList.classList.contains("open");
 
@@ -343,6 +402,8 @@ class CustomAutocomplete extends HTMLElement {
 
       this.input.addEventListener("input", (e) => {
         e.stopPropagation();
+
+        if (this._disabled) return;
 
         if (!this.contentList.classList.contains("open")) {
           this.contentList.classList.add("open");
@@ -593,7 +654,7 @@ class CustomAutocomplete extends HTMLElement {
     this.label.classList.add("valid");
     this.icon.classList.add("valid");
     this.icon.innerHTML = "<i class='bi bi-check-lg'></i>";
-    this.btnclean.style.display = "block";
+    if (this.btnclean) this.btnclean.style.display = "block";
     this.message.textContent = "";
   }
 
@@ -606,7 +667,7 @@ class CustomAutocomplete extends HTMLElement {
     this.icon.classList.remove("error", "valid");
     this.icon.innerHTML = "";
     this.message.textContent = "";
-    this.btnclean.style.display = "none";
+    if (this.btnclean) this.btnclean.style.display = "none";
     if (this.contentList) {
       this.contentList.querySelectorAll(".select-list li").forEach((li) => {
         li.classList.remove("selected");
@@ -630,6 +691,24 @@ class CustomAutocomplete extends HTMLElement {
 
   static get(name) {
     return CustomAutocomplete.instances[name] || null;
+  }
+
+  setDisabled(disabled) {
+    if (disabled) this.setAttribute("disabled", "");
+    else this.removeAttribute("disabled");
+  }
+
+  get disabled() {
+    return this._disabled;
+  }
+
+  setRequired(required) {
+    if (required) this.setAttribute("required", "");
+    else this.removeAttribute("required");
+  }
+
+  get required() {
+    return this.hasAttribute("required");
   }
 }
 

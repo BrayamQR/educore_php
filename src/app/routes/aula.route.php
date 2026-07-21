@@ -1,5 +1,6 @@
 <?php
 require_once '../controllers/aula.controller.php';
+require_once '../utils/helpers.php';
 
 class AulaRoutes
 {
@@ -11,7 +12,7 @@ class AulaRoutes
 
     private function DataForm()
     {
-        return array_map('trim', $_POST);
+        return Helpers::TrimData($_POST);
     }
 
     public function aulaMethod($op)
@@ -116,6 +117,9 @@ class AulaRoutes
                     }
                     echo json_encode($arrayResponse);
                 }
+                break;
+            default:
+                echo json_encode(['status' => false, 'msg' => 'Operación no válida']);
                 break;
         }
     }

@@ -1,4 +1,8 @@
-import { AlertService } from "../../../shared/js/globalscripts.js";
+import {
+  AlertService,
+  apiRequest,
+  ROUTES,
+} from "../../../shared/js/globalscripts.js";
 
 let DialogFormUser = null;
 let DialogInfoUser = null;
@@ -48,109 +52,63 @@ function init() {
 
 async function Listar() {
   document.getElementById("contentList").innerHTML = "";
-  try {
-    let resp = await fetch("../../../app/routes/usuario.route.php?op=listar");
-    let json = await resp.json();
-    if (json.status) {
-      paginatorList.setData(json.data);
-    } else {
-      document.getElementById("contentList").innerHTML = `
-        <div class="p-5 text-center text-gray-500">
-          <i class="bi bi-emoji-astonished text-4xl mb-3 block"></i>
-          <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
-          <p class="text-sm mt-2 text-gray-400">No se encontraron usuarios registrados</p>
-        </div>
-      `;
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(ROUTES.USUARIO, "listar");
+  if (json.status) {
+    paginatorList.setData(json.data);
+  } else {
+    document.getElementById("contentList").innerHTML = `
+      <div class="p-5 text-center text-gray-500">
+        <i class="bi bi-emoji-astonished text-4xl mb-3 block"></i>
+        <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
+        <p class="text-sm mt-2 text-gray-400">No se encontraron usuarios registrados</p>
+      </div>
+    `;
   }
+}
+
+async function ObtenerUsuario(id) {
+  const json = await apiRequest(ROUTES.USUARIO, "mostrar", { id });
+  if (!json.status) {
+    AlertService.error("Error", json.msg || "No se encontraron datos");
+    return null;
+  }
+  return json.data;
 }
 
 async function Mostrar(id) {
-  const formData = new FormData();
-  formData.append("id", id);
-  try {
-    let resp = await fetch("../../../app/routes/usuario.route.php?op=mostrar", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      body: formData,
-    });
-    let json = await resp.json();
-    if (json.status) {
-      console.log(json.data);
-      document.getElementById("idUsuario").value = json.data.idUsuario;
-      initCustomValues(json.data);
-    }
-  } catch (error) {
-    console.error(error);
-  }
+  const usuario = await ObtenerUsuario(id);
+  if (!usuario) return;
+  document.getElementById("idUsuario").value = usuario.idUsuario;
+  initCustomValues(usuario);
 }
 
 async function getPerfil() {
-  try {
-    let resp = await fetch(
-      "../../../app/routes/genericList.route.php?op=perfil",
-    );
-    let json = await resp.json();
-    if (json.status) {
-      let data = json.data;
-      let ops = data.map((p) => ({ value: p.id_perfil, desc: p.nom_perfil }));
-      return ops;
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(ROUTES.GENERIC_LIST, "perfil");
+  if (json.status) {
+    let data = json.data;
+    let ops = data.map((p) => ({ value: p.id_perfil, desc: p.nom_perfil }));
+    return ops;
   }
 }
 
 async function GuardaryEditar() {
-  try {
-    let form = document.getElementById("formUser");
-    const data = new FormData(form);
+  let form = document.getElementById("formUser");
+  const data = new FormData(form);
 
-    let resp = await fetch(
-      "../../../app/routes/usuario.route.php?op=guardaryeditar",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: data,
-      },
-    );
-
-    let json = await resp.json();
-    if (json.status) {
-      AlertService.success("¡Exito!", json.msg);
-      Listar();
-      closeModalForm();
-    } else {
-      alert("Error al guardar: " + json.msg);
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(ROUTES.USUARIO, "guardaryeditar", data);
+  if (json.status) {
+    AlertService.success("¡Exito!", json.msg);
+    Listar();
+    closeModalForm();
+  } else {
+    alert("Error al guardar: " + json.msg);
   }
 }
 
 async function verDetalles(id) {
-  try {
-    const formData = new FormData();
-    formData.append("id", id);
-    let resp = await fetch("../../../app/routes/usuario.route.php?op=mostrar", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      body: formData,
-    });
-    let json = await resp.json();
-    if (json.status) {
-      const data = json.data;
-      poblarInfoUsuario(data);
-    }
-  } catch (error) {
-    console.error(error);
-    AlertService.error("Error", "No se pudieron cargar los detalles");
-  }
+  const usuario = await ObtenerUsuario(id);
+  if (!usuario) return;
+  poblarInfoUsuario(usuario);
 }
 
 function poblarInfoUsuario(data) {
@@ -250,41 +208,32 @@ function renderRows(item) {
 async function Buscar() {
   document.getElementById("contentList").innerHTML = "";
   let searchText = inputSearch.getValue().trim();
-  try {
-    let formData = new FormData();
-    formData.append("textsearch", searchText);
-    let resp = await fetch("../../../app/routes/usuario.route.php?op=buscar", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      body: formData,
-    });
-    let json = await resp.json();
-    if (json.status) {
-      let data = json.data;
-      if (paginatorList) {
-        paginatorList.setData(data);
-      } else {
-        data.forEach(renderRows);
-      }
+
+  const json = await apiRequest(ROUTES.USUARIO, "buscar", {
+    textsearch: searchText,
+  });
+  if (json.status) {
+    let data = json.data;
+    if (paginatorList) {
+      paginatorList.setData(data);
     } else {
-      if (paginatorList) {
-        paginatorList.setData([]);
-      }
-      document.getElementById("contentList").innerHTML = `
-        <div class="p-5 text-center text-gray-500">
-          <i class="bi bi-search text-4xl mb-3 block"></i>
-          <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
-          ${
-            searchText
-              ? `<p class="text-sm mt-2 text-gray-400">Búsqueda: "${searchText}"</p>`
-              : ""
-          }
-        </div>
-      `;
+      data.forEach(renderRows);
     }
-  } catch (error) {
-    console.error(error);
+  } else {
+    if (paginatorList) {
+      paginatorList.setData([]);
+    }
+    document.getElementById("contentList").innerHTML = `
+      <div class="p-5 text-center text-gray-500">
+        <i class="bi bi-search text-4xl mb-3 block"></i>
+        <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
+        ${
+          searchText
+            ? `<p class="text-sm mt-2 text-gray-400">Búsqueda: "${searchText}"</p>`
+            : ""
+        }
+      </div>
+    `;
   }
 }
 
@@ -356,27 +305,14 @@ window.onChange = async function (id) {
     "Se cambiara el estado del usuario",
   ).then(async (result) => {
     if (result) {
-      let formData = new FormData();
-      formData.append("id", id);
-      try {
-        let resp = await fetch(
-          "../../../app/routes/usuario.route.php?op=cambiarestado",
-          {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            body: formData,
-          },
-        );
-        let json = await resp.json();
-        if (json.status) {
-          AlertService.success("¡Exito!", json.msg);
-          Listar();
-        } else {
-          AlertService.warning("¡Atención!", json.msg);
-        }
-      } catch (error) {
-        console.error(error);
+      const json = await apiRequest(ROUTES.USUARIO, "cambiarestado", {
+        id,
+      });
+      if (json.status) {
+        AlertService.success("¡Exito!", json.msg);
+        Listar();
+      } else {
+        AlertService.warning("¡Atención!", json.msg);
       }
     }
   });
@@ -388,27 +324,12 @@ window.onDelete = async function (id) {
     "Esta acción no se puede deshacer.",
   ).then(async (result) => {
     if (result) {
-      let formData = new FormData();
-      formData.append("id", id);
-      try {
-        let resp = await fetch(
-          "../../../app/routes/usuario.route.php?op=eliminar",
-          {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            body: formData,
-          },
-        );
-        let json = await resp.json();
-        if (json.status) {
-          AlertService.success("¡Exito!", json.msg);
-          Listar();
-        } else {
-          AlertService.warning("¡Atención!", json.msg);
-        }
-      } catch (error) {
-        console.error(error);
+      const json = await apiRequest(ROUTES.USUARIO, "eliminar", { id });
+      if (json.status) {
+        AlertService.success("¡Exito!", json.msg);
+        Listar();
+      } else {
+        AlertService.warning("¡Atención!", json.msg);
       }
     }
   });
@@ -420,26 +341,13 @@ window.onRestaurarPassword = async function (id) {
     "La contraseña se restaurará al nombre de usuario.",
   ).then(async (result) => {
     if (result) {
-      let formData = new FormData();
-      formData.append("id", id);
-      try {
-        let resp = await fetch(
-          "../../../app/routes/usuario.route.php?op=restaurarpassword",
-          {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            body: formData,
-          },
-        );
-        let json = await resp.json();
-        if (json.status) {
-          AlertService.success("¡Éxito!", json.msg);
-        } else {
-          AlertService.warning("¡Atención!", json.msg);
-        }
-      } catch (error) {
-        console.error(error);
+      const json = await apiRequest(ROUTES.USUARIO, "restaurarpassword", {
+        id,
+      });
+      if (json.status) {
+        AlertService.success("¡Éxito!", json.msg);
+      } else {
+        AlertService.warning("¡Atención!", json.msg);
       }
     }
   });

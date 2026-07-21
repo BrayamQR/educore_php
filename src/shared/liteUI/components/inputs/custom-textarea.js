@@ -1,6 +1,16 @@
 class CustomTextarea extends HTMLElement {
   static instances = {};
 
+  static get observedAttributes() {
+    return ["label", "required", "disabled", "error-required", "error-pattern"];
+  }
+
+  constructor() {
+    super();
+    this._initialized = false;
+    this._disabled = false;
+  }
+
   connectedCallback() {
     const label = this.getAttribute("label") || "";
     const name = this.getAttribute("name") || "";
@@ -38,7 +48,6 @@ class CustomTextarea extends HTMLElement {
     this.message = this.querySelector(".validation-message");
     this.icon = this.querySelector(".validation-icon");
 
-    // Icono izquierdo
     if (iconValue) {
       const span = document.createElement("span");
       span.classList.add("input-icon");
@@ -57,6 +66,56 @@ class CustomTextarea extends HTMLElement {
     });
 
     if (name) CustomTextarea.instances[name] = this;
+
+    this._applyDisabled(this.hasAttribute("disabled"));
+
+    this._initialized = true;
+  }
+
+  attributeChangedCallback(attrName, oldValue, newValue) {
+    if (!this._initialized) return;
+
+    if (attrName === "disabled") {
+      this._applyDisabled(newValue !== null);
+      return;
+    }
+    if (attrName === "label") {
+      this._applyLabel(newValue || "");
+      return;
+    }
+    if (attrName === "required") {
+      this._applyRequired(newValue !== null);
+      return;
+    }
+    if (attrName === "error-required") {
+      this.msgRequired = newValue || "Este campo es obligatorio";
+      return;
+    }
+    if (attrName === "error-pattern") {
+      this.msgPattern = newValue || "Formato inválido";
+      return;
+    }
+  }
+
+  _applyLabel(labelText) {
+    if (!this.label) return;
+    const required = this.hasAttribute("required");
+    this.label.innerHTML = `${labelText}${
+      required ? '<span class="required-asterisk">*</span>' : ""
+    }`;
+  }
+
+  _applyRequired(required) {
+    if (!this.textarea) return;
+    this.textarea.toggleAttribute("required", required);
+    this._applyLabel(this.getAttribute("label") || "");
+    this.checkValidity();
+  }
+
+  _applyDisabled(disabled) {
+    this._disabled = disabled;
+    if (this.textarea) this.textarea.disabled = disabled;
+    this.classList.toggle("is-disabled", disabled);
   }
 
   disconnectedCallback() {
@@ -158,6 +217,24 @@ class CustomTextarea extends HTMLElement {
     this.icon.innerHTML = "";
     this.textarea.value = "";
     this.message.textContent = "";
+  }
+
+  setDisabled(disabled) {
+    if (disabled) this.setAttribute("disabled", "");
+    else this.removeAttribute("disabled");
+  }
+
+  get disabled() {
+    return this._disabled;
+  }
+
+  setRequired(required) {
+    if (required) this.setAttribute("required", "");
+    else this.removeAttribute("required");
+  }
+
+  get required() {
+    return this.hasAttribute("required");
   }
 }
 

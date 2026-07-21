@@ -8,6 +8,7 @@ import "../components/inputs/custom-select.js";
 import "../components/inputs/custom-autocomplete.js";
 import "../components/inputs/custom-datepicker.js";
 import "../components/inputs/custom-textarea.js";
+import "../components/inputs/custom-timepicker.js";
 import "../components/buttons/custom-button.js";
 import "../components/buttons/custom-button-fab.js";
 import "../components/dialog/dialog-modal.js";

@@ -1,4 +1,8 @@
-import { AlertService } from "../../../shared/js/globalscripts.js";
+import {
+  AlertService,
+  apiRequest,
+  ROUTES,
+} from "../../../shared/js/globalscripts.js";
 
 let DialogformProfile = null;
 let DialogInfoProfile = null;
@@ -56,50 +60,39 @@ function init() {
 
 async function listar() {
   document.getElementById("contentList").innerHTML = "";
-  try {
-    let resp = await fetch("../../../app/routes/perfil.route.php?op=listar");
-    let json = await resp.json();
-    if (json.status) {
-      paginatorList.setData(json.data);
-    } else {
-      document.getElementById("contentList").innerHTML = `
+  const json = await apiRequest(ROUTES.PERFIL, "listar");
+  if (json.status) {
+    paginatorList.setData(json.data);
+  } else {
+    document.getElementById("contentList").innerHTML = `
         <div class="p-5 text-center text-gray-500">
           <i class="bi bi-emoji-astonished text-4xl mb-3 block"></i>
           <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
           <p class="text-sm mt-2 text-gray-400">No se encontraron perfiles registrados</p>
         </div>
       `;
-    }
-  } catch (error) {
-    console.error(error);
   }
 }
 
 async function Buscar() {
   document.getElementById("contentList").innerHTML = "";
   let searchText = inputSearch.getValue().trim();
-  try {
-    let formData = new FormData();
-    formData.append("textsearch", searchText);
-    let resp = await fetch("../../../app/routes/perfil.route.php?op=buscar", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      body: formData,
-    });
-    let json = await resp.json();
-    if (json.status) {
-      let data = json.data;
-      if (paginatorList) {
-        paginatorList.setData(data);
-      } else {
-        data.forEach(renderRows);
-      }
+
+  const json = await apiRequest(ROUTES.PERFIL, "buscar", {
+    textsearch: searchText,
+  });
+  if (json.status) {
+    let data = json.data;
+    if (paginatorList) {
+      paginatorList.setData(data);
     } else {
-      if (paginatorList) {
-        paginatorList.setData([]);
-      }
-      document.getElementById("contentList").innerHTML = `
+      data.forEach(renderRows);
+    }
+  } else {
+    if (paginatorList) {
+      paginatorList.setData([]);
+    }
+    document.getElementById("contentList").innerHTML = `
         <div class="p-5 text-center text-gray-500">
           <i class="bi bi-search text-4xl mb-3 block"></i>
           <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
@@ -110,9 +103,6 @@ async function Buscar() {
           }
         </div>
       `;
-    }
-  } catch (error) {
-    console.error(error);
   }
 }
 
@@ -125,49 +115,33 @@ function InputSearch() {
   }
 }
 
-async function Mostrar(id) {
-  const formData = new FormData();
-  formData.append("id", id);
-  try {
-    let resp = await fetch("../../../app/routes/perfil.route.php?op=mostrar", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      body: formData,
-    });
-    let json = await resp.json();
-    if (json.status) {
-      document.getElementById("idPerfil").value = json.data.idPerfil;
-      initCustomValues(json.data);
-    }
-  } catch (error) {
-    console.error(error);
+async function ObtenerPerfil(id) {
+  const json = await apiRequest(ROUTES.PERFIL, "mostrar", { id });
+  if (!json.status) {
+    AlertService.error("Error", json.msg || "No se encontraron datos");
+    return null;
   }
+  return json.data;
+}
+
+async function Mostrar(id) {
+  const perfil = await ObtenerPerfil(id);
+  if (!perfil) return;
+
+  document.getElementById("idPerfil").value = perfil.idPerfil;
+  initCustomValues(perfil);
 }
 
 async function GuardaryEditar() {
-  try {
-    let form = document.getElementById("formProfile");
-    const data = new FormData(form);
-    let resp = await fetch(
-      "../../../app/routes/perfil.route.php?op=guardaryeditar",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: data,
-      },
-    );
-    let json = await resp.json();
-    if (json.status) {
-      AlertService.success("¡Exito!", json.msg);
-      listar();
-      closeModalForm();
-    } else {
-      alert("Error al guardar:" + json.msg);
-    }
-  } catch (error) {
-    console.error(error);
+  let form = document.getElementById("formProfile");
+  const data = new FormData(form);
+  const json = await apiRequest(ROUTES.PERFIL, "guardaryeditar", data);
+  if (json.status) {
+    AlertService.success("¡Existo!", json.msg);
+    listar();
+    closeModalForm();
+  } else {
+    alert("Error al guardar: " + json.msg);
   }
 }
 
@@ -177,27 +151,12 @@ window.onDelete = async function (id) {
     "Esta acción no se puede deshacer.",
   ).then(async (result) => {
     if (result) {
-      let formData = new FormData();
-      formData.append("id", id);
-      try {
-        let resp = await fetch(
-          "../../../app/routes/perfil.route.php?op=eliminar",
-          {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            body: formData,
-          },
-        );
-        let json = await resp.json();
-        if (json.status) {
-          AlertService.success("¡Exito!", json.msg);
-          listar();
-        } else {
-          AlertService.warning("¡Atención!", json.msg);
-        }
-      } catch (error) {
-        console.error(error);
+      const json = await apiRequest(ROUTES.PERFIL, "eliminar", { id });
+      if (json.status) {
+        AlertService.success("¡Exito!", json.msg);
+        listar();
+      } else {
+        AlertService.warning("¡Atención!", json.msg);
       }
     }
   });
@@ -209,27 +168,14 @@ window.onChange = async function (id) {
     "Se cambiara el estado del perfil",
   ).then(async (result) => {
     if (result) {
-      let formData = new FormData();
-      formData.append("id", id);
-      try {
-        let resp = await fetch(
-          "../../../app/routes/perfil.route.php?op=cambiarestado",
-          {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            body: formData,
-          },
-        );
-        let json = await resp.json();
-        if (json.status) {
-          AlertService.success("¡Exito!", json.msg);
-          listar();
-        } else {
-          AlertService.warning("¡Atención!", json.msg);
-        }
-      } catch (error) {
-        console.error(error);
+      const json = await apiRequest(ROUTES.PERFIL, "cambiarestado", {
+        id,
+      });
+      if (json.status) {
+        AlertService.success("¡Exito!", json.msg);
+        listar();
+      } else {
+        AlertService.warning("¡Atención!", json.msg);
       }
     }
   });
@@ -327,123 +273,34 @@ function validateForm() {
 }
 
 async function verDetalles(id) {
-  try {
-    const formData = new FormData();
-    formData.append("id", id);
-    let respPerfil = await fetch(
-      "../../../app/routes/perfil.route.php?op=mostrar",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: formData,
-      },
-    );
+  const perfil = await ObtenerPerfil(id);
+  if (!perfil) return;
+  poblarInfoPerfil(perfil);
 
-    let jsonPerfil = await respPerfil.json();
-    if (!jsonPerfil.status) {
-      AlertService.error("Error", jsonPerfil.msg || "No se encontraron datos");
-      return;
-    }
-    const perfil = jsonPerfil.data;
-    poblarInfoPerfil(perfil);
-
-    let respMenus = await fetch(
-      "../../../app/routes/menu.route.php?op=listarByPerfil",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: formData,
-      },
-    );
-    let jsonMenus = await respMenus.json();
-    if (jsonMenus.status) {
-      const menus = Array.isArray(jsonMenus.data) ? jsonMenus.data : [];
-      renderizarMenus(menus);
-    } else {
-      renderizarMenus([]);
-    }
-    let respAsignados = await fetch(
-      "../../../app/routes/menu.route.php?op=listarByPerfil",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: formData,
-      },
-    );
-
-    let jsonAsignados = await respAsignados.json();
-    const idsAsignados = extraerIdsMenus(jsonAsignados.data || []);
-
-    renderizarCheckboxMenus(jsonMenus.data || [], idsAsignados);
-  } catch (error) {
-    console.error(error);
-    AlertService.error("Error", "No se pudieron cargar los detalles");
-  }
+  const jsonMenus = await apiRequest(ROUTES.MENU, "listarByPerfil", { id });
+  const menus =
+    jsonMenus.status && Array.isArray(jsonMenus.data) ? jsonMenus.data : [];
+  renderizarMenus(menus);
 }
 
 async function verPermisos(id) {
   idPerfilActual = id;
-  try {
-    const formData = new FormData();
-    formData.append("id", id);
 
-    let respPerfil = await fetch(
-      "../../../app/routes/perfil.route.php?op=mostrar",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: formData,
-      },
-    );
-    let jsonPerfil = await respPerfil.json();
+  const perfil = await ObtenerPerfil(id);
+  if (!perfil) return;
+  poblarInfoPerfil(perfil, "assign");
 
-    if (!jsonPerfil.status) {
-      AlertService.error("Error", jsonPerfil.msg || "No se encontraron datos");
-      return;
-    }
-
-    const perfil = jsonPerfil.data;
-    poblarInfoPerfil(perfil, "assign");
-
-    let respMenus = await fetch(
-      "../../../app/routes/menu.route.php?op=listar",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-      },
-    );
-
-    let jsonMenus = await respMenus.json();
-
-    if (!jsonMenus.status || !Array.isArray(jsonMenus.data)) {
-      renderizarCheckboxMenus([]);
-      return;
-    }
-
-    let respAsignados = await fetch(
-      "../../../app/routes/menu.route.php?op=listarByPerfil",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: formData,
-      },
-    );
-
-    let jsonAsignados = await respAsignados.json();
-    const idsAsignados = extraerIdsMenus(jsonAsignados.data || []);
-
-    idsOriginalesAsignados = [...idsAsignados];
-    renderizarCheckboxMenus(jsonMenus.data || [], idsAsignados);
-  } catch (error) {
-    console.error(error);
-    AlertService.error("Error", "No se pudieron cargar los datos");
+  const jsonMenus = await apiRequest(ROUTES.MENU, "listar");
+  if (!jsonMenus.status || !Array.isArray(jsonMenus.data)) {
+    renderizarCheckboxMenus([]);
+    return;
   }
+
+  const jsonAsignados = await apiRequest(ROUTES.MENU, "listarByPerfil", { id });
+  const idsAsignados = extraerIdsMenus(jsonAsignados.data || []);
+
+  idsOriginalesAsignados = [...idsAsignados];
+  renderizarCheckboxMenus(jsonMenus.data || [], idsAsignados);
 }
 
 function poblarInfoPerfil(perfil, prefix = "") {
@@ -907,35 +764,17 @@ async function guardarPermisos() {
     });
   });
 
-  console.log(permisos); // Para verificar
+  const json = await apiRequest(ROUTES.PERFIL, "asignarpermisos", {
+    idPerfil: idPerfilActual,
+    permisos: JSON.stringify(permisos),
+  });
 
-  try {
-    const formData = new FormData();
-    formData.append("idPerfil", idPerfilActual);
-    formData.append("permisos", JSON.stringify(permisos));
-
-    let resp = await fetch(
-      "../../../app/routes/perfil.route.php?op=asignarpermisos",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: formData,
-      },
-    );
-
-    let json = await resp.json();
-
-    if (json.status) {
-      AlertService.success("Éxito", json.msg);
-      closeModalAsignar();
-      listar();
-    } else {
-      AlertService.error("Error", json.msg);
-    }
-  } catch (error) {
-    console.error(error);
-    AlertService.error("Error", "No se pudieron guardar los permisos");
+  if (json.status) {
+    AlertService.success("Éxito", json.msg);
+    closeModalAsignar();
+    listar();
+  } else {
+    AlertService.error("Error", json.msg);
   }
 }
 

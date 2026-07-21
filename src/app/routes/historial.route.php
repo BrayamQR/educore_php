@@ -195,6 +195,9 @@ class HistorialRoutes
                     echo json_encode($arrayResponse);
                 }
                 break;
+            default:
+                echo json_encode(['status' => false, 'msg' => 'Operación no válida']);
+                break;
         }
     }
 }

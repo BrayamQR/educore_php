@@ -1,5 +1,6 @@
 <?php
 require_once '../controllers/aniolectivo.controller.php';
+require_once '../utils/helpers.php';
 
 class AnioLectivoRoutes
 {
@@ -13,7 +14,7 @@ class AnioLectivoRoutes
 
     private function DataForm()
     {
-        return array_map('trim', $_POST);
+        return Helpers::TrimData($_POST);
     }
 
     public function anioLectivoMethod($op)
@@ -35,6 +36,25 @@ class AnioLectivoRoutes
                 echo json_encode($arrayResponse);
                 break;
             case 'buscar':
+                if ($_POST) {
+                    $data = array();
+                    if (empty($_POST["textsearch"])) {
+                        $arrayResponse = array('status' => false, 'msg' => "Error de datos");
+                    } else {
+                        $search = trim($_POST["textsearch"]);
+                        $arrayResponse = array('status' => false, 'found' => 0, 'data' => '');
+
+                        $rspta = $this->controller->Buscar($search);
+                        if (!empty($rspta)) {
+                            $data = $rspta;
+                            $arrayResponse = array(
+                                'status' => true,
+                                'data' => $data
+                            );
+                        }
+                    }
+                    echo json_encode($arrayResponse);
+                }
                 break;
             case 'mostrar':
                 if ($_POST) {
@@ -66,50 +86,45 @@ class AnioLectivoRoutes
                 };
                 echo json_encode($arrayResponse);
                 break;
+            case 'obtenerultimoanio':
+                $rspta = $this->controller->ObtenerUltimoAnio();
+                if (empty($rspta)) {
+                    $arrayResponse = array(
+                        'status' => false,
+                        'msg' => 'No se encontro registro'
+                    );
+                } else {
+                    $arrayResponse = array(
+                        'status' => true,
+                        'data' => $rspta
+                    );
+                }
+                echo json_encode($arrayResponse);
+                break;
             case 'guardaryeditar':
                 if ($_POST) {
                     $data = $this->DataForm();
-                    if (empty($data['idAnioLectivo'])) {
-                        if (empty($data['anio']) || empty($data['fechaInicio']) || empty($data['fechaFin']) || empty($data['idTipoPeriodo'])) {
-                            $arrayResponse = array('status' => false, 'msg' => 'Error de datos');
-                        } else {
-                            unset($data['idAnioLectivo']);
-                            unset($data['submit']);
-                            $rsptaAnio = $this->controller->Registrar(...$data);
-                            if ($rsptaAnio) {
-                                $rspta = $this->controller->GenerarPeriodos($rsptaAnio, $data['idTipoPeriodo']);
-                                if ($rspta) {
-                                    $arrayResponse = array('status' => true, 'msg' => 'Datos registrados correctamente');
-                                } else {
-                                    $arrayResponse = array('status' => false, 'msg' => 'Año registrado pero no se pudieron generar los periodos');
-                                }
-                            } else {
-                                $arrayResponse = array('status' => false, 'msg' => 'No se pudo registrar los datos');
-                            }
-                        }
+                    if (
+                        empty($data['anio']) ||
+                        empty($data['fechaInicio']) ||
+                        empty($data['fechaFin']) ||
+                        empty($data['idTipoPeriodo'])
+                    ) {
+                        $arrayResponse = array('status' => false, 'msg' => 'Error de datos');
                     } else {
-                        if (empty($data['anio']) || empty($data['fechaInicio']) || empty($data['fechaFin']) || empty($data['idTipoPeriodo'])) {
-                            $arrayResponse = array('status' => false, 'msg' => 'Error de datos');
+                        unset($data['submit']);
+                        if (empty($data['idAnioLectivo'])) {
+                            unset($data['idAnioLectivo']);
+                            $rspta = $this->controller->RegistrarCompleto(...$data);
+
+                            $arrayResponse = $rspta
+                                ? array('status' => true, 'msg' => 'Datos registrados correctamente')
+                                : array('status' => false, 'msg' => 'No se pudieron registrar los datos');
                         } else {
-                            // ✅ Comparar con valores actuales en BD
-                            $actual = $this->controller->Mostrar($data['idAnioLectivo']);
-                            $cambioFechas = $actual['fechaInicio'] !== $data['fechaInicio'] || $actual['fechaFin'] !== $data['fechaFin'];
-                            $cambioTipoPeriodo = (string)$actual['idTipoPeriodo'] !== $data['idTipoPeriodo'];
-
-                            unset($data['submit']);
-                            $rspta = $this->controller->Editar(...$data);
-
-                            if ($rspta) {
-                                if ($cambioTipoPeriodo) {
-                                    $this->controller->EliminarPeriodos($data['idAnioLectivo']);
-                                    $this->controller->GenerarPeriodos($data['idAnioLectivo'], $data['idTipoPeriodo']);
-                                } elseif ($cambioFechas) {
-                                    $this->controller->ResetearPeriodos($data['idAnioLectivo']);
-                                }
-                                $arrayResponse = array('status' => true, 'msg' => 'Datos actualizados correctamente');
-                            } else {
-                                $arrayResponse = array('status' => false, 'msg' => 'No se pudieron actualizar los datos');
-                            }
+                            $rspta = $this->controller->EditarCompleto(...$data);
+                            $arrayResponse = $rspta
+                                ? array('status' => true, 'msg' => 'Datos actualizados correctamente')
+                                : array('status' => false, 'msg' => 'No se pudieron actualizar los datos');
                         }
                     }
                     echo json_encode($arrayResponse);
@@ -217,6 +232,9 @@ class AnioLectivoRoutes
                     echo json_encode($arrayResponse);
                 }
 
+                break;
+            default:
+                echo json_encode(['status' => false, 'msg' => 'Operación no válida']);
                 break;
         }
     }

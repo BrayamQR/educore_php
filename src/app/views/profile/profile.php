@@ -45,6 +45,7 @@
                         icon="bi bi-search"
                         clearable>
                     </custom-text-field>
+
                 </div>
             </div>
             <div class="bg-white rounded-lg shadow-md flex flex-col  divide-neutral-200 divide-y overflow-y-auto lg:max-h-[calc(100vh-380px)] md:max-h-[calc(100vh-450px)]  scrollbar-thin scrollbar-track-gray-white scrollbar-thumb-neutral-400" id="contentList">
