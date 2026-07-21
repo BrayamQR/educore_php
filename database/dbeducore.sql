@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 21-07-2026 a las 01:53:00
+-- Tiempo de generación: 21-07-2026 a las 02:08:18
 -- Versión del servidor: 8.4.7
 -- Versión de PHP: 8.3.28
 
@@ -46,8 +46,7 @@ CREATE TABLE IF NOT EXISTS `aniolectivo` (
 INSERT INTO `aniolectivo` (`id_aniolectivo`, `anio`, `fecha_inicio`, `fecha_fin`, `id_tipoperiodo`, `estado`, `vigencia`) VALUES
 (1, '2026', '2026-03-09', '2026-12-18', 1, 1, 1),
 (2, '2025', '2025-03-10', '2025-12-19', 2, 2, 1),
-(4, '2024', '2024-03-11', '2024-12-20', 2, 2, 1),
-(5, '2027', '2026-03-09', '2026-12-18', 2, 0, 0);
+(4, '2024', '2024-03-11', '2024-12-20', 2, 2, 1);
 
 -- --------------------------------------------------------
 
@@ -557,15 +556,10 @@ INSERT INTO `menubyperfil` (`id_menubyperfil`, `id_menu`, `id_perfil`, `vigencia
 (9, 9, 1, 1),
 (10, 10, 1, 1),
 (11, 11, 1, 1),
-(12, 1, 2, 1),
-(14, 5, 2, 1),
 (15, 12, 1, 1),
 (16, 13, 1, 1),
 (17, 14, 1, 1),
-(19, 6, 3, 1),
 (20, 15, 1, 1),
-(21, 3, 2, 1),
-(22, 3, 3, 1),
 (23, 16, 1, 1),
 (24, 17, 1, 1);
 
@@ -612,11 +606,7 @@ CREATE TABLE IF NOT EXISTS `perfil` (
 --
 
 INSERT INTO `perfil` (`id_perfil`, `nom_perfil`, `desc_perfil`, `estado`, `vigencia`) VALUES
-(1, 'ADMINISTRADOR', 'Administrador del sistema', 1, 1),
-(2, 'COORDINADOR', 'aaaa', 1, 0),
-(3, 'docente', 'docente', 1, 0),
-(4, 'AUXILIAR', 'auxiliar de la instituciónn', 1, 0),
-(5, 'aaaa', 'aaaa', 1, 0);
+(1, 'ADMINISTRADOR', 'Administrador del sistema', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -644,26 +634,12 @@ CREATE TABLE IF NOT EXISTS `periodo` (
 --
 
 INSERT INTO `periodo` (`id_periodo`, `id_aniolectivo`, `desc_periodo`, `fecha_inicio`, `fecha_fin`, `orden_periodo`, `color`, `estado`, `vigencia`) VALUES
-(1, 1, 'I Bimestre', NULL, NULL, 1, '', 0, 0),
-(2, 1, 'II Bimestre', NULL, NULL, 2, '', 0, 0),
-(3, 1, 'III Bimestre', NULL, NULL, 3, '', 0, 0),
-(4, 1, 'IV Bimestre', NULL, NULL, 4, '', 0, 0),
 (5, 2, 'I Trimestre', '2025-03-10', '2025-06-13', 1, '', 1, 1),
 (6, 2, 'II Trimestre', '2025-06-16', '2025-08-29', 2, '', 1, 1),
 (7, 2, 'III Trimestre', '2025-09-01', '2025-12-19', 3, '', 1, 1),
 (11, 4, 'I Trimestre', '2024-03-11', '2024-05-31', 1, '', 1, 1),
 (12, 4, 'II Trimestre', '2024-06-03', '2024-08-30', 2, '', 1, 1),
 (13, 4, 'III Trimestre', '2024-09-02', '2024-12-20', 3, '', 1, 1),
-(14, 5, 'I Bimestre', '2026-03-09', '2026-05-22', 1, '', 1, 0),
-(15, 5, 'II Bimestre', '2026-05-25', '2026-07-24', 2, '', 1, 0),
-(16, 5, 'III Bimestre', '2026-07-27', '2026-10-30', 3, '', 1, 0),
-(17, 5, 'IV Bimestre', '2026-11-02', '2026-12-18', 4, '', 1, 0),
-(18, 5, 'I Trimestre', NULL, NULL, 1, '', 0, 1),
-(19, 5, 'II Trimestre', NULL, NULL, 2, '', 0, 1),
-(20, 5, 'III Trimestre', NULL, NULL, 3, '', 0, 1),
-(21, 1, 'I Trimestre', NULL, NULL, 1, '#2563eb', 0, 0),
-(22, 1, 'II Trimestre', NULL, NULL, 2, '#16a34a', 0, 0),
-(23, 1, 'III Trimestre', NULL, NULL, 3, '#d97706', 0, 0),
 (24, 1, 'I Bimestre', '2026-03-09', '2026-05-22', 1, '#2563eb', 1, 1),
 (25, 1, 'II Bimestre', '2026-05-25', '2026-07-24', 2, '#16a34a', 1, 1),
 (26, 1, 'III Bimestre', '2026-07-27', '2026-09-25', 3, '#d97706', 1, 1),
@@ -788,23 +764,7 @@ INSERT INTO `td_turnodia` (`id_turnodia`, `id_turno`, `dia_semana`, `hora_ingres
 (13, 3, 3, '18:00:00', '23:00:00', 1),
 (14, 3, 4, '18:00:00', '23:00:00', 1),
 (15, 3, 5, '18:00:00', '23:00:00', 1),
-(16, 4, 1, '23:00:00', '04:00:00', 1),
-(17, 4, 2, '23:00:00', '04:00:00', 1),
-(18, 4, 3, '23:00:00', '04:00:00', 1),
-(19, 4, 4, '23:00:00', '04:00:00', 1),
-(20, 4, 5, '23:00:00', '04:00:00', 1),
-(21, 4, 6, '23:00:00', '04:00:00', 1),
-(22, 4, 7, '23:00:00', '04:00:00', 0),
-(23, 3, 6, '18:00:00', '23:00:00', 1),
-(24, 5, 1, '00:00:00', '05:00:00', 1),
-(25, 5, 2, '00:00:00', '05:00:00', 1),
-(26, 6, 1, '00:00:00', '05:00:00', 1),
-(27, 6, 2, '00:00:00', '05:00:00', 1),
-(28, 6, 3, '00:00:00', '05:00:00', 1),
-(29, 6, 4, '00:00:00', '05:00:00', 1),
-(30, 6, 5, '00:00:00', '05:00:00', 1),
-(31, 7, 1, '00:00:00', '04:00:00', 1),
-(32, 7, 4, '00:00:00', '04:00:00', 1);
+(23, 3, 6, '18:00:00', '23:00:00', 1);
 
 -- --------------------------------------------------------
 
@@ -829,10 +789,7 @@ CREATE TABLE IF NOT EXISTS `th_historialturno` (
 --
 
 INSERT INTO `th_historialturno` (`id_historial`, `id_turno`, `desc_cambio`, `usu_registro`, `fecha_registro`, `vigencia`) VALUES
-(1, 4, 'Las clases se realizaran solo de lunes a viernes para este turno', 1, '2026-07-09 17:02:42', 1),
-(2, 4, 'Las clases para este turno se realizaran de lunes a sábado', 1, '2026-07-09 17:05:08', 1),
 (3, 3, 'Las clases para este turno se realizaran de lunes a sabado', 1, '2026-07-09 17:11:43', 1),
-(4, 5, 'aaaa', 1, '2026-07-09 17:59:12', 1),
 (5, 1, 'aaa', 1, '2026-07-09 18:03:00', 1),
 (6, 1, 'aaaaa', 1, '2026-07-09 18:03:11', 1);
 
@@ -998,11 +955,7 @@ CREATE TABLE IF NOT EXISTS `tm_turnoacademico` (
 INSERT INTO `tm_turnoacademico` (`id_turno`, `id_aniolectivo`, `nom_turno`, `hora_ingreso`, `hora_salida`, `min_tolerancia`, `estado`, `vigencia`) VALUES
 (1, 1, 'Mañana', '08:00:00', '13:00:00', 5, 1, 1),
 (2, 1, 'Tarde', '13:00:00', '18:00:00', 5, 1, 1),
-(3, 1, 'Noche', '18:00:00', '23:00:00', 5, 1, 1),
-(4, 1, 'Madrugada', '23:00:00', '04:00:00', 5, 1, 0),
-(5, 1, 'madrugada', '00:00:00', '05:00:00', 5, 1, 0),
-(6, 1, 'madrugada', '00:00:00', '05:00:00', 5, 1, 0),
-(7, 1, 'Madrugada', '00:00:00', '04:00:00', 5, 1, 0);
+(3, 1, 'Noche', '18:00:00', '23:00:00', 5, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -1034,8 +987,7 @@ CREATE TABLE IF NOT EXISTS `usuario` (
 
 INSERT INTO `usuario` (`id_usuario`, `cod_usuario`, `nom_usuario`, `usu_usuario`, `pass_usuario`, `tel_usuario`, `email_usuario`, `dir_usuario`, `id_perfil`, `estado`, `fecha_registro`, `vigencia`) VALUES
 (1, '11111111', 'Administrador', 'admin', '$2y$10$/Qd53BYg/jDy6PI7U7LwFOr5M.KJkLOOqmHWeMGo87Bd.DJPgrpyq', '964939331', 'admin@gmail.com', 'Av. Circunvalación N°429 El Tambo', 1, 1, '2026-02-13 14:24:28', 1),
-(2, '74499797', 'brayam', 'brayam123', 'aaaaa', '918474850', 'brayam@gmail.com', 'pasaje los alisos h-27', 1, 0, '2026-02-21 13:45:45', 0),
-(3, '4444444444', 'prueba', 'prueba', '$2y$10$5SuEN2zOwXOzdF838YLO8OoykDQ.2OEIowz9bojreyoMc2t1Cm0/6', '9999999999', 'prueba@gmail.com', 'direccion de prueba', 2, 1, '2026-02-21 14:53:24', 0);
+(2, '74499797', 'brayam', 'brayam123', 'aaaaa', '918474850', 'brayam@gmail.com', 'pasaje los alisos h-27', 1, 0, '2026-02-21 13:45:45', 0);
 
 --
 -- Restricciones para tablas volcadas
