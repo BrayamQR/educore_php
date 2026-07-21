@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 17-06-2026 a las 22:44:40
+-- Tiempo de generación: 21-07-2026 a las 01:53:00
 -- Versión del servidor: 8.4.7
 -- Versión de PHP: 8.3.28
 
@@ -35,17 +35,19 @@ CREATE TABLE IF NOT EXISTS `aniolectivo` (
   `fecha_fin` date NOT NULL,
   `id_tipoperiodo` bigint NOT NULL,
   `estado` int NOT NULL DEFAULT '0',
-  `vigente` tinyint NOT NULL DEFAULT '1',
+  `vigencia` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_aniolectivo`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `aniolectivo`
 --
 
-INSERT INTO `aniolectivo` (`id_aniolectivo`, `anio`, `fecha_inicio`, `fecha_fin`, `id_tipoperiodo`, `estado`, `vigente`) VALUES
+INSERT INTO `aniolectivo` (`id_aniolectivo`, `anio`, `fecha_inicio`, `fecha_fin`, `id_tipoperiodo`, `estado`, `vigencia`) VALUES
 (1, '2026', '2026-03-09', '2026-12-18', 1, 1, 1),
-(2, '2025', '2025-03-10', '2025-12-19', 2, 2, 1);
+(2, '2025', '2025-03-10', '2025-12-19', 2, 2, 1),
+(4, '2024', '2024-03-11', '2024-12-20', 2, 2, 1),
+(5, '2027', '2026-03-09', '2026-12-18', 2, 0, 0);
 
 -- --------------------------------------------------------
 
@@ -76,7 +78,7 @@ CREATE TABLE IF NOT EXISTS `aula` (
   `id_grado` bigint NOT NULL,
   `id_nivel` bigint NOT NULL,
   `seccion_aula` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci DEFAULT NULL,
-  `vigente` tinyint NOT NULL DEFAULT '1',
+  `vigencia` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_aula`),
   KEY `id_grado` (`id_grado`),
   KEY `id_nivel` (`id_nivel`)
@@ -86,7 +88,7 @@ CREATE TABLE IF NOT EXISTS `aula` (
 -- Volcado de datos para la tabla `aula`
 --
 
-INSERT INTO `aula` (`id_aula`, `id_grado`, `id_nivel`, `seccion_aula`, `vigente`) VALUES
+INSERT INTO `aula` (`id_aula`, `id_grado`, `id_nivel`, `seccion_aula`, `vigencia`) VALUES
 (1, 1, 1, 'UNICA', 1),
 (2, 2, 1, 'UNICA', 1),
 (3, 3, 1, 'UNICA', 1),
@@ -109,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `aulalectiva` (
   `id_aula` bigint NOT NULL,
   `id_aniolectivo` bigint NOT NULL,
   `id_docente` bigint NOT NULL,
-  `vigente` tinyint NOT NULL DEFAULT '1',
+  `vigencia` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_aulalectiva`),
   KEY `id_aula` (`id_aula`),
   KEY `id_aniolectivo` (`id_aniolectivo`),
@@ -130,12 +132,38 @@ CREATE TABLE IF NOT EXISTS `dianolectivo` (
   `fecha_inicio` date NOT NULL,
   `fecha_fin` date NOT NULL,
   `tipo_origen` tinyint NOT NULL COMMENT '1=automatico plantilla, 2=manual',
-  `id_tipodianolectivo` bigint NOT NULL COMMENT '1=Dia no lectivo, 2=Periodo no lectivo',
-  `estado` tinyint DEFAULT '1',
-  `vigente` tinyint DEFAULT '1',
+  `id_tipodianolectivo` bigint NOT NULL,
+  `id_plantilladianolectivo` bigint DEFAULT NULL,
+  `vigencia` tinyint DEFAULT '1',
   PRIMARY KEY (`id_dianolectivo`),
-  KEY `id_aniolectivo` (`id_aniolectivo`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+  KEY `id_aniolectivo` (`id_aniolectivo`),
+  KEY `id_tipodianolectivo` (`id_tipodianolectivo`)
+) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `dianolectivo`
+--
+
+INSERT INTO `dianolectivo` (`id_dianolectivo`, `id_aniolectivo`, `nom_evento`, `fecha_inicio`, `fecha_fin`, `tipo_origen`, `id_tipodianolectivo`, `id_plantilladianolectivo`, `vigencia`) VALUES
+(4, 1, 'Batalla de Junín', '2026-08-08', '2026-08-08', 1, 1, 2, 1),
+(5, 1, 'Día del Padre', '2026-06-21', '2026-06-21', 1, 1, 12, 1),
+(6, 1, 'Día de la Madre', '2026-05-10', '2026-05-10', 1, 1, 11, 1),
+(7, 1, 'San Pedro y San Pablo', '2026-06-29', '2026-06-29', 1, 1, 4, 1),
+(8, 1, 'Fiestas Patrias', '2026-07-28', '2026-07-29', 1, 1, 5, 1),
+(9, 1, 'Viernes Santo', '2026-04-03', '2026-04-03', 1, 1, 16, 1),
+(10, 1, 'Jueves Santo', '2026-04-02', '2026-04-02', 1, 1, 15, 0),
+(11, 1, 'Vacaciones de medio año', '2026-07-27', '2026-07-31', 2, 2, NULL, 1),
+(12, 1, 'Suspensión de clases', '2026-07-08', '2026-07-08', 2, 3, NULL, 1),
+(13, 1, 'Día del Trabajo', '2026-05-01', '2026-05-01', 1, 1, 3, 1),
+(14, 1, 'Santa Rosa de Lima', '2026-08-30', '2026-08-30', 1, 1, 6, 1),
+(15, 1, 'Combate de Angamos', '2026-10-08', '2026-10-08', 1, 1, 7, 1),
+(16, 1, 'Todos los Santos', '2026-11-01', '2026-11-01', 1, 1, 8, 1),
+(17, 1, 'Inmaculada Concepción', '2026-12-08', '2026-12-08', 1, 1, 9, 1),
+(18, 1, 'Día del Maestro', '2026-07-06', '2026-07-06', 1, 1, 13, 1),
+(19, 1, 'Batalla de Ayacucho', '2026-12-09', '2026-12-09', 1, 1, 14, 1),
+(20, 1, 'Jueves Santo', '2026-04-02', '2026-04-02', 1, 1, 15, 1),
+(21, 1, 'feriado prueba', '2026-07-09', '2026-07-09', 2, 1, NULL, 0),
+(22, 1, 'feriado rango prueba', '2026-07-09', '2026-07-11', 2, 1, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -154,7 +182,7 @@ CREATE TABLE IF NOT EXISTS `docente` (
   `tel_docente` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci NOT NULL,
   `id_cargo` bigint NOT NULL,
   `id_tipocontrato` bigint NOT NULL,
-  `vigente` tinyint NOT NULL DEFAULT '1',
+  `vigencia` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_docente`),
   KEY `id_tipocontrato` (`id_tipocontrato`),
   KEY `id_cargo` (`id_cargo`)
@@ -164,7 +192,7 @@ CREATE TABLE IF NOT EXISTS `docente` (
 -- Volcado de datos para la tabla `docente`
 --
 
-INSERT INTO `docente` (`id_docente`, `id_tipodocumento`, `doc_docente`, `nom_docente`, `dir_docente`, `email_docente`, `tel_docente`, `id_cargo`, `id_tipocontrato`, `vigente`) VALUES
+INSERT INTO `docente` (`id_docente`, `id_tipodocumento`, `doc_docente`, `nom_docente`, `dir_docente`, `email_docente`, `tel_docente`, `id_cargo`, `id_tipocontrato`, `vigencia`) VALUES
 (1, 1, '70244642', 'YIN YIRENA QUINTANA ORE', 'LIMA 700', 'YIN.YIRENA0409@GMAIL.COM', '964702287', 1, 2, 1);
 
 -- --------------------------------------------------------
@@ -186,7 +214,7 @@ CREATE TABLE IF NOT EXISTS `estudiante` (
   `qr_estudiante` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci DEFAULT NULL,
   `nom_apoderado` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci NOT NULL,
   `tel_apoderado` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci DEFAULT NULL,
-  `vigente` tinyint NOT NULL DEFAULT '1',
+  `vigencia` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_estudiante`),
   KEY `id_sexo` (`id_sexo`),
   KEY `id_tipodocumento` (`id_tipodocumento`)
@@ -196,7 +224,7 @@ CREATE TABLE IF NOT EXISTS `estudiante` (
 -- Volcado de datos para la tabla `estudiante`
 --
 
-INSERT INTO `estudiante` (`id_estudiante`, `id_tipodocumento`, `doc_estudiante`, `nom_estudiante`, `apa_estudiante`, `ama_estudiante`, `fecha_nacimiento`, `id_sexo`, `qr_estudiante`, `nom_apoderado`, `tel_apoderado`, `vigente`) VALUES
+INSERT INTO `estudiante` (`id_estudiante`, `id_tipodocumento`, `doc_estudiante`, `nom_estudiante`, `apa_estudiante`, `ama_estudiante`, `fecha_nacimiento`, `id_sexo`, `qr_estudiante`, `nom_apoderado`, `tel_apoderado`, `vigencia`) VALUES
 (1, 1, '92771364', 'SOLEY YASURI', 'AQUINO', 'QUISPE', '2022-02-24', 2, NULL, 'SONIA HILDA QUISPE CESAR', '964043125', 1),
 (2, 1, '93187158', 'SOFIA KEYMI', 'BRAÑEZ', 'TOVAR', '2022-12-20', 2, NULL, 'KERLY ROSMERY TOVAR AGUILA', '954038795', 1),
 (3, 1, '92636574', 'MATHIUS DREIK', 'CHAVEZ', 'ESPINOZA', '2021-11-22', 1, NULL, 'ERIKA YASMIN ESPINOZA HUACHO', '901881646', 1),
@@ -417,7 +445,7 @@ DROP TABLE IF EXISTS `grado`;
 CREATE TABLE IF NOT EXISTS `grado` (
   `id_grado` bigint NOT NULL AUTO_INCREMENT,
   `desc_grado` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci NOT NULL,
-  `vigente` tinyint NOT NULL DEFAULT '1',
+  `vigencia` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_grado`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
@@ -425,7 +453,7 @@ CREATE TABLE IF NOT EXISTS `grado` (
 -- Volcado de datos para la tabla `grado`
 --
 
-INSERT INTO `grado` (`id_grado`, `desc_grado`, `vigente`) VALUES
+INSERT INTO `grado` (`id_grado`, `desc_grado`, `vigencia`) VALUES
 (1, '3 AÑOS', 1),
 (2, '4 AÑOS', 1),
 (3, '5 AÑOS', 1),
@@ -450,7 +478,7 @@ CREATE TABLE IF NOT EXISTS `matricula` (
   `fecha_matricula` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `id_tipomatricula` bigint NOT NULL,
   `estado` tinyint NOT NULL DEFAULT '1',
-  `vigente` tinyint NOT NULL DEFAULT '1',
+  `vigencia` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_matricula`),
   KEY `id_estudiante` (`id_estudiante`),
   KEY `id_aulalectiva` (`id_aulalectiva`),
@@ -471,17 +499,16 @@ CREATE TABLE IF NOT EXISTS `menu` (
   `id_menupadre` bigint DEFAULT '0',
   `icon_menu` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci DEFAULT NULL,
   `orden_menu` int NOT NULL,
-  `vigente` tinyint DEFAULT '1',
+  `vigencia` tinyint DEFAULT '1',
   PRIMARY KEY (`id_menu`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `menu`
 --
 
-INSERT INTO `menu` (`id_menu`, `titulo_menu`, `path_menu`, `id_menupadre`, `icon_menu`, `orden_menu`, `vigente`) VALUES
+INSERT INTO `menu` (`id_menu`, `titulo_menu`, `path_menu`, `id_menupadre`, `icon_menu`, `orden_menu`, `vigencia`) VALUES
 (1, 'Dashboard', 'home', 0, 'bi bi-bar-chart-line-fill', 1, 1),
-(2, 'Asistencia', '', 0, 'bi bi-calendar2-check-fill', 2, 0),
 (3, 'Gestión académica', '', 0, 'bi bi-building-fill-x', 3, 1),
 (4, 'Administración', '', 0, 'bi bi-gear-fill', 9999, 1),
 (5, 'Marcar asistencia', 'insertatten', 3, 'bi bi-qr-code-scan', 34, 1),
@@ -492,8 +519,11 @@ INSERT INTO `menu` (`id_menu`, `titulo_menu`, `path_menu`, `id_menupadre`, `icon
 (10, 'Usuarios', 'user', 4, 'bi bi-person-fill', 99991, 1),
 (11, 'Perfiles', 'profile', 4, 'bi bi-person-badge-fill', 99992, 1),
 (12, 'Calendario académico', '', 0, 'bi bi-calendar-fill', 4, 1),
-(13, 'Año Lectivo', 'schoolyear', 12, 'bi bi-calendar3', 41, 1),
-(14, 'Días no lectivos', 'holidays', 12, 'bi bi-calendar-x', 42, 1);
+(13, 'Año Lectivo', 'schoolyear', 12, 'bi bi-calendar3', 42, 1),
+(14, 'Días no lectivos', 'holidays', 12, 'bi bi-calendar-x', 43, 1),
+(15, 'Turno académico', 'academicshift', 12, 'bi bi-clock-fill', 44, 1),
+(16, 'Actividad académica', 'academicactivity', 12, 'bi bi-calendar-heart-fill', 45, 1),
+(17, 'Ver calendario', 'viewcalendar', 12, 'bi bi-calendar', 41, 1);
 
 -- --------------------------------------------------------
 
@@ -506,19 +536,18 @@ CREATE TABLE IF NOT EXISTS `menubyperfil` (
   `id_menubyperfil` bigint NOT NULL AUTO_INCREMENT,
   `id_menu` bigint NOT NULL,
   `id_perfil` bigint NOT NULL,
-  `vigente` tinyint DEFAULT '1',
+  `vigencia` tinyint DEFAULT '1',
   PRIMARY KEY (`id_menubyperfil`),
   KEY `id_perfil` (`id_perfil`),
   KEY `id_menu` (`id_menu`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `menubyperfil`
 --
 
-INSERT INTO `menubyperfil` (`id_menubyperfil`, `id_menu`, `id_perfil`, `vigente`) VALUES
+INSERT INTO `menubyperfil` (`id_menubyperfil`, `id_menu`, `id_perfil`, `vigencia`) VALUES
 (1, 1, 1, 1),
-(2, 2, 1, 1),
 (3, 3, 1, 1),
 (4, 4, 1, 1),
 (5, 5, 1, 1),
@@ -529,13 +558,16 @@ INSERT INTO `menubyperfil` (`id_menubyperfil`, `id_menu`, `id_perfil`, `vigente`
 (10, 10, 1, 1),
 (11, 11, 1, 1),
 (12, 1, 2, 1),
-(13, 2, 2, 1),
 (14, 5, 2, 1),
 (15, 12, 1, 1),
 (16, 13, 1, 1),
 (17, 14, 1, 1),
-(18, 2, 3, 1),
-(19, 6, 3, 1);
+(19, 6, 3, 1),
+(20, 15, 1, 1),
+(21, 3, 2, 1),
+(22, 3, 3, 1),
+(23, 16, 1, 1),
+(24, 17, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -547,7 +579,7 @@ DROP TABLE IF EXISTS `nivel`;
 CREATE TABLE IF NOT EXISTS `nivel` (
   `id_nivel` bigint NOT NULL AUTO_INCREMENT,
   `desc_nivel` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci NOT NULL,
-  `vigente` tinyint NOT NULL DEFAULT '1',
+  `vigencia` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_nivel`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
@@ -555,7 +587,7 @@ CREATE TABLE IF NOT EXISTS `nivel` (
 -- Volcado de datos para la tabla `nivel`
 --
 
-INSERT INTO `nivel` (`id_nivel`, `desc_nivel`, `vigente`) VALUES
+INSERT INTO `nivel` (`id_nivel`, `desc_nivel`, `vigencia`) VALUES
 (1, 'Inicial', 1),
 (2, 'Primaria', 1);
 
@@ -571,18 +603,20 @@ CREATE TABLE IF NOT EXISTS `perfil` (
   `nom_perfil` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci NOT NULL,
   `desc_perfil` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci NOT NULL,
   `estado` tinyint NOT NULL DEFAULT '1',
-  `vigente` tinyint NOT NULL DEFAULT '1',
+  `vigencia` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_perfil`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `perfil`
 --
 
-INSERT INTO `perfil` (`id_perfil`, `nom_perfil`, `desc_perfil`, `estado`, `vigente`) VALUES
+INSERT INTO `perfil` (`id_perfil`, `nom_perfil`, `desc_perfil`, `estado`, `vigencia`) VALUES
 (1, 'ADMINISTRADOR', 'Administrador del sistema', 1, 1),
-(2, 'COORDINADOR', 'Coordinador encargado', 1, 1),
-(3, 'docente', 'docente', 1, 1);
+(2, 'COORDINADOR', 'aaaa', 1, 0),
+(3, 'docente', 'docente', 1, 0),
+(4, 'AUXILIAR', 'auxiliar de la instituciónn', 1, 0),
+(5, 'aaaa', 'aaaa', 1, 0);
 
 -- --------------------------------------------------------
 
@@ -598,24 +632,42 @@ CREATE TABLE IF NOT EXISTS `periodo` (
   `fecha_inicio` date DEFAULT NULL,
   `fecha_fin` date DEFAULT NULL,
   `orden_periodo` int NOT NULL,
+  `color` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci NOT NULL,
   `estado` tinyint NOT NULL DEFAULT '0',
-  `vigente` tinyint NOT NULL DEFAULT '1',
+  `vigencia` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_periodo`),
   KEY `id_aniolectivo` (`id_aniolectivo`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `periodo`
 --
 
-INSERT INTO `periodo` (`id_periodo`, `id_aniolectivo`, `desc_periodo`, `fecha_inicio`, `fecha_fin`, `orden_periodo`, `estado`, `vigente`) VALUES
-(1, 1, 'I Bimestre', '2026-03-09', '2026-05-29', 1, 1, 1),
-(2, 1, 'II Bimestre', '2026-06-01', '2026-08-28', 2, 1, 1),
-(3, 1, 'III Bimestre', '2026-08-31', '2026-10-30', 3, 1, 1),
-(4, 1, 'IV Bimestre', '2026-11-02', '2026-12-18', 4, 1, 1),
-(5, 2, 'I Trimestre', NULL, NULL, 1, 0, 1),
-(6, 2, 'II Trimestre', NULL, NULL, 2, 0, 1),
-(7, 2, 'III Trimestre', NULL, NULL, 3, 0, 1);
+INSERT INTO `periodo` (`id_periodo`, `id_aniolectivo`, `desc_periodo`, `fecha_inicio`, `fecha_fin`, `orden_periodo`, `color`, `estado`, `vigencia`) VALUES
+(1, 1, 'I Bimestre', NULL, NULL, 1, '', 0, 0),
+(2, 1, 'II Bimestre', NULL, NULL, 2, '', 0, 0),
+(3, 1, 'III Bimestre', NULL, NULL, 3, '', 0, 0),
+(4, 1, 'IV Bimestre', NULL, NULL, 4, '', 0, 0),
+(5, 2, 'I Trimestre', '2025-03-10', '2025-06-13', 1, '', 1, 1),
+(6, 2, 'II Trimestre', '2025-06-16', '2025-08-29', 2, '', 1, 1),
+(7, 2, 'III Trimestre', '2025-09-01', '2025-12-19', 3, '', 1, 1),
+(11, 4, 'I Trimestre', '2024-03-11', '2024-05-31', 1, '', 1, 1),
+(12, 4, 'II Trimestre', '2024-06-03', '2024-08-30', 2, '', 1, 1),
+(13, 4, 'III Trimestre', '2024-09-02', '2024-12-20', 3, '', 1, 1),
+(14, 5, 'I Bimestre', '2026-03-09', '2026-05-22', 1, '', 1, 0),
+(15, 5, 'II Bimestre', '2026-05-25', '2026-07-24', 2, '', 1, 0),
+(16, 5, 'III Bimestre', '2026-07-27', '2026-10-30', 3, '', 1, 0),
+(17, 5, 'IV Bimestre', '2026-11-02', '2026-12-18', 4, '', 1, 0),
+(18, 5, 'I Trimestre', NULL, NULL, 1, '', 0, 1),
+(19, 5, 'II Trimestre', NULL, NULL, 2, '', 0, 1),
+(20, 5, 'III Trimestre', NULL, NULL, 3, '', 0, 1),
+(21, 1, 'I Trimestre', NULL, NULL, 1, '#2563eb', 0, 0),
+(22, 1, 'II Trimestre', NULL, NULL, 2, '#16a34a', 0, 0),
+(23, 1, 'III Trimestre', NULL, NULL, 3, '#d97706', 0, 0),
+(24, 1, 'I Bimestre', '2026-03-09', '2026-05-22', 1, '#2563eb', 1, 1),
+(25, 1, 'II Bimestre', '2026-05-25', '2026-07-24', 2, '#16a34a', 1, 1),
+(26, 1, 'III Bimestre', '2026-07-27', '2026-09-25', 3, '#d97706', 1, 1),
+(27, 1, 'IV Bimestre', '2026-09-28', '2026-12-18', 4, '#7c3aed', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -634,30 +686,179 @@ CREATE TABLE IF NOT EXISTS `plantilla_dianolectivo` (
   `dia_inicio` tinyint DEFAULT NULL,
   `mes_fin` tinyint DEFAULT NULL,
   `dia_fin` tinyint DEFAULT NULL,
-  `estado` tinyint DEFAULT '1',
-  `vigente` tinyint DEFAULT '1',
+  `vigencia` tinyint DEFAULT '1',
   PRIMARY KEY (`id_plantilladianolectivo`),
   KEY `id_tipogeneracion` (`id_tipogeneracion`)
-) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `plantilla_dianolectivo`
 --
 
-INSERT INTO `plantilla_dianolectivo` (`id_plantilladianolectivo`, `cod_evento`, `nom_evento`, `id_tipogeneracion`, `cod_regla`, `mes_inicio`, `dia_inicio`, `mes_fin`, `dia_fin`, `estado`, `vigente`) VALUES
-(1, 'ANIO_NUEVO', 'Año Nuevo', 1, NULL, 1, 1, 1, 1, 1, 1),
-(2, 'SEMANA_SANTA', 'Semana Santa', 2, 'SEMANA_SANTA', NULL, NULL, NULL, NULL, 1, 1),
-(3, 'DIA_TRABAJO', 'Día del Trabajo', 1, NULL, 5, 1, 5, 1, 1, 1),
-(4, 'SAN_PEDRO_SAN_PABLO', 'San Pedro y San Pablo', 1, NULL, 6, 29, 6, 29, 1, 1),
-(5, 'FIESTAS_PATRIAS', 'Fiestas Patrias', 1, NULL, 7, 28, 7, 29, 1, 1),
-(6, 'SANTA_ROSA_LIMA', 'Santa Rosa de Lima', 1, NULL, 8, 30, 8, 30, 1, 1),
-(7, 'COMBATE_ANGAMOS', 'Combate de Angamos', 1, NULL, 10, 8, 10, 8, 1, 1),
-(8, 'TODOS_LOS_SANTOS', 'Todos los Santos', 1, NULL, 11, 1, 11, 1, 1, 1),
-(9, 'INMACULADA_CONCEPCION', 'Inmaculada Concepción', 1, NULL, 12, 8, 12, 8, 1, 1),
-(10, 'NAVIDAD', 'Navidad', 1, NULL, 12, 25, 12, 25, 1, 1),
-(11, 'DIA_MADRE', 'Día de la Madre', 2, 'SEGUNDO_DOMINGO_MAYO', NULL, NULL, NULL, NULL, 1, 1),
-(12, 'DIA_PADRE', 'Día del Padre', 2, 'TERCER_DOMINGO_JUNIO', NULL, NULL, NULL, NULL, 1, 1),
-(13, 'DIA_MAESTRO', 'Día del Maestro', 1, NULL, 7, 6, 7, 6, 1, 1);
+INSERT INTO `plantilla_dianolectivo` (`id_plantilladianolectivo`, `cod_evento`, `nom_evento`, `id_tipogeneracion`, `cod_regla`, `mes_inicio`, `dia_inicio`, `mes_fin`, `dia_fin`, `vigencia`) VALUES
+(1, 'ANIO_NUEVO', 'Año Nuevo', 1, NULL, 1, 1, 1, 1, 1),
+(2, 'BATALLA_JUNIN', 'Batalla de Junín', 1, NULL, 8, 8, 8, 8, 1),
+(3, 'DIA_TRABAJO', 'Día del Trabajo', 1, NULL, 5, 1, 5, 1, 1),
+(4, 'SAN_PEDRO_SAN_PABLO', 'San Pedro y San Pablo', 1, NULL, 6, 29, 6, 29, 1),
+(5, 'FIESTAS_PATRIAS', 'Fiestas Patrias', 1, NULL, 7, 28, 7, 29, 1),
+(6, 'SANTA_ROSA_LIMA', 'Santa Rosa de Lima', 1, NULL, 8, 30, 8, 30, 1),
+(7, 'COMBATE_ANGAMOS', 'Combate de Angamos', 1, NULL, 10, 8, 10, 8, 1),
+(8, 'TODOS_LOS_SANTOS', 'Todos los Santos', 1, NULL, 11, 1, 11, 1, 1),
+(9, 'INMACULADA_CONCEPCION', 'Inmaculada Concepción', 1, NULL, 12, 8, 12, 8, 1),
+(10, 'NAVIDAD', 'Navidad', 1, NULL, 12, 25, 12, 25, 1),
+(11, 'DIA_MADRE', 'Día de la Madre', 2, 'SEGUNDO_DOMINGO_MAYO', NULL, NULL, NULL, NULL, 1),
+(12, 'DIA_PADRE', 'Día del Padre', 2, 'TERCER_DOMINGO_JUNIO', NULL, NULL, NULL, NULL, 1),
+(13, 'DIA_MAESTRO', 'Día del Maestro', 1, NULL, 7, 6, 7, 6, 1),
+(14, 'BATALLA_AYACUCHO', 'Batalla de Ayacucho', 1, NULL, 12, 9, 12, 9, 1),
+(15, 'JUEVES_SANTO', 'Jueves Santo', 2, 'JUEVES_SANTO', NULL, NULL, NULL, NULL, 1),
+(16, 'VIERNES_SANTO', 'Viernes Santo', 2, 'VIERNES_SANTO', NULL, NULL, NULL, NULL, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `td_actividadparticipante`
+--
+
+DROP TABLE IF EXISTS `td_actividadparticipante`;
+CREATE TABLE IF NOT EXISTS `td_actividadparticipante` (
+  `id_actividadparticipante` bigint NOT NULL AUTO_INCREMENT,
+  `id_actividad` bigint DEFAULT NULL,
+  `id_tipoparticipante` bigint DEFAULT NULL,
+  `vigencia` tinyint DEFAULT '1',
+  PRIMARY KEY (`id_actividadparticipante`),
+  KEY `id_actividad` (`id_actividad`),
+  KEY `id_tipoparticipante` (`id_tipoparticipante`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `td_actividadparticipante`
+--
+
+INSERT INTO `td_actividadparticipante` (`id_actividadparticipante`, `id_actividad`, `id_tipoparticipante`, `vigencia`) VALUES
+(1, 1, 1, 1),
+(2, 1, 2, 1),
+(3, 1, 3, 1),
+(4, 1, 4, 1),
+(5, 1, 5, 1),
+(6, 1, 6, 1),
+(7, 1, 7, 1),
+(8, 2, 1, 1),
+(9, 2, 2, 1),
+(10, 2, 3, 1),
+(11, 2, 4, 0),
+(12, 2, 5, 1),
+(13, 2, 6, 0),
+(14, 2, 7, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `td_turnodia`
+--
+
+DROP TABLE IF EXISTS `td_turnodia`;
+CREATE TABLE IF NOT EXISTS `td_turnodia` (
+  `id_turnodia` bigint NOT NULL AUTO_INCREMENT,
+  `id_turno` bigint NOT NULL,
+  `dia_semana` tinyint NOT NULL,
+  `hora_ingreso` time NOT NULL,
+  `hora_salida` time NOT NULL,
+  `vigencia` tinyint DEFAULT '1',
+  PRIMARY KEY (`id_turnodia`),
+  KEY `id_turno` (`id_turno`)
+) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `td_turnodia`
+--
+
+INSERT INTO `td_turnodia` (`id_turnodia`, `id_turno`, `dia_semana`, `hora_ingreso`, `hora_salida`, `vigencia`) VALUES
+(1, 1, 1, '08:00:00', '01:00:00', 1),
+(2, 1, 2, '08:00:00', '01:00:00', 1),
+(3, 1, 3, '08:00:00', '01:00:00', 1),
+(4, 1, 4, '08:00:00', '01:00:00', 1),
+(5, 1, 5, '08:00:00', '01:00:00', 1),
+(6, 2, 1, '01:00:00', '06:00:00', 1),
+(7, 2, 2, '01:00:00', '06:00:00', 1),
+(8, 2, 3, '01:00:00', '06:00:00', 1),
+(9, 2, 4, '01:00:00', '06:00:00', 1),
+(10, 2, 5, '01:00:00', '06:00:00', 1),
+(11, 3, 1, '18:00:00', '23:00:00', 1),
+(12, 3, 2, '18:00:00', '23:00:00', 1),
+(13, 3, 3, '18:00:00', '23:00:00', 1),
+(14, 3, 4, '18:00:00', '23:00:00', 1),
+(15, 3, 5, '18:00:00', '23:00:00', 1),
+(16, 4, 1, '23:00:00', '04:00:00', 1),
+(17, 4, 2, '23:00:00', '04:00:00', 1),
+(18, 4, 3, '23:00:00', '04:00:00', 1),
+(19, 4, 4, '23:00:00', '04:00:00', 1),
+(20, 4, 5, '23:00:00', '04:00:00', 1),
+(21, 4, 6, '23:00:00', '04:00:00', 1),
+(22, 4, 7, '23:00:00', '04:00:00', 0),
+(23, 3, 6, '18:00:00', '23:00:00', 1),
+(24, 5, 1, '00:00:00', '05:00:00', 1),
+(25, 5, 2, '00:00:00', '05:00:00', 1),
+(26, 6, 1, '00:00:00', '05:00:00', 1),
+(27, 6, 2, '00:00:00', '05:00:00', 1),
+(28, 6, 3, '00:00:00', '05:00:00', 1),
+(29, 6, 4, '00:00:00', '05:00:00', 1),
+(30, 6, 5, '00:00:00', '05:00:00', 1),
+(31, 7, 1, '00:00:00', '04:00:00', 1),
+(32, 7, 4, '00:00:00', '04:00:00', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `th_historialturno`
+--
+
+DROP TABLE IF EXISTS `th_historialturno`;
+CREATE TABLE IF NOT EXISTS `th_historialturno` (
+  `id_historial` bigint NOT NULL AUTO_INCREMENT,
+  `id_turno` bigint NOT NULL,
+  `desc_cambio` varchar(200) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `usu_registro` bigint NOT NULL,
+  `fecha_registro` datetime DEFAULT CURRENT_TIMESTAMP,
+  `vigencia` tinyint DEFAULT '1',
+  PRIMARY KEY (`id_historial`),
+  KEY `id_turno` (`id_turno`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `th_historialturno`
+--
+
+INSERT INTO `th_historialturno` (`id_historial`, `id_turno`, `desc_cambio`, `usu_registro`, `fecha_registro`, `vigencia`) VALUES
+(1, 4, 'Las clases se realizaran solo de lunes a viernes para este turno', 1, '2026-07-09 17:02:42', 1),
+(2, 4, 'Las clases para este turno se realizaran de lunes a sábado', 1, '2026-07-09 17:05:08', 1),
+(3, 3, 'Las clases para este turno se realizaran de lunes a sabado', 1, '2026-07-09 17:11:43', 1),
+(4, 5, 'aaaa', 1, '2026-07-09 17:59:12', 1),
+(5, 1, 'aaa', 1, '2026-07-09 18:03:00', 1),
+(6, 1, 'aaaaa', 1, '2026-07-09 18:03:11', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `tipodianolectivo`
+--
+
+DROP TABLE IF EXISTS `tipodianolectivo`;
+CREATE TABLE IF NOT EXISTS `tipodianolectivo` (
+  `id_tipodianolectivo` bigint NOT NULL AUTO_INCREMENT,
+  `nom_tipodianolectivo` varchar(100) COLLATE utf8mb4_spanish_ci NOT NULL,
+  `color` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci NOT NULL,
+  `vigencia` tinyint DEFAULT '1',
+  PRIMARY KEY (`id_tipodianolectivo`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `tipodianolectivo`
+--
+
+INSERT INTO `tipodianolectivo` (`id_tipodianolectivo`, `nom_tipodianolectivo`, `color`, `vigencia`) VALUES
+(1, 'Feriado', '#EF4444', 1),
+(2, 'Vacaciones', '#F59E0B', 1),
+(3, 'Suspensión', '#6B7280', 1);
 
 -- --------------------------------------------------------
 
@@ -670,8 +871,7 @@ CREATE TABLE IF NOT EXISTS `tipogeneracion` (
   `id_tipogeneracion` bigint NOT NULL AUTO_INCREMENT,
   `cod_tipogeneracion` varchar(50) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
   `nom_tipogeneracion` varchar(100) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
-  `estado` tinyint DEFAULT '1',
-  `vigente` tinyint DEFAULT '1',
+  `vigencia` tinyint DEFAULT '1',
   PRIMARY KEY (`id_tipogeneracion`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
@@ -679,9 +879,130 @@ CREATE TABLE IF NOT EXISTS `tipogeneracion` (
 -- Volcado de datos para la tabla `tipogeneracion`
 --
 
-INSERT INTO `tipogeneracion` (`id_tipogeneracion`, `cod_tipogeneracion`, `nom_tipogeneracion`, `estado`, `vigente`) VALUES
-(1, 'FIJA', 'Fecha fija', 1, 1),
-(2, 'CALCULADA', 'fecha calculada', 1, 1);
+INSERT INTO `tipogeneracion` (`id_tipogeneracion`, `cod_tipogeneracion`, `nom_tipogeneracion`, `vigencia`) VALUES
+(1, 'FIJA', 'Fecha fija', 1),
+(2, 'CALCULADA', 'fecha calculada', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `tm_actividadacademica`
+--
+
+DROP TABLE IF EXISTS `tm_actividadacademica`;
+CREATE TABLE IF NOT EXISTS `tm_actividadacademica` (
+  `id_actividad` bigint NOT NULL AUTO_INCREMENT,
+  `id_aniolectivo` bigint DEFAULT NULL,
+  `id_tipoactividad` bigint DEFAULT NULL,
+  `nom_actividad` varchar(150) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `desc_actividad` varchar(500) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `fecha_inicio` date DEFAULT NULL,
+  `fecha_fin` date DEFAULT NULL,
+  `hora_ingreso` time DEFAULT NULL,
+  `hora_salida` time DEFAULT NULL,
+  `lugar` varchar(150) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `registra_asistencia` tinyint DEFAULT NULL,
+  `suspende_clases` tinyint DEFAULT NULL,
+  `estado` tinyint DEFAULT '1',
+  `vigencia` tinyint DEFAULT '1',
+  PRIMARY KEY (`id_actividad`),
+  KEY `id_aniolectivo` (`id_aniolectivo`),
+  KEY `id_tipoactividad` (`id_tipoactividad`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `tm_actividadacademica`
+--
+
+INSERT INTO `tm_actividadacademica` (`id_actividad`, `id_aniolectivo`, `id_tipoactividad`, `nom_actividad`, `desc_actividad`, `fecha_inicio`, `fecha_fin`, `hora_ingreso`, `hora_salida`, `lugar`, `registra_asistencia`, `suspende_clases`, `estado`, `vigencia`) VALUES
+(1, 1, 4, 'Aniversario', 'Ceremonia en conmemoración del XI aniversario de nuestra institución', '2026-07-15', '2026-07-15', '08:00:00', '18:00:00', 'Instalaciones de la escuela', 1, 1, 1, 1),
+(2, 1, 3, 'Deportes', 'Campeonato inter secciones de padres y alumnos', '2026-07-17', '2026-07-18', '08:00:00', '16:00:00', 'Loza deportiva A', 0, 0, 1, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `tm_tipoactividad`
+--
+
+DROP TABLE IF EXISTS `tm_tipoactividad`;
+CREATE TABLE IF NOT EXISTS `tm_tipoactividad` (
+  `id_tipoactividad` bigint NOT NULL AUTO_INCREMENT,
+  `desc_tipoactividad` varchar(100) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `color` varchar(20) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `vigencia` tinyint DEFAULT '1',
+  PRIMARY KEY (`id_tipoactividad`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `tm_tipoactividad`
+--
+
+INSERT INTO `tm_tipoactividad` (`id_tipoactividad`, `desc_tipoactividad`, `color`, `vigencia`) VALUES
+(1, 'Académica', '#4CAF50', 1),
+(2, 'Cultural', '#FF9800', 1),
+(3, 'Deportiva', '#2196F3', 1),
+(4, 'Institucional', '#9C27B0', 1),
+(5, 'Cívica', '#795548', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `tm_tipoparticipante`
+--
+
+DROP TABLE IF EXISTS `tm_tipoparticipante`;
+CREATE TABLE IF NOT EXISTS `tm_tipoparticipante` (
+  `id_tipoparticipante` bigint NOT NULL AUTO_INCREMENT,
+  `desc_tipoparticipante` varchar(100) COLLATE utf8mb4_spanish_ci DEFAULT NULL,
+  `vigencia` tinyint DEFAULT '1',
+  PRIMARY KEY (`id_tipoparticipante`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `tm_tipoparticipante`
+--
+
+INSERT INTO `tm_tipoparticipante` (`id_tipoparticipante`, `desc_tipoparticipante`, `vigencia`) VALUES
+(1, 'Estudiantes', 1),
+(2, 'Padres o Apoderados', 1),
+(3, 'Docentes', 1),
+(4, 'Personal administrativo', 1),
+(5, 'Personal de apoyo', 1),
+(6, 'Invitados', 1),
+(7, 'Comunidad educativa', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `tm_turnoacademico`
+--
+
+DROP TABLE IF EXISTS `tm_turnoacademico`;
+CREATE TABLE IF NOT EXISTS `tm_turnoacademico` (
+  `id_turno` bigint NOT NULL AUTO_INCREMENT,
+  `id_aniolectivo` bigint NOT NULL,
+  `nom_turno` varchar(50) COLLATE utf8mb4_spanish_ci NOT NULL,
+  `hora_ingreso` time NOT NULL,
+  `hora_salida` time NOT NULL,
+  `min_tolerancia` smallint DEFAULT NULL,
+  `estado` tinyint NOT NULL DEFAULT '1',
+  `vigencia` tinyint DEFAULT '1',
+  PRIMARY KEY (`id_turno`),
+  KEY `id_aniolectivo` (`id_aniolectivo`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `tm_turnoacademico`
+--
+
+INSERT INTO `tm_turnoacademico` (`id_turno`, `id_aniolectivo`, `nom_turno`, `hora_ingreso`, `hora_salida`, `min_tolerancia`, `estado`, `vigencia`) VALUES
+(1, 1, 'Mañana', '08:00:00', '13:00:00', 5, 1, 1),
+(2, 1, 'Tarde', '13:00:00', '18:00:00', 5, 1, 1),
+(3, 1, 'Noche', '18:00:00', '23:00:00', 5, 1, 1),
+(4, 1, 'Madrugada', '23:00:00', '04:00:00', 5, 1, 0),
+(5, 1, 'madrugada', '00:00:00', '05:00:00', 5, 1, 0),
+(6, 1, 'madrugada', '00:00:00', '05:00:00', 5, 1, 0),
+(7, 1, 'Madrugada', '00:00:00', '04:00:00', 5, 1, 0);
 
 -- --------------------------------------------------------
 
@@ -701,8 +1022,8 @@ CREATE TABLE IF NOT EXISTS `usuario` (
   `dir_usuario` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci NOT NULL,
   `id_perfil` bigint NOT NULL,
   `estado` tinyint NOT NULL DEFAULT '1',
-  `vigente` tinyint DEFAULT '1',
   `fecha_registro` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `vigencia` tinyint DEFAULT '1',
   PRIMARY KEY (`id_usuario`),
   KEY `id_perfil` (`id_perfil`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
@@ -711,10 +1032,10 @@ CREATE TABLE IF NOT EXISTS `usuario` (
 -- Volcado de datos para la tabla `usuario`
 --
 
-INSERT INTO `usuario` (`id_usuario`, `cod_usuario`, `nom_usuario`, `usu_usuario`, `pass_usuario`, `tel_usuario`, `email_usuario`, `dir_usuario`, `id_perfil`, `estado`, `vigente`, `fecha_registro`) VALUES
-(1, '11111111', 'Administrador', 'admin', '$2y$10$/Qd53BYg/jDy6PI7U7LwFOr5M.KJkLOOqmHWeMGo87Bd.DJPgrpyq', '964939331', 'admin@gmail.com', 'Av. Circunvalación N°429 El Tambo', 1, 1, 1, '2026-02-13 14:24:28'),
-(2, '74499797', 'brayam', 'brayam123', 'aaaaa', '918474850', 'brayam@gmail.com', 'pasaje los alisos h-27', 1, 0, 0, '2026-02-21 13:45:45'),
-(3, '4444444444', 'prueba', 'prueba', '$2y$10$hk8CRHE6Q8Nw8hJhfJXK0OD/ZhcmYJO8uWHExYq0j51EfkqR4kv06', '9999999999', 'prueba@gmail.com', 'direccion de prueba', 2, 1, 1, '2026-02-21 14:53:24');
+INSERT INTO `usuario` (`id_usuario`, `cod_usuario`, `nom_usuario`, `usu_usuario`, `pass_usuario`, `tel_usuario`, `email_usuario`, `dir_usuario`, `id_perfil`, `estado`, `fecha_registro`, `vigencia`) VALUES
+(1, '11111111', 'Administrador', 'admin', '$2y$10$/Qd53BYg/jDy6PI7U7LwFOr5M.KJkLOOqmHWeMGo87Bd.DJPgrpyq', '964939331', 'admin@gmail.com', 'Av. Circunvalación N°429 El Tambo', 1, 1, '2026-02-13 14:24:28', 1),
+(2, '74499797', 'brayam', 'brayam123', 'aaaaa', '918474850', 'brayam@gmail.com', 'pasaje los alisos h-27', 1, 0, '2026-02-21 13:45:45', 0),
+(3, '4444444444', 'prueba', 'prueba', '$2y$10$5SuEN2zOwXOzdF838YLO8OoykDQ.2OEIowz9bojreyoMc2t1Cm0/6', '9999999999', 'prueba@gmail.com', 'direccion de prueba', 2, 1, '2026-02-21 14:53:24', 0);
 
 --
 -- Restricciones para tablas volcadas
@@ -745,7 +1066,8 @@ ALTER TABLE `aulalectiva`
 -- Filtros para la tabla `dianolectivo`
 --
 ALTER TABLE `dianolectivo`
-  ADD CONSTRAINT `dianolectivo_ibfk_1` FOREIGN KEY (`id_aniolectivo`) REFERENCES `aniolectivo` (`id_aniolectivo`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `dianolectivo_ibfk_1` FOREIGN KEY (`id_aniolectivo`) REFERENCES `aniolectivo` (`id_aniolectivo`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `dianolectivo_ibfk_2` FOREIGN KEY (`id_tipodianolectivo`) REFERENCES `tipodianolectivo` (`id_tipodianolectivo`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `matricula`
@@ -772,6 +1094,38 @@ ALTER TABLE `periodo`
 --
 ALTER TABLE `plantilla_dianolectivo`
   ADD CONSTRAINT `plantilla_dianolectivo_ibfk_1` FOREIGN KEY (`id_tipogeneracion`) REFERENCES `tipogeneracion` (`id_tipogeneracion`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `td_actividadparticipante`
+--
+ALTER TABLE `td_actividadparticipante`
+  ADD CONSTRAINT `td_actividadparticipante_ibfk_1` FOREIGN KEY (`id_actividad`) REFERENCES `tm_actividadacademica` (`id_actividad`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `td_actividadparticipante_ibfk_2` FOREIGN KEY (`id_tipoparticipante`) REFERENCES `tm_tipoparticipante` (`id_tipoparticipante`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `td_turnodia`
+--
+ALTER TABLE `td_turnodia`
+  ADD CONSTRAINT `td_turnodia_ibfk_1` FOREIGN KEY (`id_turno`) REFERENCES `tm_turnoacademico` (`id_turno`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `th_historialturno`
+--
+ALTER TABLE `th_historialturno`
+  ADD CONSTRAINT `th_historialturno_ibfk_1` FOREIGN KEY (`id_turno`) REFERENCES `tm_turnoacademico` (`id_turno`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `tm_actividadacademica`
+--
+ALTER TABLE `tm_actividadacademica`
+  ADD CONSTRAINT `tm_actividadacademica_ibfk_1` FOREIGN KEY (`id_aniolectivo`) REFERENCES `aniolectivo` (`id_aniolectivo`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `tm_actividadacademica_ibfk_2` FOREIGN KEY (`id_tipoactividad`) REFERENCES `tm_tipoactividad` (`id_tipoactividad`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `tm_turnoacademico`
+--
+ALTER TABLE `tm_turnoacademico`
+  ADD CONSTRAINT `tm_turnoacademico_ibfk_1` FOREIGN KEY (`id_aniolectivo`) REFERENCES `aniolectivo` (`id_aniolectivo`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `usuario`
