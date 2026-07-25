@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 21-07-2026 a las 02:08:18
+-- Tiempo de generación: 25-07-2026 a las 23:24:48
 -- Versión del servidor: 8.4.7
 -- Versión de PHP: 8.3.28
 
@@ -75,28 +75,26 @@ DROP TABLE IF EXISTS `aula`;
 CREATE TABLE IF NOT EXISTS `aula` (
   `id_aula` bigint NOT NULL AUTO_INCREMENT,
   `id_grado` bigint NOT NULL,
-  `id_nivel` bigint NOT NULL,
   `seccion_aula` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci DEFAULT NULL,
   `vigencia` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_aula`),
-  KEY `id_grado` (`id_grado`),
-  KEY `id_nivel` (`id_nivel`)
+  KEY `id_grado` (`id_grado`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `aula`
 --
 
-INSERT INTO `aula` (`id_aula`, `id_grado`, `id_nivel`, `seccion_aula`, `vigencia`) VALUES
-(1, 1, 1, 'UNICA', 1),
-(2, 2, 1, 'UNICA', 1),
-(3, 3, 1, 'UNICA', 1),
-(4, 4, 2, 'OSOS', 1),
-(5, 5, 2, 'DELFINES', 1),
-(6, 6, 2, 'JIRAFAS', 1),
-(7, 7, 2, 'ABEJAS', 1),
-(8, 8, 2, 'TIGRES', 1),
-(9, 9, 2, 'LEONES', 1);
+INSERT INTO `aula` (`id_aula`, `id_grado`, `seccion_aula`, `vigencia`) VALUES
+(1, 1, 'UNICA', 1),
+(2, 2, 'UNICA', 1),
+(3, 3, 'UNICA', 1),
+(4, 4, 'OSOS', 1),
+(5, 5, 'DELFINES', 1),
+(6, 6, 'JIRAFAS', 1),
+(7, 7, 'ABEJAS', 1),
+(8, 8, 'TIGRES', 1),
+(9, 9, 'LEONES', 1);
 
 -- --------------------------------------------------------
 
@@ -137,7 +135,7 @@ CREATE TABLE IF NOT EXISTS `dianolectivo` (
   PRIMARY KEY (`id_dianolectivo`),
   KEY `id_aniolectivo` (`id_aniolectivo`),
   KEY `id_tipodianolectivo` (`id_tipodianolectivo`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `dianolectivo`
@@ -162,7 +160,8 @@ INSERT INTO `dianolectivo` (`id_dianolectivo`, `id_aniolectivo`, `nom_evento`, `
 (19, 1, 'Batalla de Ayacucho', '2026-12-09', '2026-12-09', 1, 1, 14, 1),
 (20, 1, 'Jueves Santo', '2026-04-02', '2026-04-02', 1, 1, 15, 1),
 (21, 1, 'feriado prueba', '2026-07-09', '2026-07-09', 2, 1, NULL, 0),
-(22, 1, 'feriado rango prueba', '2026-07-09', '2026-07-11', 2, 1, NULL, 0);
+(22, 1, 'feriado rango prueba', '2026-07-09', '2026-07-11', 2, 1, NULL, 0),
+(23, 1, 'prueba', '2026-07-21', '2026-07-21', 2, 3, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -444,24 +443,31 @@ DROP TABLE IF EXISTS `grado`;
 CREATE TABLE IF NOT EXISTS `grado` (
   `id_grado` bigint NOT NULL AUTO_INCREMENT,
   `desc_grado` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci NOT NULL,
+  `id_nivel` bigint NOT NULL,
   `vigencia` tinyint NOT NULL DEFAULT '1',
-  PRIMARY KEY (`id_grado`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+  PRIMARY KEY (`id_grado`),
+  KEY `id_nivel` (`id_nivel`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `grado`
 --
 
-INSERT INTO `grado` (`id_grado`, `desc_grado`, `vigencia`) VALUES
-(1, '3 AÑOS', 1),
-(2, '4 AÑOS', 1),
-(3, '5 AÑOS', 1),
-(4, 'PRIMERO', 1),
-(5, 'SEGUNDO', 1),
-(6, 'TERCERO', 1),
-(7, 'CUARTO', 1),
-(8, 'QUINTO', 1),
-(9, 'SEXTO', 1);
+INSERT INTO `grado` (`id_grado`, `desc_grado`, `id_nivel`, `vigencia`) VALUES
+(1, '3 AÑOS', 1, 1),
+(2, '4 AÑOS', 1, 1),
+(3, '5 AÑOS', 1, 1),
+(4, 'PRIMERO', 2, 1),
+(5, 'SEGUNDO', 2, 1),
+(6, 'TERCERO', 2, 1),
+(7, 'CUARTO', 2, 1),
+(8, 'QUINTO', 2, 1),
+(9, 'SEXTO', 2, 1),
+(10, 'PRIMERO', 3, 1),
+(11, 'SEGUNDO', 3, 1),
+(12, 'TERCERO', 3, 1),
+(13, 'CUARTO', 3, 1),
+(14, 'QUINTO', 3, 1);
 
 -- --------------------------------------------------------
 
@@ -575,7 +581,7 @@ CREATE TABLE IF NOT EXISTS `nivel` (
   `desc_nivel` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_spanish_ci NOT NULL,
   `vigencia` tinyint NOT NULL DEFAULT '1',
   PRIMARY KEY (`id_nivel`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 --
 -- Volcado de datos para la tabla `nivel`
@@ -583,7 +589,8 @@ CREATE TABLE IF NOT EXISTS `nivel` (
 
 INSERT INTO `nivel` (`id_nivel`, `desc_nivel`, `vigencia`) VALUES
 (1, 'Inicial', 1),
-(2, 'Primaria', 1);
+(2, 'Primaria', 1),
+(3, 'Secundaria', 1);
 
 -- --------------------------------------------------------
 
@@ -814,7 +821,7 @@ CREATE TABLE IF NOT EXISTS `tipodianolectivo` (
 
 INSERT INTO `tipodianolectivo` (`id_tipodianolectivo`, `nom_tipodianolectivo`, `color`, `vigencia`) VALUES
 (1, 'Feriado', '#EF4444', 1),
-(2, 'Vacaciones', '#F59E0B', 1),
+(2, 'Vacaciones', '#0891B2', 1),
 (3, 'Suspensión', '#6B7280', 1);
 
 -- --------------------------------------------------------
@@ -895,10 +902,10 @@ CREATE TABLE IF NOT EXISTS `tm_tipoactividad` (
 --
 
 INSERT INTO `tm_tipoactividad` (`id_tipoactividad`, `desc_tipoactividad`, `color`, `vigencia`) VALUES
-(1, 'Académica', '#4CAF50', 1),
-(2, 'Cultural', '#FF9800', 1),
+(1, '#0D9488', '#4CAF50', 1),
+(2, 'Cultural', '#DB2777', 1),
 (3, 'Deportiva', '#2196F3', 1),
-(4, 'Institucional', '#9C27B0', 1),
+(4, 'Institucional', '#4F46E5', 1),
 (5, 'Cívica', '#795548', 1);
 
 -- --------------------------------------------------------
@@ -1003,8 +1010,7 @@ ALTER TABLE `asistencia`
 -- Filtros para la tabla `aula`
 --
 ALTER TABLE `aula`
-  ADD CONSTRAINT `aula_ibfk_1` FOREIGN KEY (`id_grado`) REFERENCES `grado` (`id_grado`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `aula_ibfk_2` FOREIGN KEY (`id_nivel`) REFERENCES `nivel` (`id_nivel`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `aula_ibfk_1` FOREIGN KEY (`id_grado`) REFERENCES `grado` (`id_grado`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `aulalectiva`
@@ -1020,6 +1026,12 @@ ALTER TABLE `aulalectiva`
 ALTER TABLE `dianolectivo`
   ADD CONSTRAINT `dianolectivo_ibfk_1` FOREIGN KEY (`id_aniolectivo`) REFERENCES `aniolectivo` (`id_aniolectivo`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `dianolectivo_ibfk_2` FOREIGN KEY (`id_tipodianolectivo`) REFERENCES `tipodianolectivo` (`id_tipodianolectivo`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `grado`
+--
+ALTER TABLE `grado`
+  ADD CONSTRAINT `grado_ibfk_1` FOREIGN KEY (`id_nivel`) REFERENCES `nivel` (`id_nivel`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Filtros para la tabla `matricula`
