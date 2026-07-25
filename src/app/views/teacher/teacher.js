@@ -292,7 +292,7 @@ window.onDelete = async function (id) {
 window.openModalForm = function (id = null) {
   if (!DialogFormTeacher) return;
 
-  DialogFormTeacher.open();
+  ModalManager.open(DialogFormTeacher);
   formTeacher = document.getElementById("formTeacher");
 
   setTimeout(() => {
@@ -314,7 +314,7 @@ window.openModalInfo = function (id) {
   if (id === undefined || id === null) return;
   if (!DialogInfoTeacher) return;
   verDetalles(id);
-  DialogInfoTeacher.open();
+  ModalManager.open(DialogInfoTeacher);
 };
 
 window.closeModalInfo = function () {

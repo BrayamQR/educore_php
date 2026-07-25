@@ -16,3 +16,4 @@ import "../components/pagination/data-paginator.js";
 
 //utils
 import "../components/utils/init-custom-values.js";
+import "../components/utils/modal-manager.js";

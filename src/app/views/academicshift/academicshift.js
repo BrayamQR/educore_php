@@ -174,7 +174,7 @@ window.openModalForm = async function (id = null) {
   }
 
   if (!DialogFormAcademicShift) return;
-  DialogFormAcademicShift.open();
+  ModalManager.open(DialogFormAcademicShift);
   setTimeout(() => {
     if (id === null) {
       initInput();
@@ -194,7 +194,7 @@ window.openModalInfo = function (id = null) {
   if (id === undefined || id === null) return;
   if (!DialogInfoAcademicShift) return;
   verDetalles(id);
-  DialogInfoAcademicShift.open();
+  ModalManager.open(DialogInfoAcademicShift);
 };
 
 window.closeModalInfo = function () {

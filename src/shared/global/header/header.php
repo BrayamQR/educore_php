@@ -1,6 +1,6 @@
 <header class="flex bg-gray-900 items-center fixed justify-between px-6 py-3 w-full h-[60px] z-20 select-none border-b border-neutral-700 top-0 left-0">
     <div class="flex gap-4 items-center justify-center">
-        <button id="menu-btn" class="lg:hidden cursor-pointer items-center text-center" type="button" aria-label="Abrir menu">
+        <button id="menu-btn" class="lg:hidden cursor-pointer items-center text-center outline-none" type="button" aria-label="Abrir menu">
             <i class="bi bi-list text-white text-[30px] hover:bg-neutral-700 w-10 h-10 flex text-center justify-center items-center rounded-lg transition-all duration-300 ease-linear"></i>
         </button>
         <div class="flex gap-3">
@@ -16,7 +16,7 @@
     <!-- AVATAR -->
     <div class="relative" id="avatarContainer">
         <button id="avatarBtn" class="flex items-center gap-2 cursor-pointer">
-            <div class="w-9 h-9 rounded-full bg-sky-600 flex items-center justify-center hover:bg-sky-700 transition-all duration-300">
+            <div class="w-9 h-9 rounded-full bg-sky-600 flex items-center justify-center hover:bg-sky-700 transition-all duration-300 outline-none">
                 <i class="bi bi-person-fill text-white text-lg"></i>
             </div>
         </button>
@@ -48,7 +48,7 @@
                 </p>
             </div>
             <!-- CERRAR SESION -->
-            <button onclick="CerrarSesion()" class="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-all duration-300 cursor-pointer">
+            <button onclick="CerrarSesion()" class="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-all duration-300 cursor-pointer outline-none">
                 <i class="bi bi-box-arrow-right"></i>
                 Cerrar sesión
             </button>

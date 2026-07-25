@@ -100,7 +100,7 @@ window.openModalForm = async function (id = null) {
     }
   }
 
-  DialogFormSchoolYear.open();
+  ModalManager.open(DialogFormSchoolYear);
   setTimeout(() => {
     id === null ? initInput() : Mostrar(id);
     initSelectTipoPeriodo();
@@ -117,7 +117,7 @@ window.openModalInfo = function (id) {
   if (id === undefined || id === null) return;
   if (!DialogInfoSchoolYear) return;
   verDetalles(id);
-  DialogInfoSchoolYear.open();
+  ModalManager.open(DialogInfoSchoolYear);
 };
 window.closeModalInfo = function () {
   if (!DialogInfoSchoolYear) return;
@@ -127,7 +127,7 @@ window.closeModalInfo = function () {
 window.openModalConfigPeriod = async function (id) {
   if (!DialogConfigPeriod) return;
   await ObtenerPeriodos(id);
-  DialogConfigPeriod.open();
+  ModalManager.open(DialogConfigPeriod);
 };
 
 window.closeModalConfigPeriod = function () {

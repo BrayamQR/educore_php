@@ -182,7 +182,7 @@ input[type="number"] {
     max-height 0.25s ease,
     opacity 0.2s ease,
     transform 0.2s ease;
-  z-index: 1000;
+  z-index: 3000;
 }
 
 .options-container.open {
@@ -294,6 +294,7 @@ input[type="number"] {
   cursor: pointer;
   transition: all 0.5s ease;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+  outline: none;
 }
 .custom-button i {
   margin-right: 5px;
@@ -326,6 +327,7 @@ input[type="number"] {
   border: none;
   cursor: pointer;
   transition: all 0.5s ease;
+  outline: none;
 }
 .custom-button-fab:hover {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.25);
@@ -358,7 +360,7 @@ input[type="number"] {
   transition:
     opacity 0.2s ease,
     transform 0.2s ease;
-  z-index: 999;
+  z-index: 3100;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
 }
 
@@ -381,8 +383,17 @@ input[type="number"] {
 dialog-modal {
   position: fixed;
   inset: 0;
-  z-index: 999;
+  z-index: 1000;
   pointer-events: none;
+}
+
+dialog-modal.open.modal-dimmed .modal {
+  filter: brightness(0.92);
+  transition: filter 0.2s ease;
+}
+
+dialog-modal.open.modal-dimmed .modal-backdrop {
+  background: rgba(0, 0, 0, 0.65);
 }
 
 /* ===== BACKDROP ===== */
@@ -453,6 +464,7 @@ dialog-modal .modal-header button.close-btn {
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  outline: none;
 }
 
 dialog-modal .modal-header button.close-btn:hover {
@@ -495,6 +507,7 @@ dialog-modal .modal-footer {
   transition:
     background-color 0.2s,
     opacity 0.2s;
+  outline: none;
 }
 
 .paginator-btn:hover:not(:disabled) {
@@ -577,7 +590,7 @@ dialog-modal .modal-footer {
 
 .ctp-panel {
   position: fixed;
-  z-index: 1000;
+  z-index: 3000;
   background: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
   border-radius: 12px;
@@ -661,6 +674,7 @@ dialog-modal .modal-footer {
   padding: 5px 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  outline: none;
 }
 
 .ctp-meridiem-btn:first-child {
@@ -747,6 +761,7 @@ dialog-modal .modal-footer {
   padding: 6px 10px;
   border-radius: 6px;
   transition: all 0.3s ease;
+  outline: none;
 }
 
 .ctp-now-btn:hover,
@@ -764,6 +779,7 @@ dialog-modal .modal-footer {
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
+  outline: none;
 }
 .ctp-done-btn:hover {
   background: #177eb1;

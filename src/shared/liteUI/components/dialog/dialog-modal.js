@@ -5,24 +5,18 @@ class DialogModal extends HTMLElement {
     this._originalHeader = null;
     this._originalBody = null;
     this._originalFooter = null;
-    this._isDynamic = false; // ✅ Flag para saber si es dinámico
+    this._isDynamic = false;
   }
-
-  handleEsc = (e) => {
-    if (e.key === "Escape" && this.isOpen()) this.close();
-  };
 
   connectedCallback() {
     if (this._isInitialized) return;
 
     const size = this.getAttribute("size") || "max-w-md";
 
-    // Guardamos referencias a los elementos originales
     const headerSlot = this.querySelector('[slot="header"]');
     const bodySlot = this.querySelector('[slot="body"]');
     const footerSlot = this.querySelector('[slot="footer"]');
 
-    // ✅ Solo guardar si existen slots estáticos
     if (headerSlot && !this._originalHeader) {
       this._originalHeader = headerSlot;
       this._originalHeader.removeAttribute("slot");
@@ -38,13 +32,12 @@ class DialogModal extends HTMLElement {
       this._originalFooter.removeAttribute("slot");
     }
 
-    // Creamos la estructura del modal
     this.innerHTML = `
       <div class="modal-backdrop">
-        <div class="modal ${size} scrollbar-thin scrollbar-track-gray-white scrollbar-thumb-neutral-400">
+        <div class="modal ${size} scrollbar-thin scrollbar-track-gray-white scrollbar-thumb-neutral-400" role="dialog" aria-modal="true" tabindex="-1">
           <div class="modal-header">
             <div data-slot="header"></div>
-            <button class="close-btn" data-close>
+            <button class="close-btn" data-close type="button" aria-label="Cerrar">
               <i class="bi bi-x"></i>
             </button>
           </div>
@@ -60,7 +53,6 @@ class DialogModal extends HTMLElement {
       </div>
     `;
 
-    // Insertamos el contenido guardado
     const headerContainer = this.querySelector('[data-slot="header"]');
     const bodyContainer = this.querySelector('[data-slot="body"]');
     const footerContainer = this.querySelector('[data-slot="footer"]');
@@ -79,32 +71,23 @@ class DialogModal extends HTMLElement {
       footerWrapper.style.display = "block";
     }
 
-    // Referencias a elementos del DOM
     this.backdrop = this.querySelector(".modal-backdrop");
     this.modal = this.querySelector(".modal");
     this.closeBtn = this.querySelector("[data-close]");
 
-    // Inicializar eventos
     this.initEvents();
-    document.addEventListener("keydown", this.handleEsc);
-
     this._isInitialized = true;
   }
 
   disconnectedCallback() {
-    document.removeEventListener("keydown", this.handleEsc);
-
     if (this.closeBtn) {
       this.closeBtn.removeEventListener("click", this._handleClose);
     }
-
     if (this.backdrop) {
       this.backdrop.removeEventListener("click", this._handleBackdropClick);
     }
-
-    if (this.isOpen()) {
-      document.body.style.overflow = "";
-    }
+    // overflow, ESC, z-index y atenuado ya no los gestiona esta instancia:
+    // los gestiona ModalManager, que reacciona al evento 'modal:close'.
   }
 
   initEvents() {
@@ -116,25 +99,19 @@ class DialogModal extends HTMLElement {
     if (this.closeBtn) {
       this.closeBtn.addEventListener("click", this._handleClose);
     }
-
     if (this.backdrop) {
       this.backdrop.addEventListener("click", this._handleBackdropClick);
     }
   }
 
-  /**
-   * ✅ NUEVO: Establece el contenido del modal dinámicamente
-   * @param {Object} content - Objeto con header, body y footer (HTML strings)
-   */
   setContent({ header = "", body = "", footer = "" }) {
-    this._isDynamic = true; // Marcar como dinámico
+    this._isDynamic = true;
 
     const headerContainer = this.querySelector('[data-slot="header"]');
     const bodyContainer = this.querySelector('[data-slot="body"]');
     const footerContainer = this.querySelector('[data-slot="footer"]');
     const footerWrapper = this.querySelector(".modal-footer");
 
-    // Limpiar contenido actual
     if (headerContainer) headerContainer.innerHTML = header;
     if (bodyContainer) bodyContainer.innerHTML = body;
 
@@ -147,11 +124,8 @@ class DialogModal extends HTMLElement {
     }
   }
 
-  /**
-   * ✅ NUEVO: Limpia el contenido dinámico
-   */
   clearContent() {
-    if (!this._isDynamic) return; // Solo limpiar si es dinámico
+    if (!this._isDynamic) return;
 
     const headerContainer = this.querySelector('[data-slot="header"]');
     const bodyContainer = this.querySelector('[data-slot="body"]');
@@ -164,31 +138,39 @@ class DialogModal extends HTMLElement {
     this._isDynamic = false;
   }
 
-  open() {
+  /**
+   * Abre el modal. "Tonto": solo dibuja y avisa. No toca overflow, ESC,
+   * z-index ni atenuado; eso lo hace ModalManager al escuchar 'modal:open'.
+   * Recomendado: no llames esto directo, usa ModalManager.open(modalEl).
+   */
+  open(data = null) {
     if (this.isOpen()) return;
 
-    document.body.style.overflow = "hidden";
     this.classList.add("open");
 
     this.dispatchEvent(
       new CustomEvent("modal:open", {
         bubbles: true,
-        detail: { modalId: this.id },
-      })
+        detail: { modalId: this.id, data },
+      }),
     );
   }
 
-  close() {
+  /**
+   * Cierra el modal y opcionalmente devuelve un resultado.
+   * Si se abrió con ModalManager.open(), ese resultado es lo que recibe
+   * quien hizo "await ModalManager.open(...)".
+   */
+  close(result = null) {
     if (!this.isOpen()) return;
 
-    document.body.style.overflow = "";
     this.classList.remove("open");
 
     this.dispatchEvent(
       new CustomEvent("modal:close", {
         bubbles: true,
-        detail: { modalId: this.id },
-      })
+        detail: { modalId: this.id, result },
+      }),
     );
   }
 
@@ -196,17 +178,12 @@ class DialogModal extends HTMLElement {
     return this.classList.contains("open");
   }
 
-  /**
-   * Método para resetear al contenido original (slots estáticos)
-   */
   reset() {
-    // Si es dinámico, limpiar
     if (this._isDynamic) {
       this.clearContent();
       return;
     }
 
-    // Si es estático, restaurar contenido original
     const headerContainer = this.querySelector('[data-slot="header"]');
     const bodyContainer = this.querySelector('[data-slot="body"]');
     const footerContainer = this.querySelector('[data-slot="footer"]');
@@ -219,11 +196,9 @@ class DialogModal extends HTMLElement {
     if (this._originalHeader && headerContainer) {
       headerContainer.appendChild(this._originalHeader);
     }
-
     if (this._originalBody && bodyContainer) {
       bodyContainer.appendChild(this._originalBody);
     }
-
     if (this._originalFooter && footerContainer && footerWrapper) {
       footerContainer.appendChild(this._originalFooter);
       footerWrapper.style.display = "block";

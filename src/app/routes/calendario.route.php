@@ -25,8 +25,10 @@ class CalendarioRoutes
                 break;
             case 'buscar':
                 if ($_POST) {
-                    $id  = $_POST['id'] ?? '';
-                    $rspta = $this->controller->Buscar($id);
+                    $id = $_POST['id'] ?? '';
+                    $tipoEvento = $_POST['tipoEvento'] ?? '';
+                    $tipoEvento = $tipoEvento !== '' ? $tipoEvento : null;
+                    $rspta = $this->controller->Buscar($id, $tipoEvento);
                     if (empty($rspta)) {
                         $arrayResponse = array('status' => false, 'msg' => 'No se encontraron resultados');
                     } else {

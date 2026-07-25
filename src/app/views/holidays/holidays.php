@@ -165,17 +165,17 @@
                             <h4 class="text-sm font-medium text-gray-700">Fechas pendientes</h4>
                             <div class="flex flex-wrap gap-3">
                                 <button type="button"
-                                    class="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
+                                    class="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer outline-none"
                                     onclick="seleccionarPaginaFeriadoNacional()">
                                     Seleccionar página
                                 </button>
                                 <button type="button"
-                                    class="text-xs text-rose-600 hover:text-rose-700 font-medium cursor-pointer"
+                                    class="text-xs text-rose-600 hover:text-rose-700 font-medium cursor-pointer outline-none"
                                     onclick="seleccionarTodasFeriadoNacional()">
                                     Seleccionar todas
                                 </button>
                                 <button type="button"
-                                    class="text-xs text-gray-600 hover:text-gray-700 font-medium cursor-pointer"
+                                    class="text-xs text-gray-600 hover:text-gray-700 font-medium cursor-pointer outline-none"
                                     onclick="limpiarSeleccionFeriadoNacional()">
                                     Limpiar
                                 </button>

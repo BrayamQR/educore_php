@@ -6,12 +6,14 @@ import {
   esLocale,
   sumarDias,
   hexToRgb,
+  crearControladorFiltros,
 } from "../../../shared/js/globalscripts.js";
 
 let calendar;
 let selectFiltroAnioLectivo = null;
 let selectFiltroTipoEvento = null;
 let ultimoAnio = null;
+let controladorFiltros = null;
 
 async function init() {
   await obtenerUltimoAnio();
@@ -36,15 +38,20 @@ async function init() {
     const evento = await getTipoEvento();
     selectFiltroTipoEvento.setOptions(evento);
   }
-
-  cargarCalendario();
+  if (document.getElementById("calendar")) {
+    initFiltros();
+    cargarCalendario();
+  }
 }
 
 async function cargarCalendario() {
-  const calendarEl = document.getElementById("calendar");
   const data = await Listar();
-
   if (!data) return;
+  renderizarCalendario(data);
+}
+
+function renderizarCalendario(data) {
+  const calendarEl = document.getElementById("calendar");
 
   const validRange = {
     start: data.fecha_inicio,
@@ -53,6 +60,11 @@ async function cargarCalendario() {
 
   const periodos = prepararPeriodos(data.periodos);
   const eventos = data.eventos.map(mapearEvento);
+
+  // Si ya existe una instancia previa, destruirla antes de crear otra
+  if (calendar) {
+    calendar.destroy();
+  }
 
   calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: "dayGridMonth",
@@ -110,19 +122,28 @@ function marcarPeriodo(arg, periodos) {
   const periodo = periodos.find((p) => fecha >= p.inicio && fecha <= p.fin);
   if (!periodo) return;
 
-  arg.el.style.borderTop = `3px solid ${periodo.color}`;
+  const rgb = hexToRgb(periodo.color);
+  if (rgb) {
+    arg.el.style.backgroundColor = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.05)`;
+  }
 
   if (fecha.getTime() === periodo.inicio.getTime()) {
+    arg.el.style.position = "relative";
+
     const label = document.createElement("div");
     label.textContent = periodo.desc_periodo;
     label.style.cssText = `
+      position: absolute;
+      bottom: 2px;
+      left: 4px;
       font-size: 0.65rem;
-      font-weight: 600;
+      font-weight: 700;
       color: ${periodo.color};
-      padding: 2px 4px;
       white-space: nowrap;
+      pointer-events: none;
+      z-index: 1;
     `;
-    arg.el.querySelector(".fc-daygrid-day-top")?.appendChild(label);
+    arg.el.appendChild(label);
   }
 }
 
@@ -159,7 +180,7 @@ function mapearEvento(row) {
 }
 
 function renderizarEvento(arg) {
-  const horaTexto = arg.timeText; // FullCalendar ya la formatea según eventTimeFormat
+  const horaTexto = arg.timeText;
   const titulo = arg.event.title;
 
   const html = horaTexto
@@ -193,7 +214,7 @@ function aplicarEstiloEvento(info) {
   info.el.style.setProperty("--evento-color", color);
   info.el.style.setProperty(
     "--evento-bg",
-    `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.15)`,
+    `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.20)`,
   );
 }
 
@@ -226,7 +247,6 @@ function mostrarDetalleEvento(info) {
   const descripcionTexto =
     props.descripcion || mensajesPorTipo[props.tipo] || "";
 
-  // Helper para armar cada fila con el icono dentro de un círculo de color
   const fila = (icono, texto) => `
     <div class="flex items-center gap-3">
       <div style="background-color:${color}15; width:32px; height:32px; border-radius:9999px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
@@ -362,6 +382,90 @@ window.toggleFiltros = function () {
   btn.classList.toggle("bg-blue-100");
   btn.classList.toggle("text-blue-600");
   btn.classList.toggle("border-blue-300");
+};
+
+function initFiltros() {
+  const anioLectivo = document.querySelector(
+    "custom-select[name='filtroAnioLectivo']",
+  );
+  const tipoEvento = document.querySelector(
+    "custom-select[name='filtroTipoEvento']",
+  );
+
+  controladorFiltros = crearControladorFiltros(Filtrar);
+
+  controladorFiltros.registrar(
+    anioLectivo,
+    "change",
+    (el) => el.getValue() || "",
+  );
+
+  controladorFiltros.registrar(
+    tipoEvento,
+    "change",
+    (el) => el.getValue() || "",
+  );
+}
+
+async function Filtrar() {
+  const tipoEvento =
+    document
+      .querySelector("custom-select[name='filtroTipoEvento']")
+      ?.getValue() || "";
+  const anioLectivo =
+    document
+      .querySelector("custom-select[name='filtroAnioLectivo']")
+      ?.getValue() || "";
+
+  if (!tipoEvento && !anioLectivo) {
+    await cargarCalendario();
+    return;
+  }
+
+  const json = await apiRequest(ROUTES.CALENDARIO, "buscar", {
+    id: anioLectivo,
+    tipoEvento: tipoEvento,
+  });
+
+  if (json.status) {
+    renderizarCalendario(json.data);
+  } else {
+    if (calendar) {
+      calendar.destroy();
+      calendar = null;
+    }
+    document.getElementById("calendar").innerHTML = `
+      <div class="p-5 text-center text-gray-500">
+        <i class="bi bi-search text-4xl mb-3 block"></i>
+        <p class="font-medium">No se encontraron resultados</p>
+        <p class="text-sm mt-2 text-gray-400">Intenta con otros filtros</p>
+      </div>`;
+  }
+}
+
+window.LimpiarFiltros = function () {
+  const filtroTipoEvento = document.querySelector(
+    "custom-select[name='filtroTipoEvento']",
+  );
+  if (filtroTipoEvento) {
+    controladorFiltros?.sincronizar(filtroTipoEvento, "");
+    filtroTipoEvento.initInput();
+  }
+
+  const selectAnio = document.querySelector(
+    "custom-select[name='filtroAnioLectivo']",
+  );
+  if (selectAnio) {
+    const valorReset = ultimoAnio ? ultimoAnio.id_aniolectivo : "";
+    controladorFiltros?.sincronizar(selectAnio, valorReset);
+    if (ultimoAnio) {
+      selectAnio.setValue(ultimoAnio.id_aniolectivo);
+    } else {
+      selectAnio.initInput();
+    }
+  }
+
+  cargarCalendario();
 };
 
 init();

@@ -137,7 +137,7 @@ window.openModalForm = function (id = null) {
     `${formatearFechaCorta(anioLectivoActivo.fecha_inicio)} - ${formatearFechaCorta(anioLectivoActivo.fecha_fin)}`;
 
   if (!DialogFormAcademicActivity) return;
-  DialogFormAcademicActivity.open();
+  ModalManager.open(DialogFormAcademicActivity);
   setTimeout(() => {
     if (id === null) {
       initInput();
@@ -157,7 +157,7 @@ window.openModalInfo = function (id = null) {
   if (id === undefined || id === null) return;
   if (!DialogInfoAcademicActivity) return;
   verDetalles(id);
-  DialogInfoAcademicActivity.open();
+  ModalManager.open(DialogInfoAcademicActivity);
 };
 
 window.closeModalInfo = function () {

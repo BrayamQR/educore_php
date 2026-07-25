@@ -330,6 +330,7 @@
 
 .evento-chip {
   background-color: var(--evento-bg, rgba(37, 99, 235, 0.15));
+  color: var(--evento-color);
   border-radius: 4px;
   padding: 3px 6px;
   display: flex;

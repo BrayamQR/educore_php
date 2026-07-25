@@ -16,17 +16,32 @@
         ?>
         <div class="lg:ml-[350px] mt-[60px] p-5 flex flex-col gap-5">
 
-            <div class="bg-white p-5 rounded-lg shadow-md">
-                <p class="text-amber-500">
-                    hola mundo
-                </p>
-                <input class="border border-gray-900 rounded-lg p-2" type="text" name="" id="" placeholder="usuario">
-                <label for="">usuario</label>
-            </div>
+            <custom-button
+                id="btnNuevo"
+                btn-class="bg-blue-500 hover:bg-blue-900 text-white "
+                label="Nuevo"
+                icon="bi bi-plus-lg"
+                onclick="openModalForm()">
+            </custom-button>
         </div>
     </main>
+    <dialog-modal id="DialogModal1">
+        <div slot="body">
+            <custom-button
+                id="btnBuscar"
+                btn-class="bg-blue-500 hover:bg-blue-900 text-white "
+                label="Buscar"
+                icon="bi bi-search"
+                onclick="openModalForm2()">
 
-
+            </custom-button>
+        </div>
+    </dialog-modal>
+    <dialog-modal id="DialogModal2">
+        <div slot="body">
+            <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Magni tempore aperiam adipisci necessitatibus, iure veniam. Molestiae debitis earum vero magnam culpa totam omnis odit sunt. Dolorum odit doloremque error quae?</p>
+        </div>
+    </dialog-modal>
 
     <script type="module" src="./home.js"></script>
     <?php

@@ -284,7 +284,7 @@ function showPermissionError(error) {
     <p class="text-sm text-gray-500 text-center max-w-xs px-4">${detalle}</p>
     <button
       onclick="retryCamera()"
-      class="mt-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors duration-200 flex items-center gap-2">
+      class="mt-2 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors duration-200 flex items-center gap-2 outline-none">
       <i class="bi bi-arrow-clockwise"></i>
       Reintentar
     </button>

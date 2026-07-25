@@ -211,14 +211,14 @@
                             <button
                                 type="button"
                                 id="btnSelectAll"
-                                class="text-xs text-purple-600 hover:text-purple-700 font-medium cursor-pointer">
+                                class="text-xs text-purple-600 hover:text-purple-700 font-medium cursor-pointer outline-none">
                                 Seleccionar todos
                             </button>
                             <span class="text-gray-300">|</span>
                             <button
                                 type="button"
                                 id="btnClearAll"
-                                class="text-xs text-gray-600 hover:text-gray-700 font-medium cursor-pointer">
+                                class="text-xs text-gray-600 hover:text-gray-700 font-medium cursor-pointer outline-none">
                                 Limpiar
                             </button>
                         </div>
@@ -246,7 +246,7 @@
             <button
                 type="button"
                 id="btnResetPermisos"
-                class="cursor-pointer text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1">
+                class="cursor-pointer text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1 outline-none">
                 <i class="bi bi-arrow-counterclockwise"></i>
                 Resetear
             </button>

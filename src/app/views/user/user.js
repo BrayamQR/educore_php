@@ -260,7 +260,7 @@ window.openModalForm = async function (id = null) {
     confPassword?.removeAttribute("required");
   }
 
-  DialogFormUser.open();
+  ModalManager.open(DialogFormUser);
   formUser = document.getElementById("formUser");
 
   setTimeout(() => {
@@ -292,7 +292,7 @@ window.openModalInfo = function (id) {
   if (id === undefined || id === null) return;
   if (!DialogInfoUser) return;
   verDetalles(id);
-  DialogInfoUser.open();
+  ModalManager.open(DialogInfoUser);
 };
 window.closeModalInfo = function () {
   if (!DialogInfoUser) return;

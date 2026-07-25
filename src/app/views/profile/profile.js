@@ -781,7 +781,7 @@ async function guardarPermisos() {
 window.openModalForm = function (id = null) {
   if (!DialogformProfile) return;
 
-  DialogformProfile.open();
+  ModalManager.open(DialogformProfile);
   formProfile = document.getElementById("formProfile");
 
   setTimeout(() => {
@@ -802,7 +802,7 @@ window.openModalInfo = function (id = null) {
   if (id === undefined || id === null) return;
   if (!DialogInfoProfile) return;
   verDetalles(id);
-  DialogInfoProfile.open();
+  ModalManager.open(DialogInfoProfile);
 };
 
 window.closeModalInfo = function () {
@@ -816,7 +816,7 @@ window.openModalAsignar = function (id = null) {
     document.getElementById("searchMenu").value = "";
     verPermisos(id);
   }
-  DialogAssign.open();
+  ModalManager.open(DialogAssign);
 };
 
 window.closeModalAsignar = function () {

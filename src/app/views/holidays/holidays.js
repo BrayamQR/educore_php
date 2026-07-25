@@ -648,7 +648,7 @@ window.openModalForm = async function () {
     `${formatearFecha(anioLectivoActivo.fecha_inicio)} - ${formatearFecha(anioLectivoActivo.fecha_fin)}`;
 
   ResetHolidayCard();
-  DialogFormHoliday.open();
+  ModalManager.open(DialogFormHoliday);
   initHolidayCards();
   limpiarSeleccionFeriadoNacional();
 };
@@ -831,7 +831,7 @@ window.openModalInfo = function (id) {
   if (id === undefined || id === null) return;
   if (!DialogInfoHoliday) return;
   verDetalles(id);
-  DialogInfoHoliday.open();
+  ModalManager.open(DialogInfoHoliday);
 };
 
 window.closeModalInfo = function () {

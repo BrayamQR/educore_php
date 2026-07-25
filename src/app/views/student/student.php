@@ -196,20 +196,20 @@
                     <div class="flex flex-wrap gap-3 text-sm">
                         <button
                             type="button"
-                            class="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
+                            class="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer outline-none"
                             onclick="seleccionarPaginaQR()">
                             Seleccionar página
                         </button>
                         <button
                             type="button"
-                            class="text-xs text-purple-600 hover:text-purple-700 font-medium cursor-pointer"
+                            class="text-xs text-purple-600 hover:text-purple-700 font-medium cursor-pointer outline-none"
                             onclick="seleccionarTodosQR()">
                             Seleccionar todos
                         </button>
 
                         <button
                             type="button"
-                            class="text-xs text-gray-600 hover:text-gray-700 font-medium cursor-pointer"
+                            class="text-xs text-gray-600 hover:text-gray-700 font-medium cursor-pointer outline-none"
                             onclick="limpiarSeleccionQR()">
                             Limpiar
                         </button>
@@ -388,17 +388,17 @@
                     <h4 class="text-sm font-medium text-gray-700">Estudiantes</h4>
                     <div class="flex flex-wrap gap-3 text-sm">
                         <button type="button"
-                            class="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
+                            class="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer outline-none"
                             onclick="seleccionarPaginaCarnet()">
                             Seleccionar página
                         </button>
                         <button type="button"
-                            class="text-xs text-teal-600 hover:text-teal-700 font-medium cursor-pointer"
+                            class="text-xs text-teal-600 hover:text-teal-700 font-medium cursor-pointer outline-none"
                             onclick="seleccionarTodosCarnet()">
                             Seleccionar todos
                         </button>
                         <button type="button"
-                            class="text-xs text-gray-600 hover:text-gray-700 font-medium cursor-pointer"
+                            class="text-xs text-gray-600 hover:text-gray-700 font-medium cursor-pointer outline-none"
                             onclick="limpiarSeleccionCarnet()">
                             Limpiar
                         </button>

@@ -15,8 +15,8 @@ class CalendarioController
         return $this->model->Listar();
     }
 
-    public function Buscar($id)
+    public function Buscar($id, $tipoEvento)
     {
-        return $this->model->Buscar($id);
+        return $this->model->Buscar($id, $tipoEvento);
     }
 }

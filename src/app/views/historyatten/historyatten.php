@@ -110,17 +110,17 @@
                     <h4 class="text-sm font-medium text-gray-700">Fechas pendientes</h4>
                     <div class="flex flex-wrap gap-3">
                         <button type="button"
-                            class="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
+                            class="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer outline-none"
                             onclick="seleccionarPaginaCierre()">
                             Seleccionar página
                         </button>
                         <button type="button"
-                            class="text-xs text-rose-600 hover:text-rose-700 font-medium cursor-pointer"
+                            class="text-xs text-rose-600 hover:text-rose-700 font-medium cursor-pointer outline-none"
                             onclick="seleccionarTodasFechas()">
                             Seleccionar todas
                         </button>
                         <button type="button"
-                            class="text-xs text-gray-600 hover:text-gray-700 font-medium cursor-pointer"
+                            class="text-xs text-gray-600 hover:text-gray-700 font-medium cursor-pointer outline-none"
                             onclick="limpiarSeleccionFechas()">
                             Limpiar
                         </button>
@@ -190,17 +190,17 @@
                     <h4 class="text-sm font-medium text-gray-700">Faltas registradas</h4>
                     <div class="flex flex-wrap gap-3">
                         <button type="button"
-                            class="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
+                            class="text-xs text-blue-600 hover:text-blue-700 font-medium cursor-pointer outline-none"
                             onclick="seleccionarPaginaJustificar()">
                             Seleccionar página
                         </button>
                         <button type="button"
-                            class="text-xs text-violet-600 hover:text-violet-700 font-medium cursor-pointer"
+                            class="text-xs text-violet-600 hover:text-violet-700 font-medium cursor-pointer outline-none"
                             onclick="seleccionarTodasJustificar()">
                             Seleccionar todas
                         </button>
                         <button type="button"
-                            class="text-xs text-gray-600 hover:text-gray-700 font-medium cursor-pointer"
+                            class="text-xs text-gray-600 hover:text-gray-700 font-medium cursor-pointer outline-none"
                             onclick="limpiarSeleccionJustificar()">
                             Limpiar
                         </button>
