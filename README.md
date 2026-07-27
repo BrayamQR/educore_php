@@ -5,7 +5,10 @@
 1. Clonar el repositorio.
 
 2. Instalar las dependencias de PHP con Composer:
+
+```
    composer install
+```
 
 3. Crear una base de datos MySQL.
 
@@ -18,4 +21,13 @@
 ```
 
 6. Instalar las dependencias de Node:
+
+```
    npm install
+```
+
+o
+
+```
+   npm install -y
+```
