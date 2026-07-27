@@ -1,11 +1,14 @@
 <?php
+
+require_once __DIR__ . '/../../../vendor/autoload.php';
+
+use App\controllers\MenuController;
+
 session_start();
 if (!isset($_SESSION['usuario'])) {
     header('Location: /educore/src/app/views/login/login.php');
     exit;
 }
-
-require_once '../../../app/controllers/menu.controller.php';
 
 $currentPath = basename(dirname($_SERVER['PHP_SELF']));
 $idPerfil = $_SESSION['usuario']['idPerfil'];

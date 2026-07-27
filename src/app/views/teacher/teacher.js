@@ -1,4 +1,8 @@
-import { AlertService } from "../../../shared/js/globalscripts.js";
+import {
+  AlertService,
+  apiRequest,
+  ROUTES,
+} from "../../../shared/js/globalscripts.js";
 
 let DialogFormTeacher = null;
 let formTeacher = null;
@@ -48,22 +52,18 @@ function init() {
 
 async function listar() {
   document.getElementById("contentList").innerHTML = "";
-  try {
-    let resp = await fetch("../../../app/routes/docente.route.php?op=listar");
-    let json = await resp.json();
-    if (json.status) {
-      paginatorList.setData(json.data);
-    } else {
-      document.getElementById("contentList").innerHTML = `
+
+  const json = await apiRequest(ROUTES.DOCENTE, "listar");
+  if (json.status) {
+    paginatorList.setData(json.data);
+  } else {
+    document.getElementById("contentList").innerHTML = `
         <div class="p-5 text-center text-gray-500">
           <i class="bi bi-emoji-astonished text-4xl mb-3 block"></i>
           <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
           <p class="text-sm mt-2 text-gray-400">No se encontraron perfiles registrados</p>
         </div>
       `;
-    }
-  } catch (error) {
-    console.error(error);
   }
 }
 
@@ -130,106 +130,65 @@ function InputSearch() {
 async function Buscar() {
   document.getElementById("contentList").innerHTML = "";
   let searchText = inputSearch.getValue().trim();
-  try {
-    let formData = new FormData();
-    formData.append("textsearch", searchText);
 
-    let resp = await fetch("../../../app/routes/docente.route.php?op=buscar", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      body: formData,
-    });
-    let json = await resp.json();
-    if (json.status) {
-      let data = json.data;
-      if (paginatorList) {
-        paginatorList.setData(data);
-      } else {
-        data.forEach(renderRows);
-      }
+  const json = await apiRequest(ROUTES.DOCENTE, "buscar", {
+    textsearch: searchText,
+  });
+  if (json.status) {
+    let data = json.data;
+    if (paginatorList) {
+      paginatorList.setData(data);
     } else {
-      if (paginatorList) {
-        paginatorList.setData([]);
-      }
-      document.getElementById("contentList").innerHTML = `
+      data.forEach(renderRows);
+    }
+  } else {
+    if (paginatorList) {
+      paginatorList.setData([]);
+    }
+    document.getElementById("contentList").innerHTML = `
         <div class="p-5 text-center text-gray-500">
           <i class="bi bi-search text-4xl mb-3 block"></i>
           <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
           ${searchText ? `<p class="text-sm mt-2 text-gray-400">Búsqueda: "${searchText}"</p>` : ""}
         </div>
       `;
-    }
-  } catch (error) {
-    console.error(error);
   }
+}
+
+async function ObtenerDocente(id) {
+  const json = await apiRequest(ROUTES.DOCENTE, "mostrar", { id });
+  if (!json.status) {
+    AlertService.error("Error", json.msg || "No se encontraron datos");
+    return null;
+  }
+  return json.data;
 }
 
 async function Mostrar(id) {
-  const formData = new FormData();
-  formData.append("id", id);
-  try {
-    let resp = await fetch("../../../app/routes/docente.route.php?op=mostrar", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      body: formData,
-    });
-    let json = await resp.json();
-    if (json.status) {
-      document.getElementById("idDocente").value = json.data.idDocente;
-      initCustomValues(json.data);
-    }
-  } catch (error) {
-    console.error(error);
-  }
+  const docente = await ObtenerDocente(id);
+  if (!docente) return;
+
+  document.getElementById("idDocente").value = json.data.idDocente;
+  initCustomValues(json.data);
 }
 
 async function GuardaryEditar() {
-  try {
-    let form = document.getElementById("formTeacher");
-    const data = new FormData(form);
-    let resp = await fetch(
-      "../../../app/routes/docente.route.php?op=guardaryeditar",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: data,
-      },
-    );
-    let json = await resp.json();
-    if (json.status) {
-      AlertService.success("¡Exito!", json.msg);
-      listar();
-      closeModalForm();
-    } else {
-      alert("Error al guardar: " + json.msg);
-    }
-  } catch (error) {
-    console.error(error);
+  let form = document.getElementById("formTeacher");
+  const data = new FormData(form);
+  const json = await apiRequest(ROUTES.DOCENTE, "guardaryeditar", data);
+  if (json.status) {
+    AlertService.success("¡Exito!", json.msg);
+    listar();
+    closeModalForm();
+  } else {
+    alert("Error al guardar: " + json.msg);
   }
 }
 
 async function verDetalles(id) {
-  try {
-    const formData = new FormData();
-    formData.append("id", id);
-    let resp = await fetch("../../../app/routes/docente.route.php?op=mostrar", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      body: formData,
-    });
-    let json = await resp.json();
-    if (json.status) {
-      const data = json.data;
-      poblarInfoDocente(data);
-    }
-  } catch (error) {
-    console.error(error);
-    AlertService.error("Error", "No se pudieron cargar los detalles");
-  }
+  const docente = await ObtenerDocente(id);
+  if (!docente) return;
+  poblarInfoDocente(docente);
 }
 
 function poblarInfoDocente(data) {
@@ -263,27 +222,12 @@ window.onDelete = async function (id) {
     "Esta acción no se puede deshacer",
   ).then(async (result) => {
     if (result) {
-      let formData = new FormData();
-      formData.append("id", id);
-      try {
-        let resp = await fetch(
-          "../../../app/routes/docente.route.php?op=eliminar",
-          {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            body: formData,
-          },
-        );
-        let json = await resp.json();
-        if (json.status) {
-          AlertService.success("¡Exito!", json.msg);
-          listar();
-        } else {
-          AlertService.warning("¡Atención!", json.msg);
-        }
-      } catch (error) {
-        console.error(error);
+      const json = await apiRequest(ROUTES.DOCENTE, "eliminar", { id });
+      if (json.status) {
+        AlertService.success("¡Exito!", json.msg);
+        listar();
+      } else {
+        AlertService.warning("¡Atención!", json.msg);
       }
     }
   });

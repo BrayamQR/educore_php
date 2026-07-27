@@ -1,4 +1,7 @@
 <?php
+
+namespace App\utils;
+
 class Helpers
 {
     private static function DiasSemana(): array
@@ -13,6 +16,7 @@ class Helpers
             7 => 'Domingo'
         ];
     }
+
     /**
      * Obtiene el día de la semana en español de una fecha
      * @param string $fecha formato Y-m-d
@@ -22,7 +26,6 @@ class Helpers
     {
         return self::DiasSemana()[(int)date('N', strtotime($fecha))];
     }
-
 
     /**
      * Limpia (trim) recursivamente los valores de un array,

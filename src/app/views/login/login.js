@@ -1,4 +1,8 @@
-import { AlertService } from "../../../shared/js/globalscripts.js";
+import {
+  AlertService,
+  apiRequest,
+  ROUTES,
+} from "../../../shared/js/globalscripts.js";
 
 let formLogin = null;
 let campos = [];
@@ -29,29 +33,11 @@ function validateForm() {
 async function Login() {
   let form = document.getElementById("formLogin");
   const data = new FormData(form);
-
-  try {
-    const resp = await fetch("../../../app/routes/usuario.route.php?op=login", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      body: data,
-    });
-
-    // primero leemos como texto para ver qué devuelve
-    const text = await resp.text();
-    console.log("Respuesta PHP:", text);
-
-    const json = JSON.parse(text);
-
-    if (json.status) {
-      window.location.href = "../home/home.php";
-    } else {
-      AlertService.warning("¡Atencion!", json.msg);
-    }
-  } catch (error) {
-    console.error(error);
-    AlertService.error("¡Error!", "Error al conectar con el servidor");
+  const json = await apiRequest(ROUTES.USUARIO, "login", data);
+  if (json.status) {
+    window.location.href = "../home/home.php";
+  } else {
+    AlertService.warning("¡Atencion!", json.msg);
   }
 }
 

@@ -31,3 +31,9 @@ o
 ```
    npm install -y
 ```
+
+7. De ser necesario ejecutar
+
+```
+composer dump-autoload
+```

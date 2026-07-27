@@ -1,9 +1,12 @@
 <?php
-require_once __DIR__ . '/env.php';
+
+namespace App\config;
+
+use PDO;
 
 class DBConnection
 {
-    private static $pdo = null;
+    private static ?PDO $pdo = null;
 
     private function __construct() {}
     private function __clone() {}
