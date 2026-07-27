@@ -1,6 +1,6 @@
 <?php
-require_once '../lib/tcpdf/tcpdf.php';
-require_once '../controllers/historial.controller.php';
+require_once __DIR__ . '/../lib/tcpdf/tcpdf.php';
+require_once __DIR__ . '/../controllers/historial.controller.php';
 
 // ── PARÁMETROS ───────────────────────────────────────────────
 $tipo        = $_GET['tipo']        ?? '';

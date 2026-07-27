@@ -1,5 +1,5 @@
 <?php
-require_once '../database/DBExecutor.php';
+require_once __DIR__ . '/../database/DBExecutor.php';
 
 class EstudianteModel
 {

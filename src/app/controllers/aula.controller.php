@@ -1,5 +1,5 @@
 <?php
-require_once '../models/aula.model.php';
+require_once __DIR__ . '/../models/aula.model.php';
 
 class AulaController
 {

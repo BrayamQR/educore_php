@@ -1,5 +1,5 @@
 <?php
-require_once '../models/genericList.model.php';
+require_once __DIR__ . '/../models/genericList.model.php';
 
 class GenericListController
 {

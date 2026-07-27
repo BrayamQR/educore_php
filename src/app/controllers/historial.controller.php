@@ -1,5 +1,5 @@
 <?php
-require_once '../models/historial.model.php';
+require_once __DIR__ . '/../models/historial.model.php';
 
 class HistorialController
 {

@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
-require_once '../controllers/usuario.controller.php';
-require_once '../utils/helpers.php';
+require_once __DIR__ . '/../controllers/usuario.controller.php';
+require_once __DIR__ . '/../utils/helpers.php';
 
 class UsuarioRoutes
 {

@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/env.php';
+
 class DBConnection
 {
     private static $pdo = null;
@@ -10,12 +12,16 @@ class DBConnection
     {
         if (self::$pdo === null) {
 
-            $dsn = "mysql:host=localhost;dbname=dbeducore;charset=utf8mb4";
+            Env::load();
+
+            $dsn =  "mysql:host=" . $_ENV['DB_HOST'] .
+                ";dbname=" . $_ENV['DB_NAME'] .
+                ";charset=" . $_ENV['DB_CHARSET'];
 
             self::$pdo = new PDO(
                 $dsn,
-                "root",
-                "",
+                $_ENV['DB_USER'],
+                $_ENV['DB_PASS'],
                 [
                     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

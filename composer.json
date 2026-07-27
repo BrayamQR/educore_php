@@ -1,0 +1,14 @@
+{
+  "name": "brayam-qr/educore",
+  "description": "Sistema de gestion academica EduCore",
+  "authors": [
+    {
+      "name": "BrayamQR",
+      "email": "brayam2407@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "vlucas/phpdotenv": "^5.6"
+  }
+}

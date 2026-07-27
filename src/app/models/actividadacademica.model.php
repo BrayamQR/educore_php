@@ -1,7 +1,7 @@
 <?php
-require_once '../database/DBExecutor.php';
-require_once '../models/genericList.model.php';
-require_once '../models/aniolectivo.model.php';
+require_once __DIR__ . '/../database/DBExecutor.php';
+require_once __DIR__ . '/../models/genericList.model.php';
+require_once __DIR__ . '/../models/aniolectivo.model.php';
 
 class ActividadAcademicaModel
 {

@@ -1,5 +1,5 @@
 <?php
-require_once '../controllers/calendario.controller.php';
+require_once __DIR__ . '/../controllers/calendario.controller.php';
 
 class CalendarioRoutes
 {

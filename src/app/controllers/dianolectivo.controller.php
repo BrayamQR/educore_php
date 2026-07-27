@@ -1,5 +1,5 @@
 <?php
-require_once '../models/dianolectivo.model.php';
+require_once __DIR__ . '/../models/dianolectivo.model.php';
 
 class DiaNoLectivoController
 {

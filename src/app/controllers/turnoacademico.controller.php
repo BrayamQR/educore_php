@@ -1,5 +1,5 @@
 <?php
-require_once '../models/turnoacademico.model.php';
+require_once __DIR__ . '/../models/turnoacademico.model.php';
 
 class TurnoAcademicoController
 {

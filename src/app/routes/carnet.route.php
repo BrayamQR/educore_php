@@ -1,6 +1,6 @@
 <?php
-require_once '../controllers/estudiante.controller.php';
-require_once '../lib/tcpdf/tcpdf.php';
+require_once __DIR__ . '/../controllers/estudiante.controller.php';
+require_once __DIR__ . '/../lib/tcpdf/tcpdf.php';
 
 $jsonString = $_GET['estudiantes'] ?? null;
 

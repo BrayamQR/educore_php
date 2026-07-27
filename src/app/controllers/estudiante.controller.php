@@ -1,5 +1,5 @@
 <?php
-require_once '../models/estudiante.model.php';
+require_once __DIR__ . '/../models/estudiante.model.php';
 
 class EstudianteController
 {

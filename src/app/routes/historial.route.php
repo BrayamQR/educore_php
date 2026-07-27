@@ -1,5 +1,5 @@
 <?php
-require_once '../controllers/historial.controller.php';
+require_once __DIR__ . '/../controllers/historial.controller.php';
 
 class HistorialRoutes
 {

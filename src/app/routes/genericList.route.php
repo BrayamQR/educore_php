@@ -1,5 +1,5 @@
 <?php
-require_once '../controllers/genericList.controller.php';
+require_once __DIR__ . '/../controllers/genericList.controller.php';
 
 class GenericListRoutes
 {

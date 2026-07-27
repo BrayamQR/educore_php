@@ -1,5 +1,5 @@
 <?php
-require_once '../models/calendario.model.php';
+require_once __DIR__ . '/../models/calendario.model.php';
 
 class CalendarioController
 {

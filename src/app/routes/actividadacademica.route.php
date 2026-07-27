@@ -1,6 +1,6 @@
 <?php
-require_once '../controllers/actividadacademica.controller.php';
-require_once '../utils/helpers.php';
+require_once __DIR__ . '/../controllers/actividadacademica.controller.php';
+require_once __DIR__ . '/../utils/helpers.php';
 
 class ActividadAcademicaRoutes
 {
