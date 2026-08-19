@@ -3,15 +3,18 @@
 namespace App\models;
 
 use App\database\DBExecutor;
+use App\models\AnioLectivoModel;
 use Exception;
 
 class AulaModel
 {
     private DBExecutor $db;
+    private AnioLectivoModel $anioModel;
 
     public function __construct()
     {
         $this->db = new DBExecutor();
+        $this->anioModel = new AnioLectivoModel();
     }
 
     public function Listar()
@@ -19,6 +22,37 @@ class AulaModel
         $sql = "SELECT a.*, d.nom_docente, n.desc_nivel, g.desc_grado FROM aula AS a INNER JOIN nivel AS n ON a.id_nivel = n.id_nivel INNER JOIN grado AS g ON a.id_grado = g.id_grado INNER JOIN docente AS d ON a.id_docente = d.id_docente WHERE a.vigencia = 1 AND d.vigencia = 1;";
         return $this->db->queryExecute($sql, []);
     }
+
+    public function ListarAulas()
+    {
+        $anioLectivo = $this->anioModel->ObtenerAnioActivo();
+        if (!$anioLectivo) return [];
+        $idAnioLectivo = $anioLectivo['id_aniolectivo'];
+
+        $sql = "
+            SELECT 
+                a.id_aula,
+                g.id_grado,
+                g.desc_grado,
+                n.id_nivel,
+                n.desc_nivel,
+                a.seccion_aula
+            FROM aula AS a
+            LEFT JOIN aulalectiva AS al 
+                ON al.id_aula = a.id_aula 
+                    AND al.id_aniolectivo = ?
+            INNER JOIN grado AS g
+                ON g.id_grado = a.id_grado
+                    AND g.vigencia = 1
+            INNER JOIN nivel AS n
+                ON n.id_nivel = g.id_nivel
+                    AND n.vigencia  = 1
+            WHERE a.vigencia = 1
+                AND al.id_aulalectiva IS NULL;
+        ";
+        return $this->db->queryExecute($sql, [$idAnioLectivo]);
+    }
+
     public function Buscar($dato)
     {
         $sql = "SELECT a.*, d.nom_docente, n.desc_nivel, g.desc_grado FROM aula AS a INNER JOIN nivel AS n ON a.id_nivel = n.id_nivel INNER JOIN grado AS g ON a.id_grado = g.id_grado INNER JOIN docente AS d ON a.id_docente = d.id_docente WHERE a.vigencia = 1 AND d.vigencia = 1 AND (d.nom_docente LIKE ? OR a.seccion_aula LIKE ? OR n.desc_nivel LIKE ? OR g.desc_grado LIKE ?);";

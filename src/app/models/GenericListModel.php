@@ -3,15 +3,18 @@
 namespace App\models;
 
 use App\database\DBExecutor;
+use App\models\AnioLectivoModel;
 use Exception;
 
 class GenericListModel
 {
     private DBExecutor $db;
+    private AnioLectivoModel $anioModel;
 
     public function __construct()
     {
         $this->db = new DBExecutor();
+        $this->anioModel = new AnioLectivoModel();
     }
 
     public function ListarPerfil()
@@ -81,5 +84,26 @@ class GenericListModel
             ORDER BY label ASC";
 
         return $this->db->queryExecute($sql, []);
+    }
+
+    public function ListarNivel()
+    {
+        $sql = "SELECT * FROM nivel WHERE vigencia = 1";
+        return $this->db->queryExecute($sql, []);
+    }
+
+    public function ListarGrado($idNivel)
+    {
+        $sql = "SELECT * FROM grado WHERE vigencia = 1 AND id_nivel = ?";
+        return $this->db->queryExecute($sql, [$idNivel]);
+    }
+
+    public function ListarTurno()
+    {
+        $anioLectivo = $this->anioModel->ObtenerAnioActivo();
+        if (!$anioLectivo) return [];
+        $idAnioLectivo = $anioLectivo['id_aniolectivo'];
+        $sql = "SELECT * FROM tm_turnoacademico WHERE vigencia = 1 AND estado = 1 AND id_aniolectivo = ?";
+        return $this->db->queryExecute($sql, [$idAnioLectivo]);
     }
 }

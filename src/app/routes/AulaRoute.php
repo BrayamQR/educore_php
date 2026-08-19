@@ -38,6 +38,21 @@ class AulaRoutes
                 }
                 echo json_encode($arrayResponse);
                 break;
+            case 'listaraulas':
+                $rspta = $this->controller->ListarAulas();
+                if (empty($rspta)) {
+                    $arrayResponse = array(
+                        'status' => false,
+                        'msg' => 'Datos no encontrados'
+                    );
+                } else {
+                    $arrayResponse = array(
+                        'status' => true,
+                        'data' => $rspta
+                    );
+                }
+                echo json_encode($arrayResponse);
+                break;
             case 'buscar';
                 if ($_POST) {
                     $data = array();

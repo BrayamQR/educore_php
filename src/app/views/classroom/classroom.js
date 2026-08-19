@@ -1,16 +1,27 @@
-import { AlertService } from "../../../shared/js/globalscripts.js";
+import {
+  AlertService,
+  formatearFechaCorta,
+  apiRequest,
+  ROUTES,
+} from "../../../shared/js/globalscripts.js";
 
 let DialogFormClassroom = null;
 let DialogInfoClassroom = null;
+let DialogBuscarAula = null;
 let formClassroom = null;
 let campos = [];
 let inputSearch = null;
-
+let anioLectivoActivo = null;
+let ultimoAnio = null;
 let paginatorList = null;
 
-function init() {
+async function init() {
+  await obtenerAnioActivo();
+  await obtenerUltimoAnio();
+
   DialogFormClassroom = document.getElementById("DialogFormClassroom");
   DialogInfoClassroom = document.getElementById("DialogInfoClassroom");
+  DialogBuscarAula = document.getElementById("DialogBuscarAula");
 
   if (document.getElementById("contentList")) {
     Listar();
@@ -41,6 +52,43 @@ function init() {
       GuardaryEditar();
     });
     formClassroom.hasSubmitListener = true;
+  }
+
+  const docenteAutocomplete = document.querySelector(
+    "custom-autocomplete[name='idDocente']",
+  );
+  if (docenteAutocomplete) {
+    const opciones = await getDocente();
+    docenteAutocomplete.setOptions(opciones);
+  }
+
+  const nivelSelect = document.querySelector("custom-select[name='idNivel']");
+  const gradoSelect = document.querySelector("custom-select[name='idGrado']");
+  if (nivelSelect) {
+    const opciones = await getNivel();
+    nivelSelect.setOptions(opciones);
+
+    nivelSelect.addEventListener("change", async (e) => {
+      const idNivel = e.detail.value;
+
+      if (!gradoSelect) return;
+
+      gradoSelect.initInput();
+
+      if (!idNivel) {
+        gradoSelect.setOptions([]);
+        return;
+      }
+
+      const opcionesGrado = await getGrado(idNivel);
+      gradoSelect.setOptions(opcionesGrado);
+    });
+  }
+
+  const turnoSelect = document.querySelector("custom-select[name='idTurno']");
+  if (turnoSelect) {
+    const opciones = await getTurno();
+    turnoSelect.setOptions(opciones);
   }
 
   inputSearch = document.querySelector("custom-text-field[name='searchText']");
@@ -225,18 +273,65 @@ window.onDelete = async function (id) {
 };
 
 async function getDocente() {
-  try {
-    let resp = await fetch(
-      "../../../app/routes/genericList.route.php?op=docente",
-    );
-    let json = await resp.json();
-    if (json.status) {
-      let data = json.data;
-      let ops = data.map((p) => ({ value: p.id_docente, desc: p.nom_docente }));
-      return ops;
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(ROUTES.GENERIC_LIST, "docente");
+  if (json.status) {
+    let data = json.data;
+    let ops = data.map((p) => ({ value: p.id_docente, desc: p.nom_docente }));
+    return ops;
+  }
+}
+
+async function getNivel() {
+  const json = await apiRequest(ROUTES.GENERIC_LIST, "nivel");
+  if (json.status) {
+    let data = json.data;
+    let ops = data.map((p) => ({ value: p.id_nivel, desc: p.desc_nivel }));
+    return ops;
+  }
+}
+
+async function getGrado(id) {
+  const json = await apiRequest(ROUTES.GENERIC_LIST, "grado", { idNivel: id });
+  if (json.status) {
+    let data = json.data;
+    let ops = data.map((p) => ({ value: p.id_grado, desc: p.desc_grado }));
+    return ops;
+  }
+}
+
+async function getTurno() {
+  const json = await apiRequest(ROUTES.GENERIC_LIST, "turno");
+  if (json.status) {
+    let data = json.data;
+    let ops = data.map((p) => ({ value: p.id_turno, desc: p.nom_turno }));
+    return ops;
+  }
+}
+
+async function getAulas() {
+  const json = await apiRequest(ROUTES.AULA, "listaraulas");
+  if (json.status) {
+    let data = json.data;
+    return data;
+  }
+  return [];
+}
+
+async function obtenerAnioActivo() {
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obteneranioactivo");
+  if (json.status) {
+    anioLectivoActivo = json.data;
+  } else {
+    anioLectivoActivo = null;
+  }
+}
+
+async function obtenerUltimoAnio() {
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obtenerultimoanio");
+  if (json.status) {
+    ultimoAnio = json.data;
+  } else {
+    ultimoAnio = null;
   }
 }
 
@@ -290,14 +385,19 @@ function renderRows(item) {
 }
 
 window.openModalForm = async function (id = null) {
-  if (!DialogFormClassroom) return;
-  const docenteAutocomplete = document.querySelector(
-    "custom-autocomplete[name='idDocente']",
-  );
-  if (docenteAutocomplete) {
-    const opciones = await getDocente();
-    docenteAutocomplete.setOptions(opciones);
+  if (!anioLectivoActivo) {
+    AlertService.warning(
+      "¡Atención!",
+      "No hay un año lectivo activo o se encuentra vencido. Por favor, configure un año lectivo activo antes de continuar.",
+    );
+    return;
   }
+  document.getElementById("infoAnioActivo").textContent =
+    anioLectivoActivo.anio;
+  document.getElementById("infoVigenciaActiva").textContent =
+    `${formatearFechaCorta(anioLectivoActivo.fecha_inicio)} - ${formatearFechaCorta(anioLectivoActivo.fecha_fin)}`;
+  if (!DialogFormClassroom) return;
+
   DialogFormClassroom.open();
   formClassroom = document.getElementById("formClassroom");
   setTimeout(() => {
@@ -327,7 +427,188 @@ window.closeModalInfo = function () {
   DialogInfoClassroom.close();
 };
 
+window.openModalBuscarAula = async function () {
+  if (!DialogBuscarAula) return;
+  DialogBuscarAula.open();
+
+  const listContainer = document.getElementById("listAulasDisponibles");
+  const emptyMsg = document.getElementById("emptyAulasMsg");
+  const countMsg = document.getElementById("countAulasDisponibles");
+  const searchInput = document.getElementById("searchAula");
+
+  listContainer.innerHTML = `
+    <div class="text-center text-neutral-400 py-6">
+      <p class="text-sm">Cargando aulas...</p>
+    </div>
+  `;
+  emptyMsg.classList.add("hidden");
+
+  const aulas = await getAulas();
+  window._aulasDisponiblesCache = aulas;
+
+  renderAulasDisponibles(aulas);
+
+  if (searchInput && !searchInput.hasSearchListener) {
+    searchInput.addEventListener("input", () => {
+      const texto = searchInput.value.trim().toLowerCase();
+      const filtradas = (window._aulasDisponiblesCache || []).filter((a) =>
+        `${a.desc_grado} ${a.seccion_aula} ${a.desc_nivel}`
+          .toLowerCase()
+          .includes(texto),
+      );
+      renderAulasDisponibles(filtradas);
+    });
+    searchInput.hasSearchListener = true;
+  }
+};
+
+function renderAulasDisponibles(aulas) {
+  const listContainer = document.getElementById("listAulasDisponibles");
+  const emptyMsg = document.getElementById("emptyAulasMsg");
+  const countMsg = document.getElementById("countAulasDisponibles");
+
+  listContainer.innerHTML = "";
+
+  if (!aulas || aulas.length === 0) {
+    emptyMsg.classList.remove("hidden");
+    countMsg.textContent = "";
+    return;
+  }
+
+  emptyMsg.classList.add("hidden");
+  countMsg.textContent = `${aulas.length} aula(s) disponible(s)`;
+
+  const estilosPorNivel = {
+    1: {
+      bg: "bg-green-100",
+      text: "text-green-600",
+      badgeText: "text-green-700",
+    },
+    2: { bg: "bg-sky-100", text: "text-sky-600", badgeText: "text-sky-700" },
+    3: {
+      bg: "bg-purple-100",
+      text: "text-purple-600",
+      badgeText: "text-purple-700",
+    },
+  };
+
+  aulas.forEach((aula) => {
+    const estilo = estilosPorNivel[aula.id_nivel] || {
+      bg: "bg-gray-100",
+      text: "text-gray-600",
+      badgeText: "text-gray-700",
+    };
+
+    const row = document.createElement("div");
+    row.className =
+      "flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-neutral-50 hover:shadow-sm transition group";
+    row.innerHTML = `
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-full flex items-center justify-center ${estilo.bg}">
+          <i class="bi bi-door-open ${estilo.text}"></i>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-gray-700">
+            ${aula.desc_grado} <span class="font-normal text-gray-500">"${aula.seccion_aula}"</span>
+          </p>
+          <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full text-xs font-medium ${estilo.bg} ${estilo.badgeText}">${aula.desc_nivel}</span>
+        </div>
+      </div>
+      <i class="bi bi-chevron-right text-neutral-300 group-hover:text-neutral-500 transition"></i>
+    `;
+    row.addEventListener("click", () => seleccionarAulaExistente(aula));
+    listContainer.appendChild(row);
+  });
+}
+
+function seleccionarAulaExistente(aula) {
+  document.getElementById("idAula").value = aula.id_aula;
+  document.getElementById("idAulaLectiva").value = "";
+
+  const nivelSelect = document.querySelector("custom-select[name='idNivel']");
+  const gradoSelect = document.querySelector("custom-select[name='idGrado']");
+  const seccionField = document.querySelector(
+    "custom-text-field[name='seccionAula']",
+  );
+  const docenteAutocomplete = document.querySelector(
+    "custom-autocomplete[name='idDocente']",
+  );
+  const turnoSelect = document.querySelector("custom-select[name='idTurno']");
+
+  if (nivelSelect) {
+    nivelSelect.setOptions([{ value: aula.id_nivel, desc: aula.desc_nivel }]);
+    nivelSelect.setValue(aula.id_nivel);
+    nivelSelect.setDisabled(true);
+  }
+  if (gradoSelect) {
+    gradoSelect.setOptions([{ value: aula.id_grado, desc: aula.desc_grado }]);
+    gradoSelect.setValue(aula.id_grado);
+    gradoSelect.setDisabled(true);
+  }
+  if (seccionField) {
+    seccionField.setValue(aula.seccion_aula);
+    seccionField.setDisabled(true);
+  }
+  if (docenteAutocomplete) {
+    docenteAutocomplete.initInput();
+    docenteAutocomplete.setDisabled(false);
+  }
+  if (turnoSelect) {
+    turnoSelect.initInput();
+    turnoSelect.setDisabled(false);
+  }
+
+  closeModalBuscarAula();
+}
+
+window.registrarAulaNueva = function () {
+  document.getElementById("idAula").value = "";
+  document.getElementById("idAulaLectiva").value = "";
+
+  const nivelSelect = document.querySelector("custom-select[name='idNivel']");
+  const gradoSelect = document.querySelector("custom-select[name='idGrado']");
+  const seccionField = document.querySelector(
+    "custom-text-field[name='seccionAula']",
+  );
+  const docenteAutocomplete = document.querySelector(
+    "custom-autocomplete[name='idDocente']",
+  );
+  const turnoSelect = document.querySelector("custom-select[name='idTurno']");
+
+  if (nivelSelect) {
+    nivelSelect.initInput();
+    getNivel().then((ops) => nivelSelect.setOptions(ops));
+    nivelSelect.setDisabled(false);
+  }
+  if (gradoSelect) {
+    gradoSelect.initInput();
+    gradoSelect.setOptions([]);
+    gradoSelect.setDisabled(false);
+  }
+  if (seccionField) {
+    seccionField.initInput();
+    seccionField.setValue("UNICA");
+    seccionField.setDisabled(false);
+  }
+  if (docenteAutocomplete) {
+    docenteAutocomplete.initInput();
+    docenteAutocomplete.setDisabled(false);
+  }
+  if (turnoSelect) {
+    turnoSelect.initInput();
+    turnoSelect.setDisabled(false);
+  }
+
+  closeModalBuscarAula();
+};
+
+window.closeModalBuscarAula = function () {
+  if (!DialogBuscarAula) return;
+  DialogBuscarAula.close();
+};
+
 function initInput() {
+  document.getElementById("idAulaLectiva").value = "";
   document.getElementById("idAula").value = "";
   campos = formClassroom.querySelectorAll(
     "custom-select, custom-text-field, custom-autocomplete",

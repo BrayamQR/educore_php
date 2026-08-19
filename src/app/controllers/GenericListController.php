@@ -51,4 +51,19 @@ class GenericListController
     {
         return $this->model->ListarTiposEvento();
     }
+
+    public function ListarNivel()
+    {
+        return $this->model->ListarNivel();
+    }
+
+    public function ListarGrado($idNivel)
+    {
+        return $this->model->ListarGrado($idNivel);
+    }
+
+    public function ListarTurno()
+    {
+        return $this->model->ListarTurno();
+    }
 }

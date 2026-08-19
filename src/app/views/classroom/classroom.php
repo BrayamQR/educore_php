@@ -66,43 +66,66 @@
             </div>
         </div>
         <div slot="body">
-            <form action="" id="formClassroom" novalidate>
-                <input type="hidden" name="idAula" id="idAula">
-                <section class="flex flex-col gap-5">
-                    <custom-select
-                        label="Nivel academico"
-                        name="idNivel"
-                        required>
-                        <option value="1">INICIAL</option>
-                        <option value="2">PRIMARIA</option>
-                    </custom-select>
-                    <custom-select
-                        label="Grado"
-                        name="idGrado"
-                        required>
-                        <option value="1">3 AÑITOS</option>
-                        <option value="2">4 AÑITOS</option>
-                        <option value="3">5 AÑITOS</option>
-                        <option value="4">PRIMERO</option>
-                        <option value="5">SEGUNDO</option>
-                        <option value="6">TERCERO</option>
-                        <option value="7">CUARTO</option>
-                        <option value="8">QUINTO</option>
-                        <option value="9">SEXTO</option>
-                    </custom-select>
-                    <custom-text-field
-                        label="Sección"
-                        name="seccionAula"
-                        default-value="UNICA"
-                        required>
-                    </custom-text-field>
-                    <custom-autocomplete
-                        label="Docente a cargo"
-                        name="idDocente"
-                        required>
-                    </custom-autocomplete>
-                </section>
-            </form>
+            <section class="flex flex-col gap-5">
+                <div class="flex items-center gap-3 bg-green-700 rounded-lg px-4 py-2.5 text-sm">
+                    <i class="bi bi-calendar-check text-white text-lg"></i>
+                    <div class="flex flex-col  gap-2 flex-wrap">
+                        <div class="flex gap-2">
+                            <span class="text-white/70">Año lectivo:</span>
+                            <span id="infoAnioActivo" class="font-bold text-white"></span>
+                        </div>
+                        <div class="flex gap-2">
+                            <span class="text-white/70">Vigencia:</span>
+                            <span id="infoVigenciaActiva" class="font-semibold text-white"></span>
+                        </div>
+
+                    </div>
+                </div>
+                <custom-button
+                    id="btnBuscarAula"
+                    btn-class="w-full bg-sky-500 hover:bg-sky-900 text-gray-700 text-white"
+                    label="Buscar aula"
+                    onclick="openModalBuscarAula()"
+                    icon=" bi bi-search">
+                </custom-button>
+
+                <form action="" id="formClassroom" novalidate>
+                    <input type="hidden" name="idAulaLectiva" id="idAulaLectiva">
+                    <input type="hidden" name="idAula" id="idAula">
+                    <section class="flex flex-col gap-5">
+                        <custom-select
+                            label="Nivel académico"
+                            name="idNivel"
+                            disabled
+                            required>
+                        </custom-select>
+                        <custom-select
+                            label="Grado"
+                            name="idGrado"
+                            disabled
+                            required>
+                        </custom-select>
+                        <custom-text-field
+                            label="Sección"
+                            name="seccionAula"
+                            disabled
+                            required>
+                        </custom-text-field>
+                        <custom-autocomplete
+                            label="Docente a cargo"
+                            name="idDocente"
+                            disabled
+                            required>
+                        </custom-autocomplete>
+                        <custom-select
+                            label="Turno"
+                            name="idTurno"
+                            disabled
+                            required>
+                        </custom-select>
+                    </section>
+                </form>
+            </section>
         </div>
         <div slot="footer" class="flex justify-end gap-3">
             <custom-button
@@ -177,6 +200,51 @@
                 btn-class="hover:bg-gray-200 text-gray-700"
                 label="Cerrar"
                 onclick="closeModalInfo()">
+            </custom-button>
+        </div>
+    </dialog-modal>
+
+    <dialog-modal id="DialogBuscarAula" size="max-w-md">
+        <div slot="header" class="flex gap-3 items-center justify-between w-full">
+            <div class="flex gap-3 items-center">
+                <div class="bg-sky-100 w-10 h-10 rounded-md flex items-center justify-center">
+                    <i class="bi bi-door-open text-sky-600 text-xl"></i>
+                </div>
+                <div>
+
+                    <h3 class="font-bold text-gray-800">Aulas disponibles</h3>
+                    <p class="text-sm text-gray-500">Selecciona una existente o registra una nueva</p>
+                </div>
+            </div>
+        </div>
+        <div slot="body">
+
+            <div class="relative">
+                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input
+                    type="text"
+                    id="searchAula"
+                    placeholder="Buscar aula..."
+                    class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-transparent outline-none" />
+            </div>
+
+            <div id="listAulasDisponibles" class="flex flex-col gap-2 mt-4 max-h-80 overflow-y-auto scrollbar-thin scrollbar-track-gray-white scrollbar-thumb-neutral-400">
+                <!-- Aquí se generarán dinámicamente los elementos de aula -->
+            </div>
+
+            <div id="emptyAulasMsg" class="hidden text-center text-neutral-400 py-6">
+                <i class="bi bi-inbox text-3xl mb-2 block"></i>
+                <p class="text-sm">No se encontraron aulas disponibles</p>
+            </div>
+        </div>
+        <div slot="footer" class="flex justify-between items-center gap-3">
+            <p class="text-xs text-neutral-400" id="countAulasDisponibles"></p>
+            <custom-button
+                id="btnRegistrarNueva"
+                btn-class="bg-green-500 hover:bg-green-900 text-white"
+                label="Registrar aula"
+                icon="bi bi-plus-lg"
+                onclick="registrarAulaNueva()">
             </custom-button>
         </div>
     </dialog-modal>

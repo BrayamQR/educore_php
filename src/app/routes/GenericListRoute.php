@@ -137,6 +137,52 @@ class GenericListRoutes
                 }
                 echo json_encode($arrayResponse);
                 break;
+            case 'nivel':
+                $rspta = $this->controller->ListarNivel();
+                if (empty($rspta)) {
+                    $arrayResponse = array(
+                        'status' => false,
+                        'msg' => 'Datos no encontrados'
+                    );
+                } else {
+                    $arrayResponse = array(
+                        'status' => true,
+                        'data' => $rspta,
+                    );
+                }
+                echo json_encode($arrayResponse);
+                break;
+            case 'grado':
+                $idNivel = $_REQUEST['idNivel'];
+                $rspta = $this->controller->ListarGrado($idNivel);
+                if (empty($rspta)) {
+                    $arrayResponse = array(
+                        'status' => false,
+                        'msg' => 'Datos no encontrados'
+                    );
+                } else {
+                    $arrayResponse = array(
+                        'status' => true,
+                        'data' => $rspta,
+                    );
+                }
+                echo json_encode($arrayResponse);
+                break;
+            case 'turno':
+                $rspta = $this->controller->ListarTurno();
+                if (empty($rspta)) {
+                    $arrayResponse = array(
+                        'status' => false,
+                        'msg' => 'Datos no encontrados'
+                    );
+                } else {
+                    $arrayResponse = array(
+                        'status' => true,
+                        'data' => $rspta,
+                    );
+                }
+                echo json_encode($arrayResponse);
+                break;
             default:
                 echo json_encode(['status' => false, 'msg' => 'Operación no válida']);
                 break;

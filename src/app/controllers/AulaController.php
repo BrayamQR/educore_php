@@ -17,6 +17,12 @@ class AulaController
     {
         return $this->model->Listar();
     }
+
+    public function ListarAulas()
+    {
+        return $this->model->ListarAulas();
+    }
+
     public function Buscar($dato)
     {
         return $this->model->Buscar($dato);
