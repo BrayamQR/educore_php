@@ -93,30 +93,55 @@ class AulaRoutes
             case 'guardaryeditar':
                 if ($_POST) {
                     $data = $this->DataForm();
-                    if (empty($data["idAula"])) {
-                        if (empty($data["idGrado"]) || empty($data["idNivel"]) || empty($data["idDocente"])) {
-                            $arrayResponse = array('status' => false, 'msg' => 'Error de datos');
-                        } else {
-                            unset($data["idAula"]);
-                            unset($data["submit"]);
-                            $rspta = $this->controller->Registrar(...$data);
-                            if ($rspta) {
-                                $arrayResponse = array('status' => true, 'msg' => 'Datos registrados correctamente');
-                            } else {
-                                $arrayResponse = array('status' => false, 'msg' => "No se pudieron registrar los datos");
-                            }
-                        }
+                    if (
+                        empty($data['idDocente']) ||
+                        empty($data['idTurno ']) ||
+                        empty($data['idAnioLectivo'])
+                    ) {
+                        $arrayResponse = array('status' => false, 'msg' => 'Error de datos');
                     } else {
-                        if (empty($data["idAula"]) || empty($data["idNivel"]) || empty($data["idGrado"]) || empty($data["idDocente"])) {
-                            $arrayResponse = array('status' => false, 'msg' => 'Error de datos');
-                        } else {
-                            unset($data["submit"]);
-                            $rspta = $this->controller->Editar(...$data);
-                            if ($rspta) {
-                                $arrayResponse = array('status' => true, 'msg' => 'Datos actualizados correctamente');
+                        $idAulaLectiva = $data['idAulaLectiva'] ?? '';
+                        $idAula = $data['idAula'] ?? '';
+                        unset($data['idAulaLectiva']);
+                        unset($data['submit']);
+                        unset($data['idAula']);
+                        unset($data['idNivel ']);
+
+                        if (empty($idAulaLectiva)) {
+                            if (empty($idAula)) {
+
+                                if (empty($data['idGrado']) || empty($data['seccionAula'])) {
+                                    $arrayResponse = array('status' => false, 'msg' => 'Error de datos');
+                                } else {
+                                    $rspta = $this->controller->RegistrarCompleto(
+                                        $data['idGrado'],
+                                        $data['seccionAula'],
+                                        $data['idAnioLectivo'],
+                                        $data['idDocente'],
+                                        $data['idTurno']
+                                    );
+                                    $arrayResponse = $rspta
+                                        ? array('status' => true, 'msg' => 'Datos registrados correctamente')
+                                        : array('status' => false, 'msg' => 'No se pudieron registrar los datos');
+                                }
                             } else {
-                                $arrayResponse = array('status' => false, 'msg' => "No se pudieron actualizar los datos");
+                                $rsta = $this->controller->RegistrarAulaLectiva(
+                                    $idAula,
+                                    $data['idAnioLectivo'],
+                                    $data['idDocente'],
+                                    $data['idTurno']
+                                );
+
+                                $arrayResponse = $rsta
+                                    ? array('status' => true, 'msg' => 'Datos registrados correctamente')
+                                    : array('status' => false, 'msg' => 'No se pudieron registrar los datos');
                             }
+                        } else {
+                            $rspta = '';
+
+                            $arrayResponse = $rspta
+                                ? array('status' => true, 'msg' => 'Datos actualizados correctamente')
+                                : array('status' => false, 'msg' => 'No se pudieron actualizar los datos');
                         }
                     }
                     echo json_encode($arrayResponse);

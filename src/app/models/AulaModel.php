@@ -70,6 +70,44 @@ class AulaModel
         $sql = "INSERT INTO aula(id_grado, id_nivel, seccion_aula, id_docente) VALUES (?,?,?,?)";
         return $this->db->queryExecute($sql, [$idGrado, $idNivel, $seccionAula, $idDocente]);
     }
+
+    public function RegistrarAula($idGrado, $seccionAula)
+    {
+        $sql = "INSERT INTO aula( id_grado, seccion_aula) VALUES (?,?)";
+        return $this->db->queryExecute($sql, [$idGrado, $seccionAula]);
+    }
+
+    public function RegistrarAulaLectiva(
+        $idAula,
+        $idAnioLectivo,
+        $idDocente,
+        $idTurno
+    ) {
+        $sql = "INSERT INTO aulalectiva(id_aula, id_aniolectivo, id_docente, id_turno) VALUES (?,?,?,?)";
+        return $this->db->queryExecute($sql, [$idAula, $idAnioLectivo, $idDocente, $idTurno]);
+    }
+
+    public function RegistrarCompleto(
+        $idGrado,
+        $seccionAula,
+        $idAnioLectivo,
+        $idDocente,
+        $idTurno
+    ) {
+        try {
+            $this->db->beginTransaction();
+            $this->RegistrarAula($idGrado, $seccionAula);
+            $idAula = $this->db->lastInsertId();
+            $this->RegistrarAulaLectiva($idAula, $idAnioLectivo, $idDocente, $idTurno);
+            $this->db->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->db->rollback();
+            error_log("Error en RegistrarCompleto: " . $e->getMessage());
+            return false;
+        }
+    }
+
     public function Editar($idAula,  $idNivel, $idGrado, $seccionAula, $idDocente)
     {
         $sql = "UPDATE aula SET id_grado = ?, id_nivel = ?, seccion_aula = ?, id_docente = ? WHERE id_aula = ?";

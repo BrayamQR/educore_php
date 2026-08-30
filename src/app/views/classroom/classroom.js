@@ -188,9 +188,15 @@ async function Mostrar(id) {
 }
 
 async function GuardaryEditar() {
-  try {
-    let form = document.getElementById("formClassroom");
-    const data = new FormData(form);
+  let form = document.getElementById("formClassroom");
+  const data = new FormData(form);
+  data.append("idAnioLectivo", anioLectivoActivo.id_aniolectivo);
+  console.log("--- Datos del formulario ---");
+  for (let [key, value] of data.entries()) {
+    console.log(key, ":", value);
+  }
+
+  /*
     let resp = await fetch(
       "../../../app/routes/aula.route.php?op=guardaryeditar",
       {
@@ -207,10 +213,7 @@ async function GuardaryEditar() {
       closeModalForm();
     } else {
       alert("Error al guardar:" + json.msg);
-    }
-  } catch (error) {
-    console.error(error);
-  }
+    }*/
 }
 
 async function verDetalles(id) {
@@ -396,10 +399,9 @@ window.openModalForm = async function (id = null) {
     anioLectivoActivo.anio;
   document.getElementById("infoVigenciaActiva").textContent =
     `${formatearFechaCorta(anioLectivoActivo.fecha_inicio)} - ${formatearFechaCorta(anioLectivoActivo.fecha_fin)}`;
-  if (!DialogFormClassroom) return;
 
-  DialogFormClassroom.open();
-  formClassroom = document.getElementById("formClassroom");
+  if (!DialogFormClassroom) return;
+  ModalManager.open(DialogFormClassroom);
   setTimeout(() => {
     if (id === null) {
       initInput();
@@ -616,6 +618,7 @@ function initInput() {
   campos.forEach((campo) => {
     if (typeof campo.initInput === "function") {
       campo.initInput();
+      campo.setDisabled(true);
     }
   });
 }
