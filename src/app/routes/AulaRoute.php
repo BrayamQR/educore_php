@@ -95,7 +95,7 @@ class AulaRoutes
                     $data = $this->DataForm();
                     if (
                         empty($data['idDocente']) ||
-                        empty($data['idTurno ']) ||
+                        empty($data['idTurno']) ||
                         empty($data['idAnioLectivo'])
                     ) {
                         $arrayResponse = array('status' => false, 'msg' => 'Error de datos');
@@ -105,7 +105,7 @@ class AulaRoutes
                         unset($data['idAulaLectiva']);
                         unset($data['submit']);
                         unset($data['idAula']);
-                        unset($data['idNivel ']);
+                        unset($data['idNivel']);
 
                         if (empty($idAulaLectiva)) {
                             if (empty($idAula)) {

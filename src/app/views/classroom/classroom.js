@@ -98,22 +98,17 @@ async function init() {
 }
 async function Listar() {
   document.getElementById("contentList").innerHTML = "";
-  try {
-    let resp = await fetch("../../../app/routes/aula.route.php?op=listar");
-    let json = await resp.json();
-    if (json.status) {
-      paginatorList.setData(json.data);
-    } else {
-      document.getElementById("contentList").innerHTML = `
+  const json = await apiRequest(ROUTES.AULA, "listar");
+  if (json.status) {
+    paginatorList.setData(json.data);
+  } else {
+    document.getElementById("contentList").innerHTML = `
         <div class="p-5 text-center text-gray-500">
           <i class="bi bi-emoji-astonished text-4xl mb-3 block"></i>
           <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
           <p class="text-sm mt-2 text-gray-400">No se encontraron perfiles registrados</p>
         </div>
       `;
-    }
-  } catch (error) {
-    console.error(error);
   }
 }
 
@@ -191,29 +186,15 @@ async function GuardaryEditar() {
   let form = document.getElementById("formClassroom");
   const data = new FormData(form);
   data.append("idAnioLectivo", anioLectivoActivo.id_aniolectivo);
-  console.log("--- Datos del formulario ---");
-  for (let [key, value] of data.entries()) {
-    console.log(key, ":", value);
-  }
 
-  /*
-    let resp = await fetch(
-      "../../../app/routes/aula.route.php?op=guardaryeditar",
-      {
-        method: "POST",
-        mode: "cors",
-        cache: "no-cache",
-        body: data,
-      },
-    );
-    let json = await resp.json();
-    if (json.status) {
-      AlertService.success("¡Exito!", json.msg);
-      Listar();
-      closeModalForm();
-    } else {
-      alert("Error al guardar:" + json.msg);
-    }*/
+  const json = await apiRequest(ROUTES.AULA, "guardaryeditar", data);
+
+  if (json.status) {
+    AlertService.success("¡Exito!", json.msg);
+    closeModalForm();
+  } else {
+    alert("Error al guardar:" + json.msg);
+  }
 }
 
 async function verDetalles(id) {
