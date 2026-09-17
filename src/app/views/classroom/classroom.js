@@ -162,24 +162,22 @@ function InputSearch() {
   }
 }
 
-async function Mostrar(id) {
-  const formData = new FormData();
-  formData.append("id", id);
-  try {
-    let resp = await fetch("../../../app/routes/aula.route.php?op=mostrar", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      body: formData,
-    });
-    let json = await resp.json();
-    if (json.status) {
-      document.getElementById("idAula").value = json.data.idAula;
-      initCustomValues(json.data);
-    }
-  } catch (error) {
-    console.error(error);
+async function ObtenerAula(id) {
+  const json = await apiRequest(ROUTES.AULA, "mostrar", { id });
+  if (!json.status) {
+    AlertService.error("Error", json.msg || "No se encontraron datos");
+    return null;
   }
+  return json.data;
+}
+
+async function Mostrar(id) {
+  const aula = await ObtenerAula(id);
+  if (!aula) return;
+  console.log(aula);
+  document.getElementById("idAulaLectiva").value = aula.idAulaLectiva;
+  document.getElementById("idAula").value = aula.idAula;
+  initCustomValues(aula);
 }
 
 async function GuardaryEditar() {
@@ -349,19 +347,19 @@ function renderRows(item) {
         icon="bi bi-eye-fill"
         btn-class="bg-sky-500 text-white hover:bg-sky-700"
         tooltip="Ver información"
-        onclick="openModalInfo(${item.id_aula})">
+        onclick="openModalInfo(${item.id_aulalectiva})">
       </custom-button-fab>
       <custom-button-fab
         icon="bi bi-tag-fill"
         btn-class="bg-purple-500 text-white hover:bg-purple-700"
         tooltip="Editar"
-        onclick="openModalForm(${item.id_aula})">
+        onclick="openModalForm(${item.id_aulalectiva})">
       </custom-button-fab>
       <custom-button-fab
         icon="bi bi-trash-fill"
         btn-class="bg-red-500 text-white hover:bg-red-700"
         tooltip="Eliminar"
-        onclick="onDelete(${item.id_aula})">
+        onclick="onDelete(${item.id_aulalectiva})">
       </custom-button-fab>
     </div>
   `;

@@ -10,7 +10,6 @@ import {
 let DialogFormAcademicShift = null;
 let DialogInfoAcademicShift = null;
 let campos = [];
-let inputSearch = null;
 let paginatorList = null;
 let formAcademicShift = null;
 let checkboxesDias = [];
@@ -18,8 +17,6 @@ let diasError = null;
 let anioLectivoActivo = null;
 let selectFiltroAnioLectivo = null;
 let ultimoAnio = null;
-let valorAnioAnterior = null;
-let valorTextoAnterior = "";
 let controladorFiltros = null;
 
 async function init() {
