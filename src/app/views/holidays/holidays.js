@@ -6,7 +6,7 @@ import {
   obtenerMesDia,
   apiRequest,
   ROUTES,
-  crearControladorFiltros,
+  crearGestorFiltros,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormHoliday = null;
@@ -17,11 +17,8 @@ let campos = [];
 let paginatorFeriadoNacional = null;
 let todosLosFeriadosNacionales = [];
 let feriadosNacionalesSeleccionados = new Set();
-let selectFiltroTipoFeriado = null;
-let selectFiltroAnioLectivo = null;
 let anioLectivoActivo = null;
 let ultimoAnio = null;
-let controladorFiltros = null;
 
 const CONTENIDO_POR_TIPO = {
   nacional: "contentFeriadosNacionales",
@@ -34,6 +31,41 @@ const CAMPOS_POR_TIPO_HOLIDAY = {
   rango: ["nomEvento", "rangoFechas", "tipoDiaNoLectivo"],
 };
 
+const FILTROS_CONFIG = [
+  {
+    key: "searchText",
+    selector: "custom-text-field[name='searchText']",
+    event: "input",
+    getValue: (el) => el.getValue()?.trim() || "",
+  },
+  {
+    key: "fechaInicio",
+    selector: "custom-datepicker[name='filtroFechaInicio']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+  {
+    key: "fechaFin",
+    selector: "custom-datepicker[name='filtroFechaFin']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+  {
+    key: "tipoFeriado",
+    selector: "custom-select[name='filtroTipoFeriado']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+  {
+    key: "anioLectivo",
+    selector: "custom-select[name='filtroAnioLectivo']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+];
+
+const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
+
 async function init() {
   await obtenerAnioActivo();
   await obtenerUltimoAnio();
@@ -44,28 +76,28 @@ async function init() {
     "paginatorFeriadoNacional",
   );
 
-  selectFiltroTipoFeriado = document.querySelector(
-    "custom-select[name='filtroTipoFeriado']",
-  );
-  if (selectFiltroTipoFeriado) {
-    const tipo = await getTipoDiaNoLectivo();
-    selectFiltroTipoFeriado.setOptions(tipo);
-  }
-
-  selectFiltroAnioLectivo = document.querySelector(
-    "custom-select[name='filtroAnioLectivo']",
-  );
-
-  if (selectFiltroAnioLectivo) {
-    const anios = await getAnioLectivo();
-    selectFiltroAnioLectivo.setOptions(anios);
-    if (ultimoAnio) {
-      selectFiltroAnioLectivo.setValue(ultimoAnio.id_aniolectivo);
-    }
-  }
-
   if (document.getElementById("contentList")) {
     initFiltros();
+
+    // Poblar los selects de filtro una vez que gestorFiltros ya cacheó los elementos
+    const { tipoFeriado, anioLectivo } = gestorFiltros.elementos;
+
+    if (tipoFeriado) {
+      tipoFeriado.setOptions(await getTipoDiaNoLectivo());
+    }
+
+    if (anioLectivo) {
+      const anios = await getAnioLectivo();
+      anioLectivo.setOptions(anios);
+      if (ultimoAnio) {
+        anioLectivo.setValue(ultimoAnio.id_aniolectivo);
+        gestorFiltros.controlador.sincronizar(
+          anioLectivo,
+          ultimoAnio.id_aniolectivo,
+        );
+      }
+    }
+
     Listar();
   }
 
@@ -176,8 +208,6 @@ function renderRowFeriadoPendiente(item) {
   let newdiv = document.createElement("div");
   newdiv.id = "rowFeriado_" + item.idPlantilla;
   newdiv.className =
-    "flex lg:flex-row flex-col gap-3 p-4 hover:bg-neutral-100 duration-300 ease-linear lg:justify-between lg:items-center";
-  newdiv.className =
     "flex lg:flex-row flex-col gap-3 p-4 hover:bg-neutral-100 duration-300 ease-linear lg:justify-between items-center";
   newdiv.innerHTML = `
     <div class="flex flex-col gap-2 lg:items-start items-center lg:text-left text-center">
@@ -278,7 +308,6 @@ async function actualizarCamposHoliday(tipo) {
         el.classList.remove("hidden");
       } else {
         el.classList.add("hidden");
-        // Limpiar valor al ocultar
         el.querySelectorAll(
           "custom-text-field, custom-datepicker, custom-select",
         ).forEach((c) => c.initInput?.());
@@ -293,7 +322,6 @@ async function actualizarCamposHoliday(tipo) {
     }
   }
 
-  // Actualizar estilos de card seleccionada
   const colores = {
     nacional: { border: "border-sky-500", bg: "bg-sky-50" },
     especifica: { border: "border-violet-500", bg: "bg-violet-50" },
@@ -382,91 +410,32 @@ async function getAnioLectivo() {
 
 async function obtenerAnioActivo() {
   const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obteneranioactivo");
-  if (json.status) {
-    anioLectivoActivo = json.data;
-  } else {
-    anioLectivoActivo = null;
-  }
+  anioLectivoActivo = json.status ? json.data : null;
 }
 
 async function obtenerUltimoAnio() {
   const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obtenerultimoanio");
-  if (json.status) {
-    ultimoAnio = json.data;
-  } else {
-    ultimoAnio = null;
-  }
+  ultimoAnio = json.status ? json.data : null;
 }
 
 function initFiltros() {
-  const searchText = document.querySelector(
-    "custom-text-field[name='searchText']",
-  );
-  const fechaInicio = document.querySelector(
-    "custom-datepicker[name='fechaInicio']",
-  );
-  const fechaFin = document.querySelector("custom-datepicker[name='fechaFin']");
-  const tipoFeriado = document.querySelector(
-    "custom-select[name='filtroTipoFeriado']",
-  );
-  const anioLectivo = document.querySelector(
-    "custom-select[name='filtroAnioLectivo']",
-  );
-  controladorFiltros = crearControladorFiltros(Filtrar);
-
-  controladorFiltros.registrar(
-    searchText,
-    "input",
-    (el) => el.getValue()?.trim() || "",
-  );
-
-  controladorFiltros.registrar(
-    fechaInicio,
-    "change",
-    (el) => el.getValue() || "",
-  );
-
-  controladorFiltros.registrar(fechaFin, "change", (el) => el.getValue() || "");
-
-  controladorFiltros.registrar(
-    tipoFeriado,
-    "change",
-    (el) => el.getValue() || "",
-  );
-
-  controladorFiltros.registrar(
-    anioLectivo,
-    "change",
-    (el) => el.getValue() || "",
-  );
+  gestorFiltros.inicializar();
 }
 
 async function Filtrar() {
-  const dato =
-    document
-      .querySelector("custom-text-field[name='searchText']")
-      ?.getValue()
-      ?.trim() || "";
-  const fechaInicio =
-    document
-      .querySelector("custom-datepicker[name='fechaInicio']")
-      ?.getValue() || "";
-  const fechaFin =
-    document.querySelector("custom-datepicker[name='fechaFin']")?.getValue() ||
-    "";
-  const tipoFeriado =
-    document
-      .querySelector("custom-select[name='filtroTipoFeriado']")
-      ?.getValue() || "";
-  const anioLectivo =
-    document
-      .querySelector("custom-select[name='filtroAnioLectivo']")
-      ?.getValue() || "";
+  const {
+    searchText: dato,
+    fechaInicio,
+    fechaFin,
+    tipoFeriado,
+    anioLectivo,
+  } = gestorFiltros.obtenerValores();
 
-  if (!dato && !fechaInicio && !fechaFin && !tipoFeriado && !anioLectivo) {
+  if (!gestorFiltros.hayFiltrosActivos()) {
     Listar();
     return;
   }
+
   document.getElementById("contentList").innerHTML = "";
   const json = await apiRequest(ROUTES.DIA_NO_LECTIVO, "buscar", {
     dato,
@@ -527,7 +496,6 @@ function poblarInfoDiaNoLectivo(data) {
   document.getElementById("nomTipoInfo2").textContent =
     data.nomTipoDiaNoLectivo || "-";
 
-  // Estado temporal
   const estado = calcularEstadoTemporal(data.fechaInicio, data.fechaFin);
   const estadoEl = document.getElementById("estadoTemporalInfo");
   estadoEl.textContent = estado.texto;
@@ -588,48 +556,11 @@ window.onDelete = async function (id) {
     }
   });
 };
+
 window.LimpiarFiltros = function () {
-  const searchText = document.querySelector(
-    "custom-text-field[name='searchText']",
-  );
-  if (searchText) {
-    controladorFiltros?.sincronizar(searchText, "");
-    searchText.initInput();
-  }
-  const fechaInicio = document.querySelector(
-    "custom-datepicker[name='fechaInicio']",
-  );
-  if (fechaInicio) {
-    controladorFiltros?.sincronizar(fechaInicio, "");
-    fechaInicio.initInput();
-  }
-
-  const fechaFin = document.querySelector("custom-datepicker[name='fechaFin']");
-  if (fechaFin) {
-    controladorFiltros?.sincronizar(fechaFin, "");
-    fechaFin.initInput();
-  }
-  const filtroTipoFeriado = document.querySelector(
-    "custom-select[name='filtroTipoFeriado']",
-  );
-  if (filtroTipoFeriado) {
-    controladorFiltros?.sincronizar(filtroTipoFeriado, "");
-    filtroTipoFeriado.initInput();
-  }
-
-  const selectAnio = document.querySelector(
-    "custom-select[name='filtroAnioLectivo']",
-  );
-  if (selectAnio) {
-    const valorReset = ultimoAnio ? ultimoAnio.id_aniolectivo : "";
-    controladorFiltros?.sincronizar(selectAnio, valorReset);
-    if (ultimoAnio) {
-      selectAnio.setValue(ultimoAnio.id_aniolectivo);
-    } else {
-      selectAnio.initInput();
-    }
-  }
-
+  gestorFiltros.limpiar({
+    anioLectivo: ultimoAnio ? ultimoAnio.id_aniolectivo : "",
+  });
   Listar();
 };
 
@@ -693,7 +624,6 @@ window.toggleFiltros = function () {
   const estaOculto = panel.classList.contains("hidden");
 
   if (estaOculto) {
-    // Abrir
     panel.classList.remove("hidden");
     panel.classList.add("flex");
 
@@ -717,7 +647,6 @@ window.toggleFiltros = function () {
       { once: true },
     );
   } else {
-    // Cerrar
     const alturaActual = panel.scrollHeight;
     panel.style.height = alturaActual + "px";
     panel.style.overflow = "hidden";
@@ -804,7 +733,6 @@ async function GuardarFeriadoManual(tipo) {
   formData.append("idAnioLectivo", anioLectivoActivo.id_aniolectivo);
   formData.append("tipoOrigen", "2");
 
-  // ✅ mapear fechas según tipo
   if (tipo === "especifica") {
     const fecha = formData.get("fechaEspecifica");
     formData.append("fechaInicio", fecha);

@@ -2,15 +2,26 @@ import {
   AlertService,
   apiRequest,
   ROUTES,
+  crearGestorFiltros,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormTeacher = null;
 let formTeacher = null;
-let inputSearch = null;
 let campos = [];
 let DialogInfoTeacher = null;
 
 let paginatorList = null;
+
+const FILTROS_CONFIG = [
+  {
+    key: "searchText",
+    selector: "custom-text-field[name='searchText']",
+    event: "input",
+    getValue: (el) => el.getValue()?.trim() || "",
+  },
+];
+
+const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
 
 function init() {
   DialogFormTeacher = document.getElementById("DialogFormTeacher");
@@ -27,6 +38,7 @@ function init() {
   }
 
   if (document.getElementById("contentList")) {
+    initFiltros();
     listar();
   }
   formTeacher = document.getElementById("formTeacher");
@@ -42,11 +54,6 @@ function init() {
       GuardaryEditar();
     });
     formTeacher.hasSubmitListener = true;
-  }
-
-  inputSearch = document.querySelector("custom-text-field[name='searchText']");
-  if (inputSearch) {
-    inputSearch.addEventListener("input", InputSearch);
   }
 }
 
@@ -118,42 +125,45 @@ function renderRows(item) {
   document.getElementById("contentList").appendChild(newdiv);
 }
 
-function InputSearch() {
-  let searchText = inputSearch.getValue().trim();
-  if (searchText === "") {
-    listar();
-  } else {
-    Buscar();
-  }
+function initFiltros() {
+  gestorFiltros.inicializar();
 }
 
-async function Buscar() {
-  document.getElementById("contentList").innerHTML = "";
-  let searchText = inputSearch.getValue().trim();
+async function Filtrar() {
+  const { searchText: dato } = gestorFiltros.obtenerValores();
 
+  if (!gestorFiltros.hayFiltrosActivos()) {
+    listar();
+    return;
+  }
+
+  document.getElementById("contentList").innerHTML = "";
   const json = await apiRequest(ROUTES.DOCENTE, "buscar", {
-    textsearch: searchText,
+    textsearch: dato,
   });
+
   if (json.status) {
-    let data = json.data;
-    if (paginatorList) {
-      paginatorList.setData(data);
-    } else {
-      data.forEach(renderRows);
-    }
+    paginatorList.setData(json.data);
   } else {
-    if (paginatorList) {
-      paginatorList.setData([]);
-    }
+    paginatorList.setData([]);
     document.getElementById("contentList").innerHTML = `
         <div class="p-5 text-center text-gray-500">
           <i class="bi bi-search text-4xl mb-3 block"></i>
           <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
-          ${searchText ? `<p class="text-sm mt-2 text-gray-400">Búsqueda: "${searchText}"</p>` : ""}
+          ${
+            dato
+              ? `<p class="text-sm mt-2 text-gray-400">Búsqueda: "${dato}"</p>`
+              : ""
+          }
         </div>
       `;
   }
 }
+
+window.LimpiarFiltros = function () {
+  gestorFiltros.limpiar();
+  listar();
+};
 
 async function ObtenerDocente(id) {
   const json = await apiRequest(ROUTES.DOCENTE, "mostrar", { id });

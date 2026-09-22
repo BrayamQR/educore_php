@@ -4,7 +4,7 @@ import {
   formatearFechaCorta,
   formatearHora,
   ROUTES,
-  crearControladorFiltros,
+  crearGestorFiltros,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormAcademicShift = null;
@@ -15,9 +15,24 @@ let formAcademicShift = null;
 let checkboxesDias = [];
 let diasError = null;
 let anioLectivoActivo = null;
-let selectFiltroAnioLectivo = null;
 let ultimoAnio = null;
-let controladorFiltros = null;
+
+const FILTROS_CONFIG = [
+  {
+    key: "searchText",
+    selector: "custom-text-field[name='searchText']",
+    event: "input",
+    getValue: (el) => el.getValue()?.trim() || "",
+  },
+  {
+    key: "anioLectivo",
+    selector: "custom-select[name='filtroAnioLectivo']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+];
+
+const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
 
 async function init() {
   await obtenerAnioActivo();
@@ -38,20 +53,24 @@ async function init() {
     });
   }
 
-  selectFiltroAnioLectivo = document.querySelector(
-    "custom-select[name='filtroAnioLectivo']",
-  );
-
-  if (selectFiltroAnioLectivo) {
-    const anios = await getAnioLectivo();
-    selectFiltroAnioLectivo.setOptions(anios);
-    if (ultimoAnio) {
-      selectFiltroAnioLectivo.setValue(ultimoAnio.id_aniolectivo);
-    }
-  }
-
   if (document.getElementById("contentList")) {
     initFiltros();
+
+    // Poblar el select de filtro una vez que gestorFiltros ya cacheó los elementos
+    const { anioLectivo } = gestorFiltros.elementos;
+
+    if (anioLectivo) {
+      const anios = await getAnioLectivo();
+      anioLectivo.setOptions(anios);
+      if (ultimoAnio) {
+        anioLectivo.setValue(ultimoAnio.id_aniolectivo);
+        gestorFiltros.controlador.sincronizar(
+          anioLectivo,
+          ultimoAnio.id_aniolectivo,
+        );
+      }
+    }
+
     Listar();
   }
 
@@ -304,11 +323,7 @@ function validateForm() {
 
 async function obtenerAnioActivo() {
   const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obteneranioactivo");
-  if (json.status) {
-    anioLectivoActivo = json.data;
-  } else {
-    anioLectivoActivo = null;
-  }
+  anioLectivoActivo = json.status ? json.data : null;
 }
 
 async function Listar() {
@@ -366,7 +381,7 @@ function renderRows(item) {
     </div>
     <div class="flex flex-wrap gap-2">
     ${
-      item.estado === 1
+      Number(item.estado) === 1
         ? `
         <custom-button-fab
         icon="bi bi-x-circle"
@@ -440,66 +455,24 @@ window.onChange = async function (id) {
 };
 
 function initFiltros() {
-  const searchText = document.querySelector(
-    "custom-text-field[name='searchText']",
-  );
-  const anioLectivo = document.querySelector(
-    "custom-select[name='filtroAnioLectivo']",
-  );
-
-  controladorFiltros = crearControladorFiltros(Filtrar);
-  controladorFiltros.registrar(
-    searchText,
-    "input",
-    (el) => el.getValue()?.trim() || "",
-  );
-  controladorFiltros.registrar(
-    anioLectivo,
-    "change",
-    (el) => el.getValue() || "",
-  );
+  gestorFiltros.inicializar();
 }
 
 window.LimpiarFiltros = function () {
-  const searchText = document.querySelector(
-    "custom-text-field[name='searchText']",
-  );
-  if (searchText) {
-    controladorFiltros?.sincronizar(searchText, "");
-    searchText.initInput();
-  }
-
-  const selectAnio = document.querySelector(
-    "custom-select[name='filtroAnioLectivo']",
-  );
-  if (selectAnio) {
-    const valorReset = ultimoAnio ? ultimoAnio.id_aniolectivo : "";
-    controladorFiltros?.sincronizar(selectAnio, valorReset);
-    if (ultimoAnio) {
-      selectAnio.setValue(ultimoAnio.id_aniolectivo);
-    } else {
-      selectAnio.initInput();
-    }
-  }
-
+  gestorFiltros.limpiar({
+    anioLectivo: ultimoAnio ? ultimoAnio.id_aniolectivo : "",
+  });
   Listar();
 };
 
 async function Filtrar() {
-  const dato =
-    document
-      .querySelector("custom-text-field[name='searchText']")
-      ?.getValue()
-      ?.trim() || "";
+  const { searchText: dato, anioLectivo } = gestorFiltros.obtenerValores();
 
-  const anioLectivo =
-    document
-      .querySelector("custom-select[name='filtroAnioLectivo']")
-      ?.getValue() || "";
-  if (!dato && !anioLectivo) {
+  if (!gestorFiltros.hayFiltrosActivos()) {
     Listar();
     return;
   }
+
   document.getElementById("contentList").innerHTML = "";
   const json = await apiRequest(ROUTES.TURNO_ACADEMICO, "buscar", {
     dato,
@@ -525,7 +498,6 @@ window.toggleFiltros = function () {
   const estaOculto = panel.classList.contains("hidden");
 
   if (estaOculto) {
-    // Abrir
     panel.classList.remove("hidden");
     panel.classList.add("flex");
 
@@ -549,7 +521,6 @@ window.toggleFiltros = function () {
       { once: true },
     );
   } else {
-    // Cerrar
     const alturaActual = panel.scrollHeight;
     panel.style.height = alturaActual + "px";
     panel.style.overflow = "hidden";
@@ -577,13 +548,10 @@ window.toggleFiltros = function () {
   btn.classList.toggle("text-blue-600");
   btn.classList.toggle("border-blue-300");
 };
+
 async function obtenerUltimoAnio() {
   const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obtenerultimoanio");
-  if (json.status) {
-    ultimoAnio = json.data;
-  } else {
-    ultimoAnio = null;
-  }
+  ultimoAnio = json.status ? json.data : null;
 }
 
 async function getAnioLectivo() {

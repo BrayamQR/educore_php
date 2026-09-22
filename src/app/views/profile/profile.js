@@ -2,6 +2,7 @@ import {
   AlertService,
   apiRequest,
   ROUTES,
+  crearGestorFiltros,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogformProfile = null;
@@ -9,11 +10,21 @@ let DialogInfoProfile = null;
 let DialogAssign = null;
 let formProfile = null;
 let campos = [];
-let inputSearch = null;
 let idsOriginalesAsignados = [];
 let idPerfilActual = null;
 
 let paginatorList = null;
+
+const FILTROS_CONFIG = [
+  {
+    key: "searchText",
+    selector: "custom-text-field[name='searchText']",
+    event: "input",
+    getValue: (el) => el.getValue()?.trim() || "",
+  },
+];
+
+const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
 
 function init() {
   DialogformProfile = document.getElementById("DialogformProfile");
@@ -31,6 +42,7 @@ function init() {
   }
 
   if (document.getElementById("contentList")) {
+    initFiltros();
     listar();
   }
   formProfile = document.getElementById("formProfile");
@@ -51,11 +63,6 @@ function init() {
     });
     formProfile.hasSubmitListener = true;
   }
-
-  inputSearch = document.querySelector("custom-text-field[name='searchText']");
-  if (inputSearch) {
-    inputSearch.addEventListener("input", InputSearch);
-  }
 }
 
 async function listar() {
@@ -74,31 +81,33 @@ async function listar() {
   }
 }
 
-async function Buscar() {
-  document.getElementById("contentList").innerHTML = "";
-  let searchText = inputSearch.getValue().trim();
+function initFiltros() {
+  gestorFiltros.inicializar();
+}
 
+async function Filtrar() {
+  const { searchText: dato } = gestorFiltros.obtenerValores();
+
+  if (!gestorFiltros.hayFiltrosActivos()) {
+    listar();
+    return;
+  }
+
+  document.getElementById("contentList").innerHTML = "";
   const json = await apiRequest(ROUTES.PERFIL, "buscar", {
-    textsearch: searchText,
+    textsearch: dato,
   });
   if (json.status) {
-    let data = json.data;
-    if (paginatorList) {
-      paginatorList.setData(data);
-    } else {
-      data.forEach(renderRows);
-    }
+    paginatorList.setData(json.data);
   } else {
-    if (paginatorList) {
-      paginatorList.setData([]);
-    }
+    paginatorList.setData([]);
     document.getElementById("contentList").innerHTML = `
         <div class="p-5 text-center text-gray-500">
           <i class="bi bi-search text-4xl mb-3 block"></i>
           <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
           ${
-            searchText
-              ? `<p class="text-sm mt-2 text-gray-400">Búsqueda: "${searchText}"</p>`
+            dato
+              ? `<p class="text-sm mt-2 text-gray-400">Búsqueda: "${dato}"</p>`
               : ""
           }
         </div>
@@ -106,14 +115,10 @@ async function Buscar() {
   }
 }
 
-function InputSearch() {
-  let searchText = inputSearch.getValue().trim();
-  if (searchText === "") {
-    listar();
-  } else {
-    Buscar();
-  }
-}
+window.LimpiarFiltros = function () {
+  gestorFiltros.limpiar();
+  listar();
+};
 
 async function ObtenerPerfil(id) {
   const json = await apiRequest(ROUTES.PERFIL, "mostrar", { id });
@@ -421,18 +426,14 @@ function renderizarCheckboxMenus(menus, idsAsignados = []) {
 
   if (!container) return;
 
-  // ✅ VALIDAR que menus sea un array antes de usarlo
   if (!menus || !Array.isArray(menus)) {
-    menus = []; // Asignar array vacío por defecto
+    menus = [];
   }
 
-  // Limpiar contenedor
   container.innerHTML = "";
 
-  // Actualizar total de menús disponibles
-  if (totalEl) totalEl.textContent = menus.length; // Ahora menus siempre es un array
+  if (totalEl) totalEl.textContent = menus.length;
 
-  // Validar si hay menús
   if (menus.length === 0) {
     container.innerHTML = `
       <div class="text-center py-8 text-gray-500">
@@ -443,19 +444,13 @@ function renderizarCheckboxMenus(menus, idsAsignados = []) {
     return;
   }
 
-  // Renderizar cada menú con checkbox
   menus.forEach((menu) => {
     const menuItem = crearCheckboxMenu(menu, idsAsignados);
     container.appendChild(menuItem);
   });
 
-  // Agregar listeners para la lógica padre-hijo
   agregarLogicaPadreHijo();
-
-  // Inicializar eventos de los botones y búsqueda
   inicializarEventosModal();
-
-  // Actualizar contador inicial
   actualizarContador();
 }
 
@@ -469,7 +464,6 @@ function agregarLogicaPadreHijo() {
       const menuId = this.value;
 
       if (isParent) {
-        // ✅ Si es padre: marcar/desmarcar todos los hijos
         const children = document.querySelectorAll(
           `[data-parent-id="${menuId}"]`,
         );
@@ -477,13 +471,11 @@ function agregarLogicaPadreHijo() {
           child.checked = this.checked;
         });
       } else {
-        // ✅ Si es hijo: marcar el padre si se selecciona
         if (this.checked && parentId) {
           const parent = document.getElementById(`menu-${parentId}`);
           if (parent) parent.checked = true;
         }
 
-        // ✅ Desmarcar padre si todos los hijos están desmarcados
         if (!this.checked && parentId) {
           const siblings = document.querySelectorAll(
             `[data-parent-id="${parentId}"]`,
@@ -497,7 +489,6 @@ function agregarLogicaPadreHijo() {
         }
       }
 
-      // Actualizar contador
       actualizarContador();
     });
   });
@@ -508,9 +499,8 @@ function crearCheckboxMenu(menu, idsAsignados = []) {
   div.className = "mb-3";
 
   const tieneHijos = menu.children && menu.children.length > 0;
-  const isChecked = idsAsignados.includes(menu.id_menu); // ✅ Verificar si está asignado
+  const isChecked = idsAsignados.includes(menu.id_menu);
 
-  // Menú padre
   div.innerHTML = `
     <div class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
       <input 
@@ -539,13 +529,12 @@ function crearCheckboxMenu(menu, idsAsignados = []) {
     </div>
   `;
 
-  // Si tiene hijos, agregar submenús indentados
   if (tieneHijos) {
     const childrenContainer = document.createElement("div");
     childrenContainer.className = "ml-10 mt-2 space-y-2";
 
     menu.children.forEach((child) => {
-      const isChildChecked = idsAsignados.includes(child.id_menu); // ✅ Verificar hijo
+      const isChildChecked = idsAsignados.includes(child.id_menu);
 
       childrenContainer.innerHTML += `
         <div class="flex items-center gap-3 p-2 rounded hover:bg-gray-50">
@@ -606,7 +595,6 @@ function buscarMenus() {
     .trim();
   const menuItems = document.querySelectorAll("#menusCheckboxContainer > div");
 
-  // Limpiar mensaje previo si existe
   const prevMsg = document.getElementById("noResultsMenu");
   if (prevMsg) prevMsg.remove();
 
@@ -633,7 +621,7 @@ function buscarMenus() {
 
     if (parentMatch || childMatch) {
       item.style.display = "";
-      hayCoincidencias = true; // 👈 encontró al menos uno
+      hayCoincidencias = true;
 
       if (childMatch && !parentMatch) {
         const childrenContainer = item.querySelector(".ml-10");
@@ -662,7 +650,6 @@ function buscarMenus() {
     }
   });
 
-  // 👇 Si no encontró nada, mostrar mensaje
   if (!hayCoincidencias) {
     const msg = document.createElement("div");
     msg.id = "noResultsMenu";
@@ -677,31 +664,26 @@ function buscarMenus() {
 }
 
 function inicializarEventosModal() {
-  // Botón: Seleccionar todos
   const btnSelectAll = document.getElementById("btnSelectAll");
   if (btnSelectAll) {
     btnSelectAll.onclick = seleccionarTodos;
   }
 
-  // Botón: Limpiar
   const btnClearAll = document.getElementById("btnClearAll");
   if (btnClearAll) {
     btnClearAll.onclick = limpiarSeleccion;
   }
 
-  // Botón: Resetear
   const btnReset = document.getElementById("btnResetPermisos");
   if (btnReset) {
     btnReset.onclick = resetearPermisos;
   }
 
-  // ✅ Botón: Guardar permisos
   const btnGuardar = document.getElementById("btnGuardarPermisos");
   if (btnGuardar) {
     btnGuardar.onclick = guardarPermisos;
   }
 
-  // Input: Búsqueda en tiempo real
   const searchInput = document.getElementById("searchMenu");
   if (searchInput) {
     searchInput.addEventListener("input", buscarMenus);
@@ -709,13 +691,11 @@ function inicializarEventosModal() {
 }
 
 function resetearPermisos() {
-  // Desmarcar todos primero
   const checkboxes = document.querySelectorAll(".menu-checkbox");
   checkboxes.forEach((checkbox) => {
     checkbox.checked = false;
   });
 
-  // ✅ Marcar solo los que estaban originalmente
   idsOriginalesAsignados.forEach((id) => {
     const checkbox = document.getElementById(`menu-${id}`);
     if (checkbox) {
@@ -723,11 +703,9 @@ function resetearPermisos() {
     }
   });
 
-  // Actualizar contador
   actualizarContador();
 }
 
-// Escuchar cambios en los checkboxes
 document.addEventListener("change", (e) => {
   if (e.target.classList.contains("menu-checkbox")) {
     actualizarContador();
@@ -738,10 +716,8 @@ function extraerIdsMenus(menus) {
   const ids = [];
 
   menus.forEach((menu) => {
-    // Agregar ID del padre
     ids.push(menu.id_menu);
 
-    // Agregar IDs de los hijos si existen
     if (menu.children && Array.isArray(menu.children)) {
       menu.children.forEach((child) => {
         ids.push(child.id_menu);

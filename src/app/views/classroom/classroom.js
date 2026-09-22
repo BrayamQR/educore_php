@@ -106,7 +106,7 @@ async function Listar() {
         <div class="p-5 text-center text-gray-500">
           <i class="bi bi-emoji-astonished text-4xl mb-3 block"></i>
           <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
-          <p class="text-sm mt-2 text-gray-400">No se encontraron perfiles registrados</p>
+          <p class="text-sm mt-2 text-gray-400">No se encontraron aulas registradas</p>
         </div>
       `;
   }

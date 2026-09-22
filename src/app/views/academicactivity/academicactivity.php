@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../../../css/main.css">
     <link rel="shortcut icon" href="../../../../public/logo2.png">
-    <title>Activiades académicas | Educore</title>
+    <title>Actividades académicas | Educore</title>
 </head>
 
 <body>
@@ -56,13 +56,13 @@
                         <div class="flex-1">
                             <custom-datepicker
                                 label="Fecha inicio"
-                                name="fechaInicio">
+                                name="filtroFechaInicio">
                             </custom-datepicker>
                         </div>
                         <div class="flex-1">
                             <custom-datepicker
                                 label="Fecha fin"
-                                name="fechaFin">
+                                name="filtroFechaFin">
                             </custom-datepicker>
                         </div>
                         <div class="flex-1">

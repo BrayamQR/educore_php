@@ -3,11 +3,9 @@ import {
   formatearFechaCorta,
   apiRequest,
   ROUTES,
-  formatearFecha,
-  formatearFechaNumerica,
   obtenerMesDia,
   formatearHora,
-  crearControladorFiltros,
+  crearGestorFiltros,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormAcademicActivity = null;
@@ -17,15 +15,46 @@ let campos = [];
 let checkboxesParticipantes = [];
 let fielsetParticipantes = null;
 let fieldsetLegentParticipante = null;
-let fecha = null;
 let participantesError = null;
 let anioLectivoActivo = null;
 let paginatorList = null;
 let ultimoAnio = null;
 let chkRango = null;
-let selectFiltroTipoActividad = null;
-let selectFiltroAnioLectivo = null;
-let controladorFiltros = null;
+
+const FILTROS_CONFIG = [
+  {
+    key: "searchText",
+    selector: "custom-text-field[name='searchText']",
+    event: "input",
+    getValue: (el) => el.getValue()?.trim() || "",
+  },
+  {
+    key: "fechaInicio",
+    selector: "custom-datepicker[name='filtroFechaInicio']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+  {
+    key: "fechaFin",
+    selector: "custom-datepicker[name='filtroFechaFin']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+  {
+    key: "tipoActividad",
+    selector: "custom-select[name='filtroTipoActividad']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+  {
+    key: "anioLectivo",
+    selector: "custom-select[name='filtroAnioLectivo']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+];
+
+const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
 
 async function init() {
   await obtenerAnioActivo();
@@ -60,27 +89,6 @@ async function init() {
   if (selectTipoActividad) {
     const tipo = await getTipoActividad();
     selectTipoActividad.setOptions(tipo);
-  }
-
-  selectFiltroTipoActividad = document.querySelector(
-    "custom-select[name='filtroTipoActividad']",
-  );
-
-  if (selectFiltroTipoActividad) {
-    const tipo = await getTipoActividad();
-    selectFiltroTipoActividad.setOptions(tipo);
-  }
-
-  selectFiltroAnioLectivo = document.querySelector(
-    "custom-select[name='filtroAnioLectivo']",
-  );
-
-  if (selectFiltroAnioLectivo) {
-    const anios = await getAnioLectivo();
-    selectFiltroAnioLectivo.setOptions(anios);
-    if (ultimoAnio) {
-      selectFiltroAnioLectivo.setValue(ultimoAnio.id_aniolectivo);
-    }
   }
 
   const tipoParticipante = await getTipoParticipante();
@@ -119,6 +127,26 @@ async function init() {
 
   if (document.getElementById("contentList")) {
     initFiltros();
+
+    // Poblar los selects de filtro una vez que gestorFiltros ya cacheó los elementos
+    const { tipoActividad, anioLectivo } = gestorFiltros.elementos;
+
+    if (tipoActividad) {
+      tipoActividad.setOptions(await getTipoActividad());
+    }
+
+    if (anioLectivo) {
+      const anios = await getAnioLectivo();
+      anioLectivo.setOptions(anios);
+      if (ultimoAnio) {
+        anioLectivo.setValue(ultimoAnio.id_aniolectivo);
+        gestorFiltros.controlador.sincronizar(
+          anioLectivo,
+          ultimoAnio.id_aniolectivo,
+        );
+      }
+    }
+
     Listar();
   }
 }
@@ -422,7 +450,6 @@ async function GuardaryEditar() {
   data.append("idAnioLectivo", anioLectivoActivo.id_aniolectivo);
   const registraAsistencia = document.getElementById("registraAsistencia");
   const suspendeClases = document.getElementById("suspendeClases");
-  const chkRangoFechas = document.getElementById("chkRangoFechas");
 
   data.set("registraAsistencia", registraAsistencia?.checked ? 1 : 0);
   data.set("suspendeClases", suspendeClases?.checked ? 1 : 0);
@@ -442,20 +469,12 @@ async function GuardaryEditar() {
 
 async function obtenerAnioActivo() {
   const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obteneranioactivo");
-  if (json.status) {
-    anioLectivoActivo = json.data;
-  } else {
-    anioLectivoActivo = null;
-  }
+  anioLectivoActivo = json.status ? json.data : null;
 }
 
 async function obtenerUltimoAnio() {
   const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obtenerultimoanio");
-  if (json.status) {
-    ultimoAnio = json.data;
-  } else {
-    ultimoAnio = null;
-  }
+  ultimoAnio = json.status ? json.data : null;
 }
 
 async function Listar() {
@@ -528,7 +547,7 @@ function renderRows(item) {
     </div>
     <div class="flex flex-wrap gap-2">
     ${
-      item.estado === 1
+      Number(item.estado) === 1
         ? `
         <custom-button-fab
         icon="bi bi-x-circle"
@@ -581,7 +600,7 @@ async function Mostrar(id) {
     chkRango.checked = true;
     toggleFechaFin(true);
   } else {
-    chkRango.cheched = false;
+    chkRango.checked = false;
     toggleFechaFin(false);
   }
   document.getElementById("idActividad").value = actividad.idActividad;
@@ -675,7 +694,6 @@ window.toggleFiltros = function () {
   const estaOculto = panel.classList.contains("hidden");
 
   if (estaOculto) {
-    // Abrir
     panel.classList.remove("hidden");
     panel.classList.add("flex");
 
@@ -699,7 +717,6 @@ window.toggleFiltros = function () {
       { once: true },
     );
   } else {
-    // Cerrar
     const alturaActual = panel.scrollHeight;
     panel.style.height = alturaActual + "px";
     panel.style.overflow = "hidden";
@@ -741,75 +758,23 @@ async function getAnioLectivo() {
 }
 
 function initFiltros() {
-  const searchText = document.querySelector(
-    "custom-text-field[name='searchText']",
-  );
-  const fechaInicio = document.querySelector(
-    "custom-datepicker[name='fechaInicio']",
-  );
-  const fechaFin = document.querySelector("custom-datepicker[name='fechaFin']");
-  const tipoActividad = document.querySelector(
-    "custom-select[name='filtroTipoActividad']",
-  );
-  const anioLectivo = document.querySelector(
-    "custom-select[name='filtroAnioLectivo']",
-  );
-
-  controladorFiltros = crearControladorFiltros(Filtrar);
-
-  controladorFiltros.registrar(
-    searchText,
-    "input",
-    (el) => el.getValue()?.trim() || "",
-  );
-
-  controladorFiltros.registrar(
-    fechaInicio,
-    "change",
-    (el) => el.getValue() || "",
-  );
-
-  controladorFiltros.registrar(fechaFin, "change", (el) => el.getValue() || "");
-
-  controladorFiltros.registrar(
-    tipoActividad,
-    "change",
-    (el) => el.getValue() || "",
-  );
-
-  controladorFiltros.registrar(
-    anioLectivo,
-    "change",
-    (el) => el.getValue() || "",
-  );
+  gestorFiltros.inicializar();
 }
 
 async function Filtrar() {
-  const dato =
-    document
-      .querySelector("custom-text-field[name='searchText']")
-      ?.getValue()
-      ?.trim() || "";
-  const fechaInicio =
-    document
-      .querySelector("custom-datepicker[name='fechaInicio']")
-      ?.getValue() || "";
-  const fechaFin =
-    document.querySelector("custom-datepicker[name='fechaFin']")?.getValue() ||
-    "";
-  const tipoActividad =
-    document
-      .querySelector("custom-select[name='filtroTipoActividad']")
-      ?.getValue() || "";
-  const anioLectivo =
-    document
-      .querySelector("custom-select[name='filtroAnioLectivo']")
-      ?.getValue() || "";
+  const {
+    searchText: dato,
+    fechaInicio,
+    fechaFin,
+    tipoActividad,
+    anioLectivo,
+  } = gestorFiltros.obtenerValores();
 
-  if (!dato && !fechaInicio && !fechaFin && !tipoActividad && !anioLectivo) {
+  if (!gestorFiltros.hayFiltrosActivos()) {
     Listar();
     return;
   }
+
   document.getElementById("contentList").innerHTML = "";
   const json = await apiRequest(ROUTES.ACTIVIDAD_ACADEMICA, "buscar", {
     dato,
@@ -832,47 +797,9 @@ async function Filtrar() {
 }
 
 window.LimpiarFiltros = function () {
-  const searchText = document.querySelector(
-    "custom-text-field[name='searchText']",
-  );
-  if (searchText) {
-    controladorFiltros?.sincronizar(searchText, "");
-    searchText.initInput();
-  }
-  const fechaInicio = document.querySelector(
-    "custom-datepicker[name='fechaInicio']",
-  );
-  if (fechaInicio) {
-    controladorFiltros?.sincronizar(fechaInicio, "");
-    fechaInicio.initInput();
-  }
-
-  const fechaFin = document.querySelector("custom-datepicker[name='fechaFin']");
-  if (fechaFin) {
-    controladorFiltros?.sincronizar(fechaFin, "");
-    fechaFin.initInput();
-  }
-  const filtroTipoActividad = document.querySelector(
-    "custom-select[name='filtroTipoActividad']",
-  );
-  if (filtroTipoActividad) {
-    controladorFiltros?.sincronizar(filtroTipoActividad, "");
-    filtroTipoActividad.initInput();
-  }
-
-  const selectAnio = document.querySelector(
-    "custom-select[name='filtroAnioLectivo']",
-  );
-  if (selectAnio) {
-    const valorReset = ultimoAnio ? ultimoAnio.id_aniolectivo : "";
-    controladorFiltros?.sincronizar(selectAnio, valorReset);
-    if (ultimoAnio) {
-      selectAnio.setValue(ultimoAnio.id_aniolectivo);
-    } else {
-      selectAnio.initInput();
-    }
-  }
-
+  gestorFiltros.limpiar({
+    anioLectivo: ultimoAnio ? ultimoAnio.id_aniolectivo : "",
+  });
   Listar();
 };
 

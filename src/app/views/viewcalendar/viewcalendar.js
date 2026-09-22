@@ -6,40 +6,55 @@ import {
   esLocale,
   sumarDias,
   hexToRgb,
-  crearControladorFiltros,
+  crearGestorFiltros,
 } from "../../../shared/js/globalscripts.js";
 
 let calendar;
-let selectFiltroAnioLectivo = null;
-let selectFiltroTipoEvento = null;
 let ultimoAnio = null;
-let controladorFiltros = null;
+
+const FILTROS_CONFIG = [
+  {
+    key: "anioLectivo",
+    selector: "custom-select[name='filtroAnioLectivo']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+  {
+    key: "tipoEvento",
+    selector: "custom-select[name='filtroTipoEvento']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+];
+
+const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
 
 async function init() {
   await obtenerUltimoAnio();
 
-  selectFiltroAnioLectivo = document.querySelector(
-    "custom-select[name='filtroAnioLectivo']",
-  );
-
-  selectFiltroTipoEvento = document.querySelector(
-    "custom-select[name='filtroTipoEvento']",
-  );
-
-  if (selectFiltroAnioLectivo) {
-    const anios = await getAnioLectivo();
-    selectFiltroAnioLectivo.setOptions(anios);
-    if (ultimoAnio) {
-      selectFiltroAnioLectivo.setValue(ultimoAnio.id_aniolectivo);
-    }
-  }
-
-  if (selectFiltroTipoEvento) {
-    const evento = await getTipoEvento();
-    selectFiltroTipoEvento.setOptions(evento);
-  }
   if (document.getElementById("calendar")) {
     initFiltros();
+
+    // Poblar los selects de filtro una vez que gestorFiltros ya cacheó los elementos
+    const { anioLectivo, tipoEvento } = gestorFiltros.elementos;
+
+    if (anioLectivo) {
+      const anios = await getAnioLectivo();
+      anioLectivo.setOptions(anios);
+      if (ultimoAnio) {
+        anioLectivo.setValue(ultimoAnio.id_aniolectivo);
+        gestorFiltros.controlador.sincronizar(
+          anioLectivo,
+          ultimoAnio.id_aniolectivo,
+        );
+      }
+    }
+
+    if (tipoEvento) {
+      const evento = await getTipoEvento();
+      tipoEvento.setOptions(evento);
+    }
+
     cargarCalendario();
   }
 }
@@ -61,7 +76,6 @@ function renderizarCalendario(data) {
   const periodos = prepararPeriodos(data.periodos);
   const eventos = data.eventos.map(mapearEvento);
 
-  // Si ya existe una instancia previa, destruirla antes de crear otra
   if (calendar) {
     calendar.destroy();
   }
@@ -317,11 +331,7 @@ async function getTipoEvento() {
 
 async function obtenerUltimoAnio() {
   const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obtenerultimoanio");
-  if (json.status) {
-    ultimoAnio = json.data;
-  } else {
-    ultimoAnio = null;
-  }
+  ultimoAnio = json.status ? json.data : null;
 }
 
 window.toggleFiltros = function () {
@@ -331,7 +341,6 @@ window.toggleFiltros = function () {
   const estaOculto = panel.classList.contains("hidden");
 
   if (estaOculto) {
-    // Abrir
     panel.classList.remove("hidden");
     panel.classList.add("flex");
 
@@ -355,7 +364,6 @@ window.toggleFiltros = function () {
       { once: true },
     );
   } else {
-    // Cerrar
     const alturaActual = panel.scrollHeight;
     panel.style.height = alturaActual + "px";
     panel.style.overflow = "hidden";
@@ -385,39 +393,13 @@ window.toggleFiltros = function () {
 };
 
 function initFiltros() {
-  const anioLectivo = document.querySelector(
-    "custom-select[name='filtroAnioLectivo']",
-  );
-  const tipoEvento = document.querySelector(
-    "custom-select[name='filtroTipoEvento']",
-  );
-
-  controladorFiltros = crearControladorFiltros(Filtrar);
-
-  controladorFiltros.registrar(
-    anioLectivo,
-    "change",
-    (el) => el.getValue() || "",
-  );
-
-  controladorFiltros.registrar(
-    tipoEvento,
-    "change",
-    (el) => el.getValue() || "",
-  );
+  gestorFiltros.inicializar();
 }
 
 async function Filtrar() {
-  const tipoEvento =
-    document
-      .querySelector("custom-select[name='filtroTipoEvento']")
-      ?.getValue() || "";
-  const anioLectivo =
-    document
-      .querySelector("custom-select[name='filtroAnioLectivo']")
-      ?.getValue() || "";
+  const { anioLectivo, tipoEvento } = gestorFiltros.obtenerValores();
 
-  if (!tipoEvento && !anioLectivo) {
+  if (!gestorFiltros.hayFiltrosActivos()) {
     await cargarCalendario();
     return;
   }
@@ -444,27 +426,9 @@ async function Filtrar() {
 }
 
 window.LimpiarFiltros = function () {
-  const filtroTipoEvento = document.querySelector(
-    "custom-select[name='filtroTipoEvento']",
-  );
-  if (filtroTipoEvento) {
-    controladorFiltros?.sincronizar(filtroTipoEvento, "");
-    filtroTipoEvento.initInput();
-  }
-
-  const selectAnio = document.querySelector(
-    "custom-select[name='filtroAnioLectivo']",
-  );
-  if (selectAnio) {
-    const valorReset = ultimoAnio ? ultimoAnio.id_aniolectivo : "";
-    controladorFiltros?.sincronizar(selectAnio, valorReset);
-    if (ultimoAnio) {
-      selectAnio.setValue(ultimoAnio.id_aniolectivo);
-    } else {
-      selectAnio.initInput();
-    }
-  }
-
+  gestorFiltros.limpiar({
+    anioLectivo: ultimoAnio ? ultimoAnio.id_aniolectivo : "",
+  });
   cargarCalendario();
 };
 

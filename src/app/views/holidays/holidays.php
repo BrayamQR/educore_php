@@ -55,13 +55,13 @@
                         <div class="flex-1">
                             <custom-datepicker
                                 label="Fecha inicio"
-                                name="fechaInicio">
+                                name="filtroFechaInicio">
                             </custom-datepicker>
                         </div>
                         <div class="flex-1">
                             <custom-datepicker
                                 label="Fecha fin"
-                                name="fechaFin">
+                                name="filtroFechaFin">
                             </custom-datepicker>
                         </div>
                         <div class="flex-1">

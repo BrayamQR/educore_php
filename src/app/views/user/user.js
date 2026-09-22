@@ -2,14 +2,25 @@ import {
   AlertService,
   apiRequest,
   ROUTES,
+  crearGestorFiltros,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormUser = null;
 let DialogInfoUser = null;
 let formUser = null;
 let campos = [];
-let inputSearch = null;
 let paginatorList = null;
+
+const FILTROS_CONFIG = [
+  {
+    key: "searchText",
+    selector: "custom-text-field[name='searchText']",
+    event: "input",
+    getValue: (el) => el.getValue()?.trim() || "",
+  },
+];
+
+const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
 
 function init() {
   paginatorList = document.getElementById("paginatorList");
@@ -18,14 +29,15 @@ function init() {
       const container = document.getElementById("contentList");
       container.innerHTML = "";
       e.detail.data.forEach(renderRows);
-      // ✅ Scroll al inicio
       container.scrollTo({ top: 0, behavior: "smooth" });
     });
   }
 
   DialogFormUser = document.getElementById("DialogFormUser");
   DialogInfoUser = document.getElementById("DialogInfoUser");
+
   if (document.getElementById("contentList")) {
+    initFiltros();
     Listar();
   }
   setupPasswordValidation();
@@ -42,11 +54,6 @@ function init() {
       GuardaryEditar();
     });
     formUser.hasSubmitListener = true;
-  }
-
-  inputSearch = document.querySelector("custom-text-field[name='searchText']");
-  if (inputSearch) {
-    inputSearch.addEventListener("input", InputSearch);
   }
 }
 
@@ -205,37 +212,44 @@ function renderRows(item) {
   document.getElementById("contentList").appendChild(newdiv);
 }
 
-async function Buscar() {
-  document.getElementById("contentList").innerHTML = "";
-  let searchText = inputSearch.getValue().trim();
+function initFiltros() {
+  gestorFiltros.inicializar();
+}
 
+async function Filtrar() {
+  const { searchText: dato } = gestorFiltros.obtenerValores();
+
+  if (!gestorFiltros.hayFiltrosActivos()) {
+    Listar();
+    return;
+  }
+
+  document.getElementById("contentList").innerHTML = "";
   const json = await apiRequest(ROUTES.USUARIO, "buscar", {
-    textsearch: searchText,
+    textsearch: dato,
   });
   if (json.status) {
-    let data = json.data;
-    if (paginatorList) {
-      paginatorList.setData(data);
-    } else {
-      data.forEach(renderRows);
-    }
+    paginatorList.setData(json.data);
   } else {
-    if (paginatorList) {
-      paginatorList.setData([]);
-    }
+    paginatorList.setData([]);
     document.getElementById("contentList").innerHTML = `
       <div class="p-5 text-center text-gray-500">
         <i class="bi bi-search text-4xl mb-3 block"></i>
         <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
         ${
-          searchText
-            ? `<p class="text-sm mt-2 text-gray-400">Búsqueda: "${searchText}"</p>`
+          dato
+            ? `<p class="text-sm mt-2 text-gray-400">Búsqueda: "${dato}"</p>`
             : ""
         }
       </div>
     `;
   }
 }
+
+window.LimpiarFiltros = function () {
+  gestorFiltros.limpiar();
+  Listar();
+};
 
 window.openModalForm = async function (id = null) {
   if (!DialogFormUser) return;
@@ -272,15 +286,6 @@ window.openModalForm = async function (id = null) {
     }
   }, 0);
 };
-
-function InputSearch() {
-  let searchText = inputSearch.getValue().trim();
-  if (searchText === "") {
-    Listar();
-  } else {
-    Buscar();
-  }
-}
 
 window.closeModalForm = function () {
   if (!DialogFormUser) return;
