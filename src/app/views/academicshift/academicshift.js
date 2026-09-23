@@ -5,11 +5,11 @@ import {
   formatearHora,
   ROUTES,
   crearGestorFiltros,
+  crearGestorFormulario,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormAcademicShift = null;
 let DialogInfoAcademicShift = null;
-let campos = [];
 let paginatorList = null;
 let formAcademicShift = null;
 let checkboxesDias = [];
@@ -34,6 +34,21 @@ const FILTROS_CONFIG = [
 
 const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
 
+// descCambio es un campo condicional: solo aparece (y solo debe validarse)
+// cuando se está editando un turno existente, controlado por la
+// visibilidad de #contDescCambio. El resto de campos se valida siempre.
+const gestorForm = crearGestorFormulario(() => formAcademicShift, {
+  selectorCampos:
+    "custom-text-field, custom-timepicker, custom-number-field, custom-textarea",
+  debeValidar: (campo) => {
+    if (campo.getAttribute("name") !== "descCambio") return true;
+    const contDescCambio = document.getElementById("contDescCambio");
+    return Boolean(
+      contDescCambio && !contDescCambio.classList.contains("hidden"),
+    );
+  },
+});
+
 async function init() {
   await obtenerAnioActivo();
   await obtenerUltimoAnio();
@@ -56,7 +71,6 @@ async function init() {
   if (document.getElementById("contentList")) {
     initFiltros();
 
-    // Poblar el select de filtro una vez que gestorFiltros ya cacheó los elementos
     const { anioLectivo } = gestorFiltros.elementos;
 
     if (anioLectivo) {
@@ -77,9 +91,6 @@ async function init() {
   if (formAcademicShift && !formAcademicShift.hasSubmitListener) {
     formAcademicShift.addEventListener("submit", (e) => {
       e.preventDefault();
-      campos = formAcademicShift.querySelectorAll(
-        "custom-text-field, custom-timepicker, custom-number-field",
-      );
       checkboxesDias = formAcademicShift.querySelectorAll(
         'input[name="dias[]"]',
       );
@@ -130,7 +141,7 @@ async function Mostrar(id) {
   const turno = await ObtenerTurno(id);
   if (!turno) return;
   document.getElementById("idTurno").value = turno.idTurno;
-  initCustomValues(turno);
+  gestorForm.poblar(turno);
   marcarDiasSeleccionados(turno.dias);
 }
 
@@ -235,7 +246,6 @@ function poblarInfoTurno(data) {
 
   document.getElementById("anioLectivoInfo").textContent = data.anio || "-";
 
-  // Estado (Activo/Inactivo)
   const dot = document.getElementById("dotEstadoInfo");
   const badge = document.getElementById("badgeEstadoInfo");
   const nomEstado = document.getElementById("nomEstadoInfo");
@@ -252,7 +262,6 @@ function poblarInfoTurno(data) {
     nomEstado.textContent = "Inactivo";
   }
 
-  // Días activos
   const contenedor = document.getElementById("listaDiasInfo");
   contenedor.innerHTML = "";
 
@@ -272,53 +281,25 @@ function poblarInfoTurno(data) {
 
 function initInput() {
   document.getElementById("idTurno").value = "";
-  campos = formAcademicShift.querySelectorAll(
-    "custom-text-field, custom-timepicker, custom-number-field, custom-textarea",
-  );
-  campos.forEach((campo) => {
-    if (typeof campo.initInput === "function") {
-      campo.initInput();
-    }
-  });
+  gestorForm.initInput();
 
   checkboxesDias = formAcademicShift.querySelectorAll('input[name="dias[]"]');
   checkboxesDias.forEach((chk) => (chk.checked = false));
   ocultarErrorDias();
-
-  const campoDescCambio = formAcademicShift.querySelector(
-    'custom-textarea[name="descCambio"]',
-  );
-  if (campoDescCambio && typeof campoDescCambio.initInput === "function") {
-    campoDescCambio.initInput();
-  }
 }
 
 function validateForm() {
-  let valid = true;
-
-  campos.forEach((campo) => {
-    if (!campo.checkValidity()) valid = false;
-  });
-
-  const contDescCambio = document.getElementById("contDescCambio");
-  const campoDescCambio = formAcademicShift.querySelector(
-    'custom-textarea[name="descCambio"]',
-  );
-  const descVisible =
-    contDescCambio && !contDescCambio.classList.contains("hidden");
-  if (descVisible && campoDescCambio && !campoDescCambio.checkValidity()) {
-    valid = false;
-  }
-
-  const algunoMarcado = getDiasSeleccionados().length > 0;
-  if (!algunoMarcado) {
-    mostrarErrorDias();
-    valid = false;
-  } else {
-    ocultarErrorDias();
-  }
-
-  return valid;
+  return gestorForm.validar([
+    () => {
+      const algunoMarcado = getDiasSeleccionados().length > 0;
+      if (algunoMarcado) {
+        ocultarErrorDias();
+      } else {
+        mostrarErrorDias();
+      }
+      return algunoMarcado;
+    },
+  ]);
 }
 
 async function obtenerAnioActivo() {

@@ -3,13 +3,12 @@ import {
   apiRequest,
   ROUTES,
   crearGestorFiltros,
+  crearGestorFormulario,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormTeacher = null;
 let formTeacher = null;
-let campos = [];
 let DialogInfoTeacher = null;
-
 let paginatorList = null;
 
 const FILTROS_CONFIG = [
@@ -23,6 +22,9 @@ const FILTROS_CONFIG = [
 
 const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
 
+const gestorForm = crearGestorFormulario(() => formTeacher, {
+  selectorCampos: "custom-select, custom-text-field",
+});
 function init() {
   DialogFormTeacher = document.getElementById("DialogFormTeacher");
   DialogInfoTeacher = document.getElementById("DialogInfoTeacher");
@@ -46,7 +48,6 @@ function init() {
   if (formTeacher && !formTeacher.hasSubmitListener) {
     formTeacher.addEventListener("submit", (e) => {
       e.preventDefault();
-      campos = formTeacher.querySelectorAll("custom-select, custom-text-field");
       if (!validateForm()) {
         console.log("Formulario con errores 🚫");
         return;
@@ -178,8 +179,8 @@ async function Mostrar(id) {
   const docente = await ObtenerDocente(id);
   if (!docente) return;
 
-  document.getElementById("idDocente").value = json.data.idDocente;
-  initCustomValues(json.data);
+  document.getElementById("idDocente").value = docente.idDocente;
+  gestorForm.poblar(docente);
 }
 
 async function GuardaryEditar() {
@@ -278,20 +279,11 @@ window.closeModalInfo = function () {
 
 function initInput() {
   document.getElementById("idDocente").value = "";
-  campos = formTeacher.querySelectorAll("custom-select, custom-text-field");
-  campos.forEach((campo) => {
-    if (typeof campo.initInput === "function") {
-      campo.initInput();
-    }
-  });
+  gestorForm.initInput();
 }
 
 function validateForm() {
-  let valid = true;
-  campos.forEach((campo) => {
-    if (!campo.checkValidity()) valid = false;
-  });
-  return valid;
+  return gestorForm.validar();
 }
 
 init();

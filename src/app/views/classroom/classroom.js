@@ -3,17 +3,23 @@ import {
   formatearFechaCorta,
   apiRequest,
   ROUTES,
+  crearGestorFormulario,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormClassroom = null;
 let DialogInfoClassroom = null;
 let DialogBuscarAula = null;
 let formClassroom = null;
-let campos = [];
 let inputSearch = null;
 let anioLectivoActivo = null;
 let ultimoAnio = null;
 let paginatorList = null;
+
+// Este formulario usa custom-autocomplete además de los tipos habituales,
+// por eso se pasa selectorCampos explícito.
+const gestorForm = crearGestorFormulario(() => formClassroom, {
+  selectorCampos: "custom-select, custom-text-field, custom-autocomplete",
+});
 
 async function init() {
   await obtenerAnioActivo();
@@ -42,9 +48,6 @@ async function init() {
   if (formClassroom && !formClassroom.hasSubmitListener) {
     formClassroom.addEventListener("submit", (e) => {
       e.preventDefault();
-      campos = formClassroom.querySelectorAll(
-        "custom-select, custom-text-field, custom-autocomplete",
-      );
       if (!validateForm()) {
         console.log("Formulario no válido");
         return;
@@ -174,10 +177,9 @@ async function ObtenerAula(id) {
 async function Mostrar(id) {
   const aula = await ObtenerAula(id);
   if (!aula) return;
-  console.log(aula);
   document.getElementById("idAulaLectiva").value = aula.idAulaLectiva;
   document.getElementById("idAula").value = aula.idAula;
-  initCustomValues(aula);
+  gestorForm.poblar(aula);
 }
 
 async function GuardaryEditar() {
@@ -591,23 +593,16 @@ window.closeModalBuscarAula = function () {
 function initInput() {
   document.getElementById("idAulaLectiva").value = "";
   document.getElementById("idAula").value = "";
-  campos = formClassroom.querySelectorAll(
-    "custom-select, custom-text-field, custom-autocomplete",
-  );
-  campos.forEach((campo) => {
-    if (typeof campo.initInput === "function") {
-      campo.initInput();
+  gestorForm.initInput();
+  gestorForm.campos.forEach((campo) => {
+    if (typeof campo.setDisabled === "function") {
       campo.setDisabled(true);
     }
   });
 }
 
 function validateForm() {
-  let valid = true;
-  campos.forEach((campo) => {
-    if (!campo.checkValidity()) valid = false;
-  });
-  return valid;
+  return gestorForm.validar();
 }
 
 init();

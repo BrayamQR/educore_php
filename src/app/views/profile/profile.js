@@ -3,16 +3,15 @@ import {
   apiRequest,
   ROUTES,
   crearGestorFiltros,
+  crearGestorFormulario,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogformProfile = null;
 let DialogInfoProfile = null;
 let DialogAssign = null;
 let formProfile = null;
-let campos = [];
 let idsOriginalesAsignados = [];
 let idPerfilActual = null;
-
 let paginatorList = null;
 
 const FILTROS_CONFIG = [
@@ -25,6 +24,10 @@ const FILTROS_CONFIG = [
 ];
 
 const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
+
+const gestorForm = crearGestorFormulario(() => formProfile, {
+  selectorCampos: "custom-text-field, custom-textarea",
+});
 
 function init() {
   DialogformProfile = document.getElementById("DialogformProfile");
@@ -50,10 +53,6 @@ function init() {
   if (formProfile && !formProfile.hasSubmitListener) {
     formProfile.addEventListener("submit", (e) => {
       e.preventDefault();
-      campos = formProfile.querySelectorAll(
-        "custom-text-field, custom-textarea",
-      );
-
       if (!validateForm()) {
         console.log("Formulario con errores 🚫");
         return;
@@ -134,7 +133,7 @@ async function Mostrar(id) {
   if (!perfil) return;
 
   document.getElementById("idPerfil").value = perfil.idPerfil;
-  initCustomValues(perfil);
+  gestorForm.poblar(perfil);
 }
 
 async function GuardaryEditar() {
@@ -270,11 +269,7 @@ function renderRows(item) {
 }
 
 function validateForm() {
-  let valid = true;
-  campos.forEach((campo) => {
-    if (!campo.checkValidity()) valid = false;
-  });
-  return valid;
+  return gestorForm.validar();
 }
 
 async function verDetalles(id) {
@@ -802,12 +797,7 @@ window.closeModalAsignar = function () {
 
 function initInput() {
   document.getElementById("idPerfil").value = "";
-  campos = formProfile.querySelectorAll("custom-text-field, custom-textarea");
-  campos.forEach((campo) => {
-    if (typeof campo.initInput === "function") {
-      campo.initInput();
-    }
-  });
+  gestorForm.initInput();
 }
 
 init();

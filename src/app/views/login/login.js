@@ -2,18 +2,20 @@ import {
   AlertService,
   apiRequest,
   ROUTES,
+  crearGestorFormulario,
 } from "../../../shared/js/globalscripts.js";
 
 let formLogin = null;
-let campos = [];
+
+const gestorForm = crearGestorFormulario(() => formLogin, {
+  selectorCampos: "custom-text-field",
+});
 
 function init() {
   formLogin = document.getElementById("formLogin");
 
   formLogin.addEventListener("submit", (e) => {
     e.preventDefault();
-    campos = formLogin.querySelectorAll("custom-text-field");
-
     if (!validateForm()) {
       console.log("Formulario con errores 🚫");
       return;
@@ -23,11 +25,7 @@ function init() {
 }
 
 function validateForm() {
-  let valid = true;
-  campos.forEach((campo) => {
-    if (!campo.checkValidity()) valid = false;
-  });
-  return valid;
+  return gestorForm.validar();
 }
 
 async function Login() {

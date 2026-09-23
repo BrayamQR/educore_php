@@ -16,3 +16,7 @@ export { apiRequest } from "../../assets/apiRequest.js";
 export { ROUTES } from "../../assets/routes.js";
 export { crearGestorFiltros } from "../../assets/filterUtils";
 export { default as esLocale } from "../../../node_modules/@fullcalendar/core/locales/es.js";
+export {
+  crearGestorFormulario,
+  initCustomValues,
+} from "../../assets/formUtils.js";

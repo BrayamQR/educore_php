@@ -7,13 +7,13 @@ import {
   apiRequest,
   ROUTES,
   crearGestorFiltros,
+  crearGestorFormulario,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormHoliday = null;
 let DialogInfoHoliday = null;
 let paginatorList = null;
 let formHoliday = null;
-let campos = [];
 let paginatorFeriadoNacional = null;
 let todosLosFeriadosNacionales = [];
 let feriadosNacionalesSeleccionados = new Set();
@@ -65,6 +65,14 @@ const FILTROS_CONFIG = [
 ];
 
 const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
+
+const gestorForm = crearGestorFormulario(() => formHoliday, {
+  selectorCampos: "custom-text-field, custom-datepicker, custom-select",
+  debeValidar: (campo) => {
+    const contenedor = campo.closest(".campo-feriado");
+    return !(contenedor && contenedor.classList.contains("hidden"));
+  },
+});
 
 async function init() {
   await obtenerAnioActivo();
@@ -698,9 +706,6 @@ window.grabar = async function () {
     }
     GuardarFeriadosNacionales();
   } else {
-    campos = formHoliday.querySelectorAll(
-      "custom-text-field, custom-datepicker, custom-select",
-    );
     if (!validateForm()) return;
     await GuardarFeriadoManual(tipoSeleccionado);
   }
@@ -768,22 +773,10 @@ window.closeModalInfo = function () {
 };
 
 function initInput() {
-  campos = formHoliday.querySelectorAll(
-    "custom-text-field, custom-datepicker, custom-select",
-  );
-  campos.forEach((campo) => {
-    if (typeof campo.initInput === "function") {
-      campo.initInput();
-    }
-  });
+  gestorForm.initInput();
 }
+
 function validateForm() {
-  let valid = true;
-  campos.forEach((campo) => {
-    const contenedor = campo.closest(".campo-feriado");
-    if (contenedor && contenedor.classList.contains("hidden")) return;
-    if (!campo.checkValidity()) valid = false;
-  });
-  return valid;
+  return gestorForm.validar();
 }
 init();

@@ -3,12 +3,12 @@ import {
   apiRequest,
   ROUTES,
   crearGestorFiltros,
+  crearGestorFormulario,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormUser = null;
 let DialogInfoUser = null;
 let formUser = null;
-let campos = [];
 let paginatorList = null;
 
 const FILTROS_CONFIG = [
@@ -21,6 +21,10 @@ const FILTROS_CONFIG = [
 ];
 
 const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
+
+const gestorForm = crearGestorFormulario(() => formUser, {
+  selectorCampos: "custom-text-field, custom-select",
+});
 
 function init() {
   paginatorList = document.getElementById("paginatorList");
@@ -46,7 +50,6 @@ function init() {
   if (formUser && !formUser.hasSubmitListener) {
     formUser.addEventListener("submit", (e) => {
       e.preventDefault();
-      campos = formUser.querySelectorAll("custom-text-field, custom-select");
       if (!validateForm()) {
         console.warn("formulario con errores 🚫");
         return;
@@ -86,7 +89,7 @@ async function Mostrar(id) {
   const usuario = await ObtenerUsuario(id);
   if (!usuario) return;
   document.getElementById("idUsuario").value = usuario.idUsuario;
-  initCustomValues(usuario);
+  gestorForm.poblar(usuario);
 }
 
 async function getPerfil() {
@@ -360,20 +363,11 @@ window.onRestaurarPassword = async function (id) {
 
 function initInput() {
   document.getElementById("idUsuario").value = "";
-  campos = formUser.querySelectorAll("custom-text-field, custom-select");
-  campos.forEach((campo) => {
-    if (typeof campo.initInput === "function") {
-      campo.initInput();
-    }
-  });
+  gestorForm.initInput();
 }
 
 function validateForm() {
-  let valid = true;
-  campos.forEach((campo) => {
-    if (!campo.checkValidity()) valid = false;
-  });
-  return valid;
+  return gestorForm.validar();
 }
 
 function setupPasswordValidation() {

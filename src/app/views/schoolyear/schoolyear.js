@@ -5,15 +5,15 @@ import {
   obtenerMesDia,
   apiRequest,
   ROUTES,
+  crearGestorFiltros,
+  crearGestorFormulario,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormSchoolYear = null;
 let DialogConfigPeriod = null;
 let DialogInfoSchoolYear = null;
 let formSchoolYear;
-let campos = [];
 let paginatorList = null;
-let inputSearch = null;
 let valoresOriginales = {};
 
 const CONFIG_PERIODO = {
@@ -35,6 +35,21 @@ const CONFIG_PERIODO = {
   },
 };
 
+const FILTROS_CONFIG = [
+  {
+    key: "searchText",
+    selector: "custom-text-field[name='searchText']",
+    event: "input",
+    getValue: (el) => el.getValue()?.trim() || "",
+  },
+];
+
+const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
+
+const gestorForm = crearGestorFormulario(() => formSchoolYear, {
+  selectorCampos: "custom-text-field, custom-datepicker, custom-select",
+});
+
 // ── INIT ─────────────────────────────────────────────────────
 function init() {
   paginatorList = document.getElementById("paginatorList");
@@ -52,6 +67,7 @@ function init() {
   DialogInfoSchoolYear = document.getElementById("DialogInfoSchoolYear");
 
   if (document.getElementById("contentList")) {
+    initFiltros();
     Listar();
   }
 
@@ -59,18 +75,10 @@ function init() {
   if (formSchoolYear && !formSchoolYear.hasSubmitListener) {
     formSchoolYear.addEventListener("submit", async (e) => {
       e.preventDefault();
-      campos = formSchoolYear.querySelectorAll(
-        "custom-text-field, custom-datepicker, custom-select",
-      );
       if (!validateForm()) return;
       GuardaryEditar();
     });
     formSchoolYear.hasSubmitListener = true;
-  }
-
-  inputSearch = document.querySelector("custom-text-field[name='searchText']");
-  if (inputSearch) {
-    inputSearch.addEventListener("input", InputSearch);
   }
 }
 
@@ -154,6 +162,46 @@ async function Listar() {
   verificarAniosVencidos();
 }
 
+// ── FILTROS ───────────────────────────────────────────────────
+function initFiltros() {
+  gestorFiltros.inicializar();
+}
+
+async function Filtrar() {
+  const { searchText: dato } = gestorFiltros.obtenerValores();
+
+  if (!gestorFiltros.hayFiltrosActivos()) {
+    Listar();
+    return;
+  }
+
+  document.getElementById("contentList").innerHTML = "";
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "buscar", {
+    textsearch: dato,
+  });
+  if (json.status) {
+    paginatorList.setData(json.data);
+  } else {
+    paginatorList.setData([]);
+    document.getElementById("contentList").innerHTML = `
+        <div class="p-5 text-center text-gray-500">
+          <i class="bi bi-search text-4xl mb-3 block"></i>
+          <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
+          ${
+            dato
+              ? `<p class="text-sm mt-2 text-gray-400">Búsqueda: "${dato}"</p>`
+              : ""
+          }
+        </div>
+      `;
+  }
+}
+
+window.LimpiarFiltros = function () {
+  gestorFiltros.limpiar();
+  Listar();
+};
+
 async function verDetalles(id) {
   const anioLectivo = await ObtenerAnioLectivo(id);
   if (!anioLectivo) return;
@@ -182,7 +230,6 @@ function poblarInfoAnio(data) {
   document.getElementById("mesCortoFinInfo").textContent = fin.mes;
   document.getElementById("diaNumeroFinInfo").textContent = fin.dia;
 
-  // Periodos
   const contenedor = document.getElementById("listaPeriodosInfo");
   contenedor.innerHTML = "";
 
@@ -356,12 +403,7 @@ function renderRows(item) {
 // ── INIT INPUT ────────────────────────────────────────────────
 function initInput() {
   document.getElementById("idAnioLectivo").value = "";
-  campos = formSchoolYear.querySelectorAll(
-    "custom-text-field, custom-datepicker, custom-select",
-  );
-  campos.forEach((campo) => {
-    if (typeof campo.initInput === "function") campo.initInput();
-  });
+  gestorForm.initInput();
   valoresOriginales = {};
   ["seccionInfoPeriodo", "seccionListaPeriodos", "seccionImportante"].forEach(
     (id) => {
@@ -387,7 +429,7 @@ async function Mostrar(id) {
   const anioLectivo = await ObtenerAnioLectivo(id);
   if (!anioLectivo) return;
   document.getElementById("idAnioLectivo").value = anioLectivo.idAnioLectivo;
-  initCustomValues(anioLectivo);
+  gestorForm.poblar(anioLectivo);
 
   valoresOriginales = {
     fechaInicio: anioLectivo.fechaInicio,
@@ -395,46 +437,6 @@ async function Mostrar(id) {
     idTipoPeriodo: String(anioLectivo.idTipoPeriodo),
   };
   initSelectTipoPeriodo();
-}
-
-function InputSearch() {
-  let searchText = inputSearch.getValue().trim();
-  if (searchText === "") {
-    Listar();
-  } else {
-    Buscar();
-  }
-}
-
-async function Buscar() {
-  document.getElementById("contentList").innerHTML = "";
-  let searchText = inputSearch.getValue().trim();
-  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "buscar", {
-    textsearch: searchText,
-  });
-  if (json.status) {
-    let data = json.data;
-    if (paginatorList) {
-      paginatorList.setData(data);
-    } else {
-      data.forEach(renderRows);
-    }
-  } else {
-    if (paginatorList) {
-      paginatorList.setData([]);
-    }
-    document.getElementById("contentList").innerHTML = `
-        <div class="p-5 text-center text-gray-500">
-          <i class="bi bi-search text-4xl mb-3 block"></i>
-          <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
-          ${
-            searchText
-              ? `<p class="text-sm mt-2 text-gray-400">Búsqueda: "${searchText}"</p>`
-              : ""
-          }
-        </div>
-      `;
-  }
 }
 
 window.onActive = async function (id) {
@@ -552,12 +554,10 @@ function poblarModalConfigPeriod(data) {
         );
         const dpFin = document.getElementById(`dpFin_${periodo.idPeriodo}`);
 
-        // ✅ Setear valores solo si existen
         if (periodo.fechaInicio && dpInicio)
           dpInicio.setValue(periodo.fechaInicio);
         if (periodo.fechaFin && dpFin) dpFin.setValue(periodo.fechaFin);
 
-        // ✅ Registrar listeners aquí dentro, una sola vez, cuando el elemento ya existe
         if (dpInicio && dpFin) {
           dpInicio.addEventListener("change", (e) => {
             if (!e.detail || !e.detail.value) return;
@@ -680,8 +680,8 @@ async function GuardaryEditar() {
     AlertService.warning("¡Atención!", json.msg);
   }
 }
-// ── BANNER AÑOS VENCIDOS ──────────────────────────────────────
 
+// ── BANNER AÑOS VENCIDOS ──────────────────────────────────────
 async function verificarAniosVencidos() {
   const banner = document.getElementById("bannerAniosVencidos");
   if (!banner) return;
@@ -744,11 +744,7 @@ window.cerrarAniosVencidos = async function () {
 
 // ── VALIDAR FORM ──────────────────────────────────────────────
 function validateForm() {
-  let valid = true;
-  campos.forEach((campo) => {
-    if (!campo.checkValidity()) valid = false;
-  });
-  return valid;
+  return gestorForm.validar();
 }
 
 function validatePeriodos() {

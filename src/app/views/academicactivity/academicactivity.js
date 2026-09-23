@@ -6,12 +6,12 @@ import {
   obtenerMesDia,
   formatearHora,
   crearGestorFiltros,
+  crearGestorFormulario,
 } from "../../../shared/js/globalscripts.js";
 
 let DialogFormAcademicActivity = null;
 let DialogInfoAcademicActivity = null;
 let formAcademicActivity = null;
-let campos = [];
 let checkboxesParticipantes = [];
 let fielsetParticipantes = null;
 let fieldsetLegentParticipante = null;
@@ -56,6 +56,11 @@ const FILTROS_CONFIG = [
 
 const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
 
+const gestorForm = crearGestorFormulario(() => formAcademicActivity, {
+  selectorCampos:
+    "custom-text-field, custom-select, custom-datepicker, custom-timepicker, custom-textarea",
+});
+
 async function init() {
   await obtenerAnioActivo();
   await obtenerUltimoAnio();
@@ -97,9 +102,6 @@ async function init() {
   if (formAcademicActivity && !formAcademicActivity.hasSubmitListener) {
     formAcademicActivity.addEventListener("submit", (e) => {
       e.preventDefault();
-      campos = formAcademicActivity.querySelectorAll(
-        "custom-text-field, custom-select,custom-datepicker, custom-timepicker, custom-textarea",
-      );
       if (!validateForm()) {
         console.log("Formulario no válido");
         return;
@@ -208,7 +210,6 @@ function poblarInfoActividad(data) {
 
   const esMismoDia = data.fechaInicio === data.fechaFin;
 
-  // ---- Fecha ----
   document.getElementById("fechaInfo").textContent = esMismoDia
     ? formatearFechaCorta(data.fechaInicio)
     : `${formatearFechaCorta(data.fechaInicio)} - ${formatearFechaCorta(data.fechaFin)}`;
@@ -217,13 +218,11 @@ function poblarInfoActividad(data) {
     ? data.diaInicio
     : `${data.diaInicio} - ${data.diaFin}`;
 
-  // ---- Estado temporal ----
   const estado = calcularEstadoTemporal(data.fechaInicio, data.fechaFin);
   const estadoEl = document.getElementById("estadoTemporalInfo");
   estadoEl.textContent = estado.texto;
   estadoEl.className = `inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${estado.bg} ${estado.text}`;
 
-  // ---- Hoja de calendario ----
   const calendarioDiaUnico = document.getElementById("calendarioDiaUnico");
   const calendarioRango = document.getElementById("calendarioRango");
 
@@ -250,7 +249,6 @@ function poblarInfoActividad(data) {
     document.getElementById("diaNumeroFinInfo").textContent = fin.dia;
   }
 
-  // ---- Tipo de actividad ----
   const dot = document.getElementById("dotTipoInfo");
   const badge = document.getElementById("badgeTipoInfo");
 
@@ -262,14 +260,11 @@ function poblarInfoActividad(data) {
   document.getElementById("nomTipoInfo").textContent =
     data.descTipoActividad || "-";
 
-  // ---- Horario ----
   document.getElementById("horarioInfo").textContent =
     `${formatearHora(data.horaIngreso)} - ${formatearHora(data.horaSalida)}`;
 
-  // ---- Lugar ----
   document.getElementById("lugarInfo").textContent = data.lugar || "-";
 
-  // ---- Registra asistencia ----
   const badgeAsistencia = document.getElementById("badgeAsistenciaInfo");
   if (data.registraAsistencia) {
     badgeAsistencia.className =
@@ -278,7 +273,6 @@ function poblarInfoActividad(data) {
     badgeAsistencia.className = "hidden";
   }
 
-  // ---- Suspende clases ----
   const badgeSuspension = document.getElementById("badgeSuspensionInfo");
   if (data.suspendeClases) {
     badgeSuspension.className =
@@ -287,7 +281,6 @@ function poblarInfoActividad(data) {
     badgeSuspension.className = "hidden";
   }
 
-  // ---- Participantes ----
   const contenedorParticipantes = document.getElementById(
     "listaParticipantesInfo",
   );
@@ -302,21 +295,12 @@ function poblarInfoActividad(data) {
   });
 
   document.getElementById("anioLectivoInfo").textContent = data.anio || "-";
-
-  // ---- Lugar ----
   document.getElementById("lugarInfo").textContent = data.lugar || "-";
 }
 
 function initInput() {
   document.getElementById("idActividad").value = "";
-  campos = formAcademicActivity.querySelectorAll(
-    "custom-text-field, custom-select,custom-datepicker, custom-timepicker, custom-textarea",
-  );
-  campos.forEach((campo) => {
-    if (typeof campo.initInput === "function") {
-      campo.initInput();
-    }
-  });
+  gestorForm.initInput();
 
   checkboxesParticipantes = formAcademicActivity.querySelectorAll(
     'input[name="participantes[]"]',
@@ -327,20 +311,17 @@ function initInput() {
 }
 
 function validateForm() {
-  let valid = true;
-
-  campos.forEach((campo) => {
-    if (!campo.checkValidity()) valid = false;
-  });
-
-  const algunoMarcado = getParticipantesSelect().length > 0;
-  if (!algunoMarcado) {
-    mostrarErrorParticipantes();
-    valid = false;
-  } else {
-    ocultarErrorParticipantes();
-  }
-  return valid;
+  return gestorForm.validar([
+    () => {
+      const algunoMarcado = getParticipantesSelect().length > 0;
+      if (algunoMarcado) {
+        ocultarErrorParticipantes();
+      } else {
+        mostrarErrorParticipantes();
+      }
+      return algunoMarcado;
+    },
+  ]);
 }
 
 async function getTipoParticipante() {
@@ -604,7 +585,7 @@ async function Mostrar(id) {
     toggleFechaFin(false);
   }
   document.getElementById("idActividad").value = actividad.idActividad;
-  initCustomValues(actividad);
+  gestorForm.poblar(actividad);
   marcarActividadesSeleccionadas(actividad.participantes);
 
   const registraAsistencia = document.getElementById("registraAsistencia");
