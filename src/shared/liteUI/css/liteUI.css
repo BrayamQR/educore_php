@@ -848,3 +848,7 @@ dialog-modal .modal-footer {
   background: #ffffff;
   cursor: text;
 }
+
+dialog-modal:not(:defined) {
+  display: none;
+}

@@ -48,7 +48,6 @@ class UsuarioRoutes
                         } else {
                             unset($data["idUsuario"]);
                             unset($data["submit"]);
-                            unset($data["confPassword"]);
 
                             $data["passUsuario"] = password_hash($data["passUsuario"], PASSWORD_BCRYPT);
 
@@ -64,8 +63,6 @@ class UsuarioRoutes
                             $arrayResponse = array('status' => false, 'msg' => 'Error de datos');
                         } else {
                             unset($data["submit"]);
-                            unset($data["confPassword"]);
-                            unset($data["passUsuario"]);
 
                             $rspta = $this->controller->Editar(...$data);
                             if ($rspta) {

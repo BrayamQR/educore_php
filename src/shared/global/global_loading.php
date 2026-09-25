@@ -15,13 +15,18 @@ $idPerfil = $_SESSION['usuario']['idPerfil'];
 
 $menuController = new MenuController();
 $menus = $menuController->listarByPerfil($idPerfil);
-
 $pathsPermitidos = [];
-if (!empty($menus)) {
-    foreach ($menus as $menu) {
-        $pathsPermitidos[] = $menu['path_menu'];
+$collectPaths = function ($nodes) use (&$pathsPermitidos, &$collectPaths) {
+    foreach ($nodes as $node) {
+        if (!empty($node['path_menu'])) {
+            $pathsPermitidos[] = $node['path_menu'];
+        }
+        if (!empty($node['children'])) {
+            $collectPaths($node['children']);
+        }
     }
-}
+};
+$collectPaths($menus);
 
 if (!in_array($currentPath, $pathsPermitidos)) {
     header('Location: /educore/src/app/views/home/home.php');

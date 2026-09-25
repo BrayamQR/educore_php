@@ -10,6 +10,8 @@
 </head>
 
 <body>
+    <div id="pageLoaderOverlay" class="fixed inset-0 bg-gray-200 flex items-center justify-center z-[9999]"></div>
+
     <main>
         <div
             class="bg-gray-200 w-full min-h-screen relative flex items-center justify-center">

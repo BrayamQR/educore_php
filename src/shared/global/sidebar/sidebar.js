@@ -5,20 +5,32 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function mostrarMenu(id) {
+  const sidebar = document.getElementById("sidebar");
+  const cacheKey = `menu_${id}`;
+  const cached = sessionStorage.getItem(cacheKey);
+
+  if (cached) {
+    // Pintado inmediato, sin esperar red
+    renderMenu(JSON.parse(cached), sidebar);
+    marcarActivo();
+  }
+
+  // Siempre se valida contra el backend, pero sin bloquear el render
   const json = await apiRequest(ROUTES.MENU, "listarByPerfil", { id });
   if (json.status) {
-    const sidebar = document.getElementById("sidebar");
-    sidebar.innerHTML = "";
-    renderMenu(json.data, sidebar);
-    marcarActivo();
+    const dataStr = JSON.stringify(json.data);
+    if (dataStr !== cached) {
+      sidebar.innerHTML = "";
+      renderMenu(json.data, sidebar);
+      marcarActivo();
+      sessionStorage.setItem(cacheKey, dataStr);
+    }
   } else {
     console.warn("No se encontraron menús");
   }
 }
 
 function renderMenu(items, container) {
-  container.innerHTML = "";
-
   items.forEach((item) => {
     const hasChildren = item.children && item.children.length > 0;
 

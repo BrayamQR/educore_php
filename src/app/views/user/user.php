@@ -115,22 +115,7 @@
                                 name="usuUsuario"
                                 required>
                             </custom-text-field>
-                            <div id="passFields" class="contents">
-                                <custom-text-field
-                                    type="password"
-                                    label="Contraseña"
-                                    name="passUsuario"
-                                    required>
-                                </custom-text-field>
-                                <custom-text-field
-                                    type="password"
-                                    label="Confirmar contraseña"
-                                    name="confPassword"
-                                    match="passUsuario"
-                                    error-match="Las contraseñas no coinciden"
-                                    required>
-                                </custom-text-field>
-                            </div>
+
                             <custom-select
                                 label="Perfil"
                                 name="idPerfil"

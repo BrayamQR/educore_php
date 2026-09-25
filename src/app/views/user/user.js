@@ -104,7 +104,7 @@ async function getPerfil() {
 async function GuardaryEditar() {
   let form = document.getElementById("formUser");
   const data = new FormData(form);
-
+  data.append("passUsuario", data.get("usuUsuario"));
   const json = await apiRequest(ROUTES.USUARIO, "guardaryeditar", data);
   if (json.status) {
     AlertService.success("¡Exito!", json.msg);

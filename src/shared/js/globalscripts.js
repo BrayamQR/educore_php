@@ -2,6 +2,7 @@ import "../liteUI/js/liteUI.js";
 import "../global/sidebar/sidebar.js";
 import "../global/header/header.js";
 export { AlertService } from "../../assets/AlertService.js";
+export { PageLoaderService } from "../../assets/PageLoader.js";
 export {
   formatearFecha,
   formatearHora,
@@ -20,3 +21,9 @@ export {
   crearGestorFormulario,
   initCustomValues,
 } from "../../assets/formUtils.js";
+
+import { PageLoaderService } from "../../assets/PageLoader.js";
+
+document.addEventListener("DOMContentLoaded", () => {
+  PageLoaderService.hide();
+});
