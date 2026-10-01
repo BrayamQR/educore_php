@@ -3,6 +3,7 @@ import {
   formatearFechaCorta,
   apiRequest,
   ROUTES,
+  crearGestorFiltros,
   crearGestorFormulario,
 } from "../../../shared/js/globalscripts.js";
 
@@ -15,8 +16,35 @@ let anioLectivoActivo = null;
 let ultimoAnio = null;
 let paginatorList = null;
 
-// Este formulario usa custom-autocomplete además de los tipos habituales,
-// por eso se pasa selectorCampos explícito.
+const FILTROS_CONFIG = [
+  {
+    key: "searchText",
+    selector: "custom-text-field[name='searchText']",
+    event: "input",
+    getValue: (el) => el.getValue()?.trim() || "",
+  },
+  {
+    key: "nivelAcademico",
+    selector: "custom-select[name='filtroNivelAcademico']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+  {
+    key: "turno",
+    selector: "custom-select[name='filtroTurno']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+  {
+    key: "anioLectivo",
+    selector: "custom-select[name='filtroAnioLectivo']",
+    event: "change",
+    getValue: (el) => el.getValue() || "",
+  },
+];
+
+const gestorFiltros = crearGestorFiltros(FILTROS_CONFIG, Filtrar);
+
 const gestorForm = crearGestorFormulario(() => formClassroom, {
   selectorCampos: "custom-select, custom-text-field, custom-autocomplete",
 });
@@ -30,6 +58,27 @@ async function init() {
   DialogBuscarAula = document.getElementById("DialogBuscarAula");
 
   if (document.getElementById("contentList")) {
+    initFiltros();
+
+    const { nivelAcademico, turno, anioLectivo } = gestorFiltros.elementos;
+    if (nivelAcademico) {
+      nivelAcademico.setOptions(await getNivel());
+    }
+
+    if (turno) {
+      turno.setOptions(await getTurno());
+    }
+    if (anioLectivo) {
+      const anios = await getAnioLectivo();
+      anioLectivo.setOptions(anios);
+      if (ultimoAnio) {
+        anioLectivo.setValue(ultimoAnio.id_aniolectivo);
+        gestorFiltros.controlador.sincronizar(
+          anioLectivo,
+          ultimoAnio.id_aniolectivo,
+        );
+      }
+    }
     Listar();
   }
 
@@ -115,55 +164,48 @@ async function Listar() {
   }
 }
 
-async function Buscar() {
+function initFiltros() {
+  gestorFiltros.inicializar();
+}
+
+async function Filtrar() {
+  const {
+    searchText: dato,
+    nivelAcademico,
+    turno,
+    anioLectivo,
+  } = gestorFiltros.obtenerValores();
+
+  if (!gestorFiltros.hayFiltrosActivos()) {
+    Listar();
+    return;
+  }
   document.getElementById("contentList").innerHTML = "";
-  let searchText = inputSearch.getValue().trim();
-  try {
-    let formData = new FormData();
-    formData.append("textsearch", searchText);
-    let resp = await fetch("../../../app/routes/aula.route.php?op=buscar", {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache",
-      body: formData,
-    });
-    let json = await resp.json();
-    if (json.status) {
-      let data = json.data;
-      if (paginatorList) {
-        paginatorList.setData(data);
-      } else {
-        data.forEach(renderRows);
-      }
-    } else {
-      if (paginatorList) {
-        paginatorList.setData([]);
-      }
-      document.getElementById("contentList").innerHTML = `
-        <div class="p-5 text-center text-gray-500">
-          <i class="bi bi-search text-4xl mb-3 block"></i>
-          <p class="font-medium">${json.msg || "No se encontraron datos"}</p>
-          ${
-            searchText
-              ? `<p class="text-sm mt-2 text-gray-400">Búsqueda: "${searchText}"</p>`
-              : ""
-          }
-        </div>
-      `;
-    }
-  } catch (error) {
-    console.error(error);
+  const json = await apiRequest(ROUTES.AULA, "buscar", {
+    dato,
+    idNivelAcademico: nivelAcademico,
+    idTurnoAcademico: turno,
+    idAnioLectivo: anioLectivo,
+  });
+  if (json.status) {
+    paginatorList.setData(json.data);
+  } else {
+    paginatorList.setData([]);
+    document.getElementById("contentList").innerHTML = `
+      <div class="p-5 text-center text-gray-500">
+        <i class="bi bi-search text-4xl mb-3 block"></i>
+        <p class="font-medium">No se encontraron resultados</p>
+        <p class="text-sm mt-2 text-gray-400">Intenta con otros filtros</p>
+      </div>`;
   }
 }
 
-function InputSearch() {
-  let searchText = inputSearch.getValue().trim();
-  if (searchText === "") {
-    Listar();
-  } else {
-    Buscar();
-  }
-}
+window.LimpiarFiltros = function () {
+  gestorFiltros.limpiar({
+    anioLectivo: ultimoAnio ? ultimoAnio.id_aniolectivo : "",
+  });
+  Listar();
+};
 
 async function ObtenerAula(id) {
   const json = await apiRequest(ROUTES.AULA, "mostrar", { id });
@@ -179,7 +221,20 @@ async function Mostrar(id) {
   if (!aula) return;
   document.getElementById("idAulaLectiva").value = aula.idAulaLectiva;
   document.getElementById("idAula").value = aula.idAula;
+  const gradoSelect = document.querySelector("custom-select[name='idGrado']");
+  if (gradoSelect && aula.idNivel) {
+    const opcionesGrado = await getGrado(aula.idNivel);
+    gradoSelect.setOptions(opcionesGrado);
+  }
   gestorForm.poblar(aula);
+
+  const docenteAutocomplete = document.querySelector(
+    "custom-autocomplete[name='idDocente']",
+  );
+  const turnoSelect = document.querySelector("custom-select[name='idTurno']");
+
+  if (docenteAutocomplete) docenteAutocomplete.setDisabled(false);
+  if (turnoSelect) turnoSelect.setDisabled(false);
 }
 
 async function GuardaryEditar() {
@@ -190,8 +245,9 @@ async function GuardaryEditar() {
   const json = await apiRequest(ROUTES.AULA, "guardaryeditar", data);
 
   if (json.status) {
-    AlertService.success("¡Exito!", json.msg);
     closeModalForm();
+    Listar();
+    AlertService.success("¡Exito!", json.msg);
   } else {
     alert("Error al guardar:" + json.msg);
   }
@@ -230,27 +286,14 @@ window.onDelete = async function (id) {
     "Esta acción no se puede deshacer.",
   ).then(async (result) => {
     if (result) {
-      let formData = new FormData();
-      formData.append("id", id);
-      try {
-        let resp = await fetch(
-          "../../../app/routes/aula.route.php?op=eliminar",
-          {
-            method: "POST",
-            mode: "cors",
-            cache: "no-cache",
-            body: formData,
-          },
-        );
-        let json = await resp.json();
-        if (json.status) {
-          AlertService.success("¡Éxito!", json.msg);
-          Listar();
-        } else {
-          AlertService.error("Error", json.msg);
-        }
-      } catch (error) {
-        console.error(error);
+      const json = await apiRequest(ROUTES.AULA, "eliminar", {
+        id,
+      });
+      if (json.status) {
+        AlertService.success("¡Exito!", json.msg);
+        Listar();
+      } else {
+        AlertService.warning("¡Atención!", json.msg);
       }
     }
   });
@@ -301,6 +344,18 @@ async function getAulas() {
   return [];
 }
 
+async function getAnioLectivo() {
+  const json = await apiRequest(ROUTES.ANIO_LECTIVO, "listar");
+  if (json.status) {
+    let data = json.data;
+    let ops = data.map((p) => ({
+      value: p.id_aniolectivo,
+      desc: p.anio,
+    }));
+    return ops;
+  }
+}
+
 async function obtenerAnioActivo() {
   const json = await apiRequest(ROUTES.ANIO_LECTIVO, "obteneranioactivo");
   if (json.status) {
@@ -337,6 +392,11 @@ function renderRows(item) {
             ? "bg-purple-300/40 text-purple-700"
             : "bg-orange-300/40 text-orange-700"
         }">${item.seccion_aula}</span>
+        <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${
+          item.id_turno === 1
+            ? "bg-green-300/40 text-green-700"
+            : "bg-sky-300/40 text-sky-700"
+        }">${item.nom_turno}</span>
       </div>
       <p class="text-neutral-500 text-sm">Tutor: ${item.nom_docente}</p>
       <div class="inline-flex self-start items-center gap-2 px-2 py-0.5 rounded-full ${item.id_nivel === 1 ? "bg-green-100" : "bg-blue-100"}">
@@ -604,5 +664,63 @@ function initInput() {
 function validateForm() {
   return gestorForm.validar();
 }
+
+window.toggleFiltros = function () {
+  const panel = document.getElementById("panelFiltros");
+  const btn = document.getElementById("btnToggleFiltros");
+
+  const estaOculto = panel.classList.contains("hidden");
+
+  if (estaOculto) {
+    panel.classList.remove("hidden");
+    panel.classList.add("flex");
+
+    const alturaFinal = panel.scrollHeight;
+    panel.style.height = "0px";
+    panel.style.overflow = "hidden";
+    panel.style.opacity = "0";
+    panel.style.transition = "height 0.3s ease, opacity 0.3s ease";
+
+    requestAnimationFrame(() => {
+      panel.style.height = alturaFinal + "px";
+      panel.style.opacity = "1";
+    });
+
+    panel.addEventListener(
+      "transitionend",
+      () => {
+        panel.style.height = "auto";
+        panel.style.overflow = "visible";
+      },
+      { once: true },
+    );
+  } else {
+    const alturaActual = panel.scrollHeight;
+    panel.style.height = alturaActual + "px";
+    panel.style.overflow = "hidden";
+
+    requestAnimationFrame(() => {
+      panel.style.height = "0px";
+      panel.style.opacity = "0";
+    });
+
+    panel.addEventListener(
+      "transitionend",
+      () => {
+        panel.classList.add("hidden");
+        panel.classList.remove("flex");
+        panel.style.height = "";
+        panel.style.overflow = "";
+        panel.style.opacity = "";
+        panel.style.transition = "";
+      },
+      { once: true },
+    );
+  }
+
+  btn.classList.toggle("bg-blue-100");
+  btn.classList.toggle("text-blue-600");
+  btn.classList.toggle("border-blue-300");
+};
 
 init();

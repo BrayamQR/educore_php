@@ -27,7 +27,7 @@
                             <span class="text-sm text-gray-500">Gestión de aulas y secciones</span>
                         </div>
                     </div>
-                    <div>
+                    <div class="flex flex-wrap items-center gap-2 justify-between">
                         <custom-button
                             id="btnNuevo"
                             btn-class="bg-blue-500 hover:bg-blue-900 text-white"
@@ -35,9 +35,16 @@
                             icon="bi bi-plus-lg"
                             onclick="openModalForm()">
                         </custom-button>
+                        <custom-button
+                            id="btnToggleFiltros"
+                            onclick="toggleFiltros()"
+                            icon="bi bi-sliders"
+                            label="Más filtros"
+                            btn-class="lg:hidden hover:bg-gray-200 text-gray-700">
+                        </custom-button>
                     </div>
                 </div>
-                <div>
+                <div class="flex flex-col gap-4">
                     <custom-text-field
                         class=""
                         label="Buscar aula..."
@@ -45,9 +52,37 @@
                         icon="bi bi-search"
                         clearable>
                     </custom-text-field>
+                    <div id="panelFiltros" class="hidden lg:flex flex-col lg:flex-row gap-4">
+                        <div class="flex-1">
+                            <custom-select
+                                label="Nivel académico"
+                                name="filtroNivelAcademico">
+                            </custom-select>
+                        </div>
+                        <div class="flex-1">
+                            <custom-select
+                                label="Turno"
+                                name="filtroTurno">
+                            </custom-select>
+                        </div>
+                        <div class="flex-1">
+                            <custom-select
+                                label="Año lectivo"
+                                name="filtroAnioLectivo">
+                            </custom-select>
+                        </div>
+                        <div class="shrink-0 flex items-center">
+                            <custom-button
+                                btn-class="hover:bg-gray-200 text-gray-700"
+                                label="Limpiar"
+                                icon="bi bi-x-circle"
+                                onclick="LimpiarFiltros()">
+                            </custom-button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="bg-white rounded-lg shadow-md flex flex-col  divide-neutral-200 divide-y overflow-y-auto lg:max-h-[calc(100vh-380px)] md:max-h-[calc(100vh-450px)]  scrollbar-thin scrollbar-track-gray-white scrollbar-thumb-neutral-400" id="contentList">
+            <div class="bg-white rounded-lg shadow-md flex flex-col  divide-neutral-200 divide-y overflow-y-auto lg:max-h-[calc(100vh-450px)] md:max-h-[calc(100vh-450px)] scrollbar-thin scrollbar-track-gray-white scrollbar-thumb-neutral-400" id="contentList">
 
             </div>
             <data-paginator id="paginatorList" items-per-page="20"></data-paginator>

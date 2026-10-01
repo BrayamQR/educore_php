@@ -74,7 +74,7 @@
                         name="idTipoDocumento"
                         required>
                         <option value="1">D.N.I.</option>
-                        <option value="2">CARNET DE EXTRANJERIA</option>
+                        <option value="2">Carné de extranjería</option>
                     </custom-select>
                     <custom-text-field
                         label="Doc. de identidad"
@@ -90,15 +90,15 @@
                         label="Cargo"
                         name="idCargo"
                         required>
-                        <option value="1">DOCENTE DE AULA</option>
-                        <option value="2">AUXILIAR DE AULA</option>
+                        <option value="1">Docente de aula</option>
+                        <option value="2">Auxiliar de aula</option>
                     </custom-select>
                     <custom-select
                         label="Tipo contrato"
                         name="idTipoContrato"
                         required>
-                        <option value="1">NOMBRADO</option>
-                        <option value="2">CONTRATADO</option>
+                        <option value="1">Nombrado</option>
+                        <option value="2">Contratado</option>
                     </custom-select>
                     <custom-text-field
                         label="Dirección"

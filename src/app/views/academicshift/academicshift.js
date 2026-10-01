@@ -166,9 +166,9 @@ async function GuardaryEditar() {
 
   const json = await apiRequest(ROUTES.TURNO_ACADEMICO, "guardaryeditar", data);
   if (json.status) {
-    AlertService.success("¡Exito!", json.msg);
     Listar();
     closeModalForm();
+    AlertService.success("¡Exito!", json.msg);
   } else {
     alert("Error al guardar:" + json.msg);
   }

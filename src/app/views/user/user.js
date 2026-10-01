@@ -107,9 +107,9 @@ async function GuardaryEditar() {
   data.append("passUsuario", data.get("usuUsuario"));
   const json = await apiRequest(ROUTES.USUARIO, "guardaryeditar", data);
   if (json.status) {
-    AlertService.success("¡Exito!", json.msg);
     Listar();
     closeModalForm();
+    AlertService.success("¡Exito!", json.msg);
   } else {
     alert("Error al guardar: " + json.msg);
   }

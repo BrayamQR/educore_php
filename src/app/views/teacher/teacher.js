@@ -188,9 +188,9 @@ async function GuardaryEditar() {
   const data = new FormData(form);
   const json = await apiRequest(ROUTES.DOCENTE, "guardaryeditar", data);
   if (json.status) {
-    AlertService.success("¡Exito!", json.msg);
     listar();
     closeModalForm();
+    AlertService.success("¡Exito!", json.msg);
   } else {
     alert("Error al guardar: " + json.msg);
   }

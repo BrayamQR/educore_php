@@ -621,11 +621,11 @@ window.realizarCierre = async function () {
 
     let json = await resp.json();
     if (json.status) {
-      AlertService.success("¡Éxito!", json.msg);
       fechasSeleccionadas.clear();
       closeModalCierre();
       Listar();
       verificarAlertaCierre();
+      AlertService.success("¡Éxito!", json.msg);
     } else {
       AlertService.error("Error", json.msg);
     }
@@ -689,10 +689,10 @@ window.justificarFaltas = async function () {
 
     let json = await resp.json();
     if (json.status) {
-      AlertService.success("¡Éxito!", json.msg);
       faltasSeleccionadas.clear();
       closeModalJustificar();
       Listar();
+      AlertService.success("¡Éxito!", json.msg);
     } else {
       AlertService.error("Error", json.msg);
     }
@@ -787,7 +787,6 @@ async function GenerarReporte() {
       );
     }
   } catch (error) {
-    console.error(error);
     AlertService.error("Error", "Error en la conexión con el servidor");
   }
 }

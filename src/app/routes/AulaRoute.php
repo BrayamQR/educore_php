@@ -54,26 +54,17 @@ class AulaRoutes
                 echo json_encode($arrayResponse);
                 break;
             case 'buscar';
-                if ($_POST) {
-                    $data = array();
-                    if (empty($_POST["textsearch"])) {
-                        $arrayResponse = array('status' => false, 'msg' => "Error de datos");
-                    } else {
-                        $search = trim($_POST["textsearch"]);
-                        $arrayResponse = array('status' => false, 'found' => 0, 'data' => '');
-
-                        $rspta = $this->controller->Buscar($search);
-                        if (!empty($rspta)) {
-                            $data = $rspta;
-                            $arrayResponse = array(
-                                'status' => true,
-                                'found' => count($data),
-                                'data' => $data
-                            );
-                        }
-                    }
-                    echo json_encode($arrayResponse);
+                $dato               = $_POST['dato']        ?? '';
+                $idNivelAcademico   = $_POST['idNivelAcademico'] ?? '';
+                $idTurnoAcademico   = $_POST['idTurnoAcademico']    ?? '';
+                $idAnioLectivo      = $_POST['idAnioLectivo'] ?? '';
+                $rspta = $this->controller->Buscar($dato, $idNivelAcademico, $idTurnoAcademico, $idAnioLectivo);
+                if (empty($rspta)) {
+                    $arrayResponse = array('status' => false, 'msg' => 'No se encontraron resultados');
+                } else {
+                    $arrayResponse = array('status' => true, 'data' => $rspta);
                 }
+                echo json_encode($arrayResponse);
                 break;
             case 'mostrar':
                 if ($_POST) {
@@ -137,7 +128,11 @@ class AulaRoutes
                                     : array('status' => false, 'msg' => 'No se pudieron registrar los datos');
                             }
                         } else {
-                            $rspta = '';
+                            $rspta = $this->controller->Editar(
+                                $idAulaLectiva,
+                                $data['idDocente'],
+                                $data['idTurno']
+                            );
 
                             $arrayResponse = $rspta
                                 ? array('status' => true, 'msg' => 'Datos actualizados correctamente')

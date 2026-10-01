@@ -725,9 +725,9 @@ async function GuardarFeriadosNacionales() {
     },
   );
   if (json.status) {
-    AlertService.success("¡Éxito!", json.msg);
     Listar();
     closeModalForm();
+    AlertService.success("¡Éxito!", json.msg);
   } else {
     AlertService.warning("¡Atención!", json.msg);
   }
@@ -752,9 +752,9 @@ async function GuardarFeriadoManual(tipo) {
     formData,
   );
   if (json.status) {
-    AlertService.success("¡Éxito!", json.msg);
     Listar();
     closeModalForm();
+    AlertService.success("¡Éxito!", json.msg);
   } else {
     AlertService.warning("¡Atención!", json.msg);
   }

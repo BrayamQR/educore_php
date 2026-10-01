@@ -23,9 +23,9 @@ class AulaController
         return $this->model->ListarAulas();
     }
 
-    public function Buscar($dato)
+    public function Buscar($dato, $idNivelAcademico, $idTurnoAcademico, $idAnioLectivo)
     {
-        return $this->model->Buscar($dato);
+        return $this->model->Buscar($dato, $idNivelAcademico, $idTurnoAcademico, $idAnioLectivo);
     }
 
     public function Mostrar($id)
@@ -68,9 +68,9 @@ class AulaController
         );
     }
 
-    public function Editar($idAula, $idNivel, $idGrado, $seccionAula, $idDocente)
+    public function Editar($idAulaLectiva, $idDocente, $idTurno)
     {
-        return $this->model->Editar($idAula,  $idNivel, $idGrado, $seccionAula, $idDocente);
+        return $this->model->Editar($idAulaLectiva, $idDocente, $idTurno);
     }
     public function Eliminar($id)
     {

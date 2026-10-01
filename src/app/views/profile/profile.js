@@ -141,9 +141,9 @@ async function GuardaryEditar() {
   const data = new FormData(form);
   const json = await apiRequest(ROUTES.PERFIL, "guardaryeditar", data);
   if (json.status) {
-    AlertService.success("¡Existo!", json.msg);
     listar();
     closeModalForm();
+    AlertService.success("¡Existo!", json.msg);
   } else {
     alert("Error al guardar: " + json.msg);
   }
@@ -741,9 +741,9 @@ async function guardarPermisos() {
   });
 
   if (json.status) {
-    AlertService.success("Éxito", json.msg);
     closeModalAsignar();
     listar();
+    AlertService.success("Éxito", json.msg);
   } else {
     AlertService.error("Error", json.msg);
   }

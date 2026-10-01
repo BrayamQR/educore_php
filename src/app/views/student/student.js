@@ -539,9 +539,9 @@ async function GuardaryEditar() {
     );
     let json = await resp.json();
     if (json.status) {
-      AlertService.success("¡Exito!", json.msg);
       Listar();
       closeModalForm();
+      AlertService.success("¡Exito!", json.msg);
     } else {
       alert("Error al grabar: " + json.msg);
     }
@@ -856,10 +856,9 @@ window.generarQRMasivo = async function () {
           ? `${json.generados} código${json.generados !== 1 ? "s" : ""} QR generado${json.generados !== 1 ? "s" : ""} correctamente. ${json.errores} con errores.`
           : `${json.generados} código${json.generados !== 1 ? "s" : ""} QR generado${json.generados !== 1 ? "s" : ""} correctamente`;
 
-      AlertService.success("¡Éxito!", mensaje);
-
       closeModalGenerarQRMasivo();
       Listar();
+      AlertService.success("¡Éxito!", mensaje);
     } else {
       AlertService.error(
         "Error",

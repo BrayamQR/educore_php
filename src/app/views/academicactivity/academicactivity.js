@@ -130,7 +130,6 @@ async function init() {
   if (document.getElementById("contentList")) {
     initFiltros();
 
-    // Poblar los selects de filtro una vez que gestorFiltros ya cacheó los elementos
     const { tipoActividad, anioLectivo } = gestorFiltros.elementos;
 
     if (tipoActividad) {
@@ -440,9 +439,9 @@ async function GuardaryEditar() {
     data,
   );
   if (json.status) {
-    AlertService.success("¡Exito!", json.msg);
     Listar();
     closeModalForm();
+    AlertService.success("¡Exito!", json.msg);
   } else {
     alert("Error al guardar:" + json.msg);
   }
