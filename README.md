@@ -7,7 +7,7 @@
 2. Instalar las dependencias de PHP con Composer:
 
 ```
-   composer install
+composer install
 ```
 
 3. Crear una base de datos MySQL.
@@ -17,19 +17,19 @@
 5. Copiar `.env.example` a `.env` y completar los valores según tu entorno:
 
 ```
-   cp .env.example .env
+cp .env.example .env
 ```
 
 6. Instalar las dependencias de Node:
 
 ```
-   npm install
+npm install
 ```
 
 o
 
 ```
-   npm install -y
+npm install -y
 ```
 
 7. De ser necesario ejecutar
